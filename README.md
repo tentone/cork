@@ -1,2 +1,9 @@
-# cork
-Cork stopper analysis and comparison vision system.
+# Cork
+ - Cork stopper analysis and comparison vision system.
+
+## Examples
+ - TODO
+
+## Dependencies
+ - OpenCV
+ - CMAKE
