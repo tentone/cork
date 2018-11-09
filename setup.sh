@@ -19,7 +19,7 @@ echo " - Installing depedencies."
 
 #Update aptitude repository
 apt-get update
-apt-get upgrade
+apt-get upgrade -y
 
 #Build tools
 apt-get install -y build-essential cmake unzip pkg-config git
