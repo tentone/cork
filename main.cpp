@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	VideoCapture cap(0);
 	Mat src;
 
-	int image = 1;
+	int fnumber = 1;
 
 	//Prepare output window
 	namedWindow(WINDOW_NAME, WINDOW_AUTOSIZE);
@@ -41,20 +41,20 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			src = imread("data/" + std::to_string(image) + ".jpg", IMREAD_COLOR);
+			src = imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
 		}
 
 		//Convert image to grayscale
 		Mat gray;
 		cvtColor(src, gray, COLOR_BGR2GRAY);
-		imshow("Gray", gray);
+		//imshow("Gray", gray);
 
 		//Detect circles
 		vector<Vec3f> circles;
 		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 16, 100, 30, 1, 100);
 
 		bool found = circles.size() > 0;
-		
+
 		//Draw circle outline
 		for(size_t i = 0; i < circles.size(); i++)
 		{
@@ -67,15 +67,13 @@ int main(int argc, char** argv)
 			Mat mask = Mat::zeros(src.rows, src.cols, CV_8UC1);
 			circle(mask, center, radius, Scalar(255,255,255), -1, 8, 0);
 			src.copyTo(cork, mask);
-			imshow("Cork Circle", cork);
+			Mat roi(cork, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
+			imshow("ROI", roi);
 
 			//Debug draw
 			circle(src, center, 1, Scalar(0,100,100), 2, LINE_AA);
 			circle(src, center, radius, Scalar(255,0,255), 1, LINE_AA);
 		}
-
-		//
-
 
 		imshow(WINDOW_NAME, src);
 		
@@ -88,13 +86,13 @@ int main(int argc, char** argv)
 			}
 			else if(key == KEY_LEFT)
 			{
-				image--;
-				image = image < 1 ? image = IMAGES_COUNT : image;
+				fnumber--;
+				fnumber = fnumber < 1 ? fnumber = IMAGES_COUNT : fnumber;
 			}
 			else if(key == KEY_RIGHT)
 			{
-				image++;
-				image = image > IMAGES_COUNT ? image = 1 : image;
+				fnumber++;
+				fnumber = fnumber > IMAGES_COUNT ? fnumber = 1 : fnumber;
 			}
 			else
 			{
