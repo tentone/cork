@@ -80,7 +80,7 @@ double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 		q1 += p_i;
 		q2 = 1. - q1;
 
-		if(std::min(q1, q2) < FLT_EPSILON || std::max(q1, q2) > 1.0 - FLT_EPSILON)
+		if(min(q1, q2) < FLT_EPSILON || max(q1, q2) > 1.0 - FLT_EPSILON)
 		{
 			continue;
 		}
@@ -103,8 +103,8 @@ double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval,
 {
 	if(mask.empty() || (mask.rows == src.rows && mask.cols == src.cols && countNonZero(mask) == src.rows * src.cols))
 	{
-		//If empty mask, or all-white mask, use cv::threshold
-		thresh = cv::threshold(src, dst, thresh, maxval, type);
+		//If empty mask, or all-white mask, use threshold
+		thresh = threshold(src, dst, thresh, maxval, type);
 	}
 	else
 	{
@@ -119,8 +119,8 @@ double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval,
 			type &= THRESH_MASK;
 		}
 
-		//Apply cv::threshold on all image
-		thresh = cv::threshold(src, dst, thresh, maxval, type);
+		//Apply threshold on all image
+		thresh = threshold(src, dst, thresh, maxval, type);
 
 		//Copy original image on inverted mask
 		src.copyTo(dst, ~mask);
@@ -129,7 +129,7 @@ double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval,
 	return thresh;
 }
 
-cv::Mat readImage(int index)
+Mat readImage(int index)
 {
 	fnumber = index;
 
@@ -142,7 +142,7 @@ cv::Mat readImage(int index)
 		fnumber = IMAGES_COUNT;
 	}
 
-	return imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
+	return imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
 }
 
 
@@ -202,11 +202,11 @@ int main(int argc, char** argv)
 			int radius = c[2];
 
 			//Create the roi
-			Mat roi(gray, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
+			Mat roi(gray, Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
 			Mat roi_bin;
 			
 			//Circle mask for the roi
-			Mat1b mask(roi.rows, roi.cols, uchar(255));
+			Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
 			circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
 
 			//Binarize the image
@@ -275,16 +275,16 @@ int main(int argc, char** argv)
 			double area = PI * radius * radius;
 			double defect = (count / area) * 100.0;
 
-			//std::cout << "Points: " << points << std::endl;
-			//std::cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << std::endl;
-			//std::cout << "Count: " << count << std::endl;
-			//std::cout << "Area: " << area << std::endl;
-			//std::cout << "Defect: " << defect << "%" << std::endl;
+			//cout << "Points: " << points << endl;
+			//cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << endl;
+			//cout << "Count: " << count << endl;
+			//cout << "Area: " << area << endl;
+			//cout << "Defect: " << defect << "%" << endl;
 
 			//Draw debug info
 			circle(image, center, 1, Scalar(0, 0, 255), 2, LINE_AA);
 			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
-			putText(image, std::to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+			putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
 		}
 
 		//Display result
@@ -301,16 +301,16 @@ int main(int argc, char** argv)
 			else if(key == KEY_LEFT)
 			{
 				readImage(--fnumber);
-				std::cout << "Fname:" << fnumber << std::endl;
+				cout << "Fname:" << fnumber << endl;
 			}
 			else if(key == KEY_RIGHT)
 			{
 				readImage(++fnumber);
-				std::cout << "Fname:" << fnumber << std::endl;
+				cout << "Fname:" << fnumber << endl;
 			}
 			else
 			{
-				std::cout << "Unkown key:" << key << std::endl;
+				cout << "Unkown key:" << key << endl;
 			}
 		}
 	}
