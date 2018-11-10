@@ -5,6 +5,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #define WINDOW_NAME "Cork"
 
@@ -18,6 +19,7 @@
 
 #define PI 3.14159265359
 
+#define IMAGES_START 0
 #define IMAGES_COUNT 20
 
 //Use adaptive thresold
@@ -27,20 +29,31 @@
 #define OTSU_THRESH false
 
 //Use custom otsu treshold with mask
-#define OTSU_THRESH_MASK true
-
-//Small erosion step to eliminate small defects
-#define ERODE false
+#define OTSU_THRESH_MASK false
 
 //Deblur picture before start
 #define DEBLUR_IMAGE false
 
-#define OUTSIDE_SKIRT_IGNORE_PX 2
+#define OUTSIDE_SKIRT_IGNORE_PX 0
 
 using namespace cv;
 using namespace std;
 
-int fnumber = 1;
+//File number
+int fnumber = IMAGES_START;
+
+//Hough parameters
+int minSpacing = 70;
+int lowCannyThreshold = 100;
+int highCannyThreshold = 30;
+int minSize = 25;
+int maxSize = 55;
+
+//Threshold parameters
+int threshold_bin = 60;
+
+//Erosion configuration (only used if above 0)
+int erosion = 0;
 
 double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 {
@@ -136,9 +149,9 @@ Mat readImage(int index)
 
 	if(fnumber > IMAGES_COUNT)
 	{
-		fnumber = 1;
+		fnumber = IMAGES_START;
 	}
-	if(fnumber < 1)
+	if(fnumber < IMAGES_START)
 	{
 		fnumber = IMAGES_COUNT;
 	}
@@ -150,6 +163,8 @@ Mat readImage(int index)
 int main(int argc, char** argv)
 {
 	VideoCapture cap;
+	//string video = "http://192.168.0.124:8080/video";
+
 	if(!cap.open(0))
 	{
 		cout << "Webcam not available." << endl;
@@ -166,6 +181,14 @@ int main(int argc, char** argv)
 		//else if(event == EVENT_MBUTTONDOWN)
 		//else if(event == EVENT_MOUSEMOVE)
 	} , &image);
+	createTrackbar("File", WINDOW_NAME, &fnumber, 20, [](int event, void* param){});
+	createTrackbar("Spacing", WINDOW_NAME, &minSpacing, 640, [](int event, void* param){});
+	createTrackbar("Canny low", WINDOW_NAME, &lowCannyThreshold, 200, [](int event, void* param){});
+	createTrackbar("Canny high", WINDOW_NAME, &highCannyThreshold, 200, [](int event, void* param){});
+	createTrackbar("Min size", WINDOW_NAME, &minSize, 640, [](int event, void* param){});
+	createTrackbar("Max size", WINDOW_NAME, &maxSize, 640, [](int event, void* param){});
+	createTrackbar("Threshold", WINDOW_NAME, &threshold_bin, 255, [](int event, void* param){});
+	createTrackbar("Erosion", WINDOW_NAME, &erosion, 10, [](int event, void* param){});
 
 	while(1)
 	{
@@ -192,11 +215,7 @@ int main(int argc, char** argv)
 
 		//Detect circles
 		vector<Vec3f> circles;
-		int minSpacing = gray.rows / 3;
-		int lowCannyThreshold = 100;
-		int highCannyThreshold = 30;
-		int maxSize = gray.rows / 2;
-		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, 10, maxSize);
+		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, minSize, maxSize);
 
 		bool found = circles.size() > 0;
 
@@ -206,16 +225,27 @@ int main(int argc, char** argv)
 			Vec3i c = circles[i];
 			Point center = Point(c[0], c[1]);
 			int radius = c[2];
+				
+			//cout << "Circle point: (" << center.x << ", " << center.y << ")" << endl;
+			//cout << "Circle radius: " << radius << endl;
+			
+			//Check if fully inside of the image
+			if(radius > center.x || radius > center.y || radius + center.x > gray.cols || radius + center.y > gray.rows)
+			{
+				continue;
+			}
 
 			//Create the roi
-			Mat roi(gray, Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
-			Mat roi_bin;
+			Rect roi_rect = Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
+			Mat roi = Mat(gray, roi_rect);
 			
 			//Circle mask for the roi
 			Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
 			circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
 
-			//Binarize the image
+			//Binarize the roi
+			Mat roi_bin;
+
 			if(ADAPTIVE_THRESH)
 			{
 				int block = radius / 2;
@@ -234,7 +264,8 @@ int main(int argc, char** argv)
 				{
 					if(OTSU_THRESH_MASK)
 					{
-						//threshold_with_mask(roi, roi_bin, 0, 255, THRESH_OTSU, mask);
+						//double thresh = otsu_8u_with_mask(src, mask);
+						//threshold(roi, roi_bin, 0, thresh, THRESH_BINARY, mask);
 					}
 					else
 					{					
@@ -243,7 +274,7 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					threshold(roi, roi_bin, 60, 255, THRESH_BINARY);
+					threshold(roi, roi_bin, threshold_bin, 255, THRESH_BINARY);
 				}
 			}
 
@@ -255,13 +286,11 @@ int main(int argc, char** argv)
 			//imshow("ROI Binary", roi_bin);
 
 			//Erode
-			if(ERODE)
+			if(erosion > 0)
 			{
-				int size = 1;
-				int kernel = 2 * size + 1;
-				Mat element = getStructuringElement(MORPH_CROSS, Size(kernel, kernel), Point(size, size));
+				int kernel = 2 * erosion + 1;
+				Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(erosion, erosion));
 				erode(roi_bin, roi_bin, element);
-				//imshow("ROI Eroded", roi_bin);
 			}
 
 			//Measure defective area
@@ -287,8 +316,23 @@ int main(int argc, char** argv)
 			//cout << "Area: " << area << endl;
 			//cout << "Defect: " << defect << "%" << endl;
 
-			//Draw debug info
-			circle(image, center, 1, Scalar(0, 0, 255), 2, LINE_AA);
+			//Draw defects
+			for(int i = 0; i < roi_bin.rows; i++)
+			{
+				for(int j = 0; j < roi_bin.cols; j++)
+				{
+					int t = (i * roi_bin.cols + j);// * 3;
+
+					if(roi_bin.data[t] > 0)
+					{
+						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+
+						image.data[k + 2] = (unsigned char) 255;
+					}
+				}
+			}
+
+			circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
 			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
 			putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
 		}
