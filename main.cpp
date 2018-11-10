@@ -2,45 +2,78 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 
+#define WINDOW_NAME "Cork"
+
 using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv)
 {
-	const char* filename = argc >=2 ? argv[1] : "./data/1.jpg";
+	const char* file = "data/1.jpg";
 
-	// Loads an image
-	Mat src = imread(filename, IMREAD_COLOR);
+	//VideoCapture cap(0);
+	Mat src = imread(file, IMREAD_COLOR);
 
-	// Check if image is loaded fine
-	if(src.empty())
+	//int width = cap.get(CAP_PROP_FRAME_WIDTH);
+	//int height = cap.get(CAP_PROP_FRAME_HEIGHT);
+	
+	//Prepare output window
+	namedWindow(WINDOW_NAME, WINDOW_AUTOSIZE);
+	//setMouseCallback(WINDOW_NAME, mouseEvents, &original);
+
+	/*if(cap.isOpened())
 	{
-		printf(" Error opening image\n");
-		printf(" Program Arguments: [image_name -- default %s] \n", filename);
-		return -1;
+		cap >> src;
+	}*/
+
+	while(1)
+	{
+		Mat gray;
+		cvtColor(src, gray, COLOR_BGR2GRAY);
+		medianBlur(gray, gray, 5);
+		vector<Vec3f> circles;
+
+		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 16, 100, 30, 1, 100);
+
+		//Draw circle outline
+		for(size_t i = 0; i < circles.size(); i++)
+		{
+			Vec3i c = circles[i];
+			Point center = Point(c[0], c[1]);
+
+			//Circle center
+			circle( src, center, 1, Scalar(0,100,100), 3, LINE_AA);
+
+			//Circle outline
+			int radius = c[2];
+			circle( src, center, radius, Scalar(255,0,255), 3, LINE_AA);
+		}
+
+		imshow(WINDOW_NAME, src);
+		
+		int key = waitKey(16);
+		if(key != -1)
+		{
+			if(key == 27)
+			{
+				return 0;
+			}
+		}
+
+		/*if(cap.isOpened())
+		{
+			cap >> src;
+		}*/
 	}
 
-	Mat gray;
-	cvtColor(src, gray, COLOR_BGR2GRAY);
-	medianBlur(gray, gray, 5);
-	vector<Vec3f> circles;
-	HoughCircles(gray, circles, HOUGH_GRADIENT, 1,gray.rows/16,  // change this value to detect circles with different distances to each other
-				 100, 30, 1, 30 // change the last two parameters
-			// (min_radius & max_radius) to detect larger circles
-	);
-
-	for(size_t i = 0; i < circles.size(); i++)
-	{
-		Vec3i c = circles[i];
-		Point center = Point(c[0], c[1]);
-		// circle center
-		circle( src, center, 1, Scalar(0,100,100), 3, LINE_AA);
-		// circle outline
-		int radius = c[2];
-		circle( src, center, radius, Scalar(255,0,255), 3, LINE_AA);
-	}
-
-	imshow("Cork", src);
-	waitKey();
 	return 0;
+}
+
+//Called on every mouse action
+void mouseEvents(int event, int x, int y, int flags, void *param)
+{
+	//if(event == EVENT_LBUTTONDOWN){}
+	//else if(event == EVENT_RBUTTONDOWN)
+	//else if(event == EVENT_MBUTTONDOWN)
+	//else if(event == EVENT_MOUSEMOVE)
 }
