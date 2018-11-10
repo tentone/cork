@@ -18,10 +18,15 @@
 #define IMAGES_COUNT 20
 
 //Choose between adaptive thresold or otsu binarization
-#define ADAPTIVE_THRESH true
+#define ADAPTIVE_THRESH false
+
+//Small erosion step to eliminate small defects
+#define ERODE false
 
 //Deblur picture before start
 #define DEBLUR_IMAGE false
+
+#define OUTSIDE_SKIRT_IGNORE_PX 3
 
 using namespace cv;
 using namespace std;
@@ -99,26 +104,23 @@ int main(int argc, char** argv)
 			Vec3i c = circles[i];
 			Point center = Point(c[0], c[1]);
 			int radius = c[2];
-			
-			std::cout << "Radius: " << radius << std::endl;
 
-			//circle(image, center, radius, Scalar(255,255,255), -1, 8, 0);
-
-			//Analyse defects in the roi
+			//Create the roi
 			Mat roi(gray, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
-			//imshow("ROI", roi);
-
 			Mat roibin;
-			
+				
+			//Binarize the image
 			if(ADAPTIVE_THRESH)
 			{
 				int block = radius / 2;
 				block = block % 2 == 0 ? block + 1 : block;
+				
+				adaptiveThreshold(roi, roibin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
 
-				std::cout << "block: " << block << std::endl;
-
-				adaptiveThreshold(roi, roibin, 200, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
-				erode(roibin, roibin, MORPH_ELLIPSE);
+				int size = 2;
+				int norm = 2 * size + 1;
+				Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
+				erode(roibin, roibin, element);
 			}
 			else
 			{
@@ -126,14 +128,26 @@ int main(int argc, char** argv)
 			}
 
 			//Mask outside of the cork
-			Mat mask = Mat(roibin.rows, roibin.cols, roibin.type(), Scalar(255,255,255));
-			circle(mask, Point(roibin.rows / 2, roibin.cols / 2), radius, Scalar(0,0,0), -1, 8, 0);
+			Mat mask = Mat(roibin.rows, roibin.cols, roibin.type(), Scalar(255, 255, 255));
+			circle(mask, Point(roibin.rows / 2, roibin.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
 			bitwise_or(mask, roibin, roibin);
 
+			//Invert binary roi
+			bitwise_not(roibin, roibin);
 			imshow("ROI Binary", roibin);
 
-			//Measure defective area
+			//Erode
+			if(ERODE)
+			{
+				int size = 1;
+				int kernel = 2 * size + 1;
+				Mat element = getStructuringElement(MORPH_CROSS, Size(kernel, kernel), Point(size, size));
+				erode(roibin, roibin, element);
+				//imshow("ROI Eroded", roibin);
+			}
 
+			//Measure defective area
+			//TODO <ADD CODE HERE>
 
 			//Draw circle
 			circle(image, center, 1, Scalar(0, 0, 255), 2, LINE_AA);
