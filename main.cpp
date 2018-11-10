@@ -149,7 +149,7 @@ Mat readImage(int index)
 
 int main(int argc, char** argv)
 {
-	VideoCapture cap(0);
+	VideoCapture cap(0, CAP_V4L);
 	Mat image;
 
 	//Prepare output window
