@@ -25,6 +25,9 @@
 //Use otsu binarization
 #define OTSU_THRESH false
 
+//Use custom otsu treshold with mask
+#define OTSU_THRESH_MASK true
+
 //Small erosion step to eliminate small defects
 #define ERODE false
 
@@ -37,36 +40,6 @@ using namespace cv;
 using namespace std;
 
 int fnumber = 1;
-
-
-double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval, int type, const Mat1b& mask = Mat1b())
-{
-	if(mask.empty() || (mask.rows == src.rows && mask.cols == src.cols && countNonZero(mask) == src.rows * src.cols))
-	{
-		//If empty mask, or all-white mask, use cv::threshold
-		thresh = cv::threshold(src, dst, thresh, maxval, type);
-	}
-	else
-	{
-		//Use mask
-		bool use_otsu = (type & THRESH_OTSU) != 0;
-		if(use_otsu)
-		{
-			//If OTSU, get thresh value on mask only
-			thresh = otsu_8u_with_mask(src, mask);
-			//Remove THRESH_OTSU from type
-			type &= THRESH_MASK;
-		}
-
-		//Apply cv::threshold on all image
-		thresh = cv::threshold(src, dst, thresh, maxval, type);
-
-		//Copy original image on inverted mask
-		src.copyTo(dst, ~mask);
-	}
-
-	return thresh;
-}
 
 double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 {
@@ -124,6 +97,36 @@ double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 	}
 
 	return max_val;
+}
+
+double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval, int type, const Mat1b& mask = Mat1b())
+{
+	if(mask.empty() || (mask.rows == src.rows && mask.cols == src.cols && countNonZero(mask) == src.rows * src.cols))
+	{
+		//If empty mask, or all-white mask, use cv::threshold
+		thresh = cv::threshold(src, dst, thresh, maxval, type);
+	}
+	else
+	{
+		//Use mask
+		bool use_otsu = (type & THRESH_OTSU) != 0;
+		if(use_otsu)
+		{
+			//If OTSU, get thresh value on mask only
+			thresh = otsu_8u_with_mask(src, mask);
+
+			//Remove THRESH_OTSU from type
+			type &= THRESH_MASK;
+		}
+
+		//Apply cv::threshold on all image
+		thresh = cv::threshold(src, dst, thresh, maxval, type);
+
+		//Copy original image on inverted mask
+		src.copyTo(dst, ~mask);
+	}
+
+	return thresh;
 }
 
 cv::Mat readImage(int index)
@@ -187,7 +190,7 @@ int main(int argc, char** argv)
 		int lowCannyThreshold = 100;
 		int highCannyThreshold = 30;
 		int maxSize = gray.rows / 2;
-		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, 0, maxSize);
+		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, 10, maxSize);
 
 		bool found = circles.size() > 0;
 
@@ -201,7 +204,11 @@ int main(int argc, char** argv)
 			//Create the roi
 			Mat roi(gray, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
 			Mat roi_bin;
-				
+			
+			//Circle mask for the roi
+			Mat1b mask(roi.rows, roi.cols, uchar(255));
+			circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
+
 			//Binarize the image
 			if(ADAPTIVE_THRESH)
 			{
@@ -219,7 +226,14 @@ int main(int argc, char** argv)
 			{
 				if(OTSU_THRESH)
 				{
-					threshold(roi, roi_bin, 0, 255, THRESH_BINARY + THRESH_OTSU);
+					if(OTSU_THRESH_MASK)
+					{
+						//threshold_with_mask(roi, roi_bin, 0, 255, THRESH_OTSU, mask);
+					}
+					else
+					{					
+						threshold(roi, roi_bin, 0, 255, THRESH_BINARY + THRESH_OTSU);
+					}
 				}
 				else
 				{
@@ -227,14 +241,12 @@ int main(int argc, char** argv)
 				}
 			}
 
-			//Mask outside of the cork
-			Mat mask = Mat(roi_bin.rows, roi_bin.cols, roi_bin.type(), Scalar(255, 255, 255));
-			circle(mask, Point(roi_bin.rows / 2, roi_bin.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
+			//Mask outside of the cork in roi bin
 			bitwise_or(mask, roi_bin, roi_bin);
 
 			//Invert binary roi
 			bitwise_not(roi_bin, roi_bin);
-			imshow("ROI Binary", roi_bin);
+			//imshow("ROI Binary", roi_bin);
 
 			//Erode
 			if(ERODE)
@@ -246,24 +258,20 @@ int main(int argc, char** argv)
 				//imshow("ROI Eroded", roi_bin);
 			}
 
+			//Measure defective area
 			double count = 0.0;
-			int points = 0;
-			unsigned char *input = (unsigned char*)(roi_bin.data);
+			unsigned char *data = (unsigned char*)(roi_bin.data);
 			for(int j = 0; j < roi_bin.rows; j++)
 			{
 				for(int i = 0; i < roi_bin.cols; i++)
 				{
-					if(input[roi_bin.step * j + i] > 0)
+					if(data[roi_bin.step * j + i] > 0)
 					{
 						count++;
 					}
-
-					points++;
 				}
 			}
 
-
-			//Measure defective area
 			double area = PI * radius * radius;
 			double defect = (count / area) * 100.0;
 
