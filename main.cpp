@@ -149,7 +149,12 @@ Mat readImage(int index)
 
 int main(int argc, char** argv)
 {
-	VideoCapture cap(0, CAP_V4L);
+	VideoCapture cap;
+	if(!cap.open(0))
+	{
+		cout << "Webcam not available." << endl;
+	}
+	
 	Mat image;
 
 	//Prepare output window
