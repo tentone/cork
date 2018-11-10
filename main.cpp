@@ -25,16 +25,8 @@
 //Use adaptive thresold
 #define ADAPTIVE_THRESH false
 
-//Use otsu binarization
-#define OTSU_THRESH false
-
-//Use custom otsu treshold with mask
-#define OTSU_THRESH_MASK false
-
 //Deblur picture before start
 #define DEBLUR_IMAGE false
-
-#define OUTSIDE_SKIRT_IGNORE_PX 0
 
 using namespace cv;
 using namespace std;
@@ -43,19 +35,25 @@ using namespace std;
 int fnumber = IMAGES_START;
 
 //Hough parameters
-int minSpacing = 70;
-int lowCannyThreshold = 100;
-int highCannyThreshold = 30;
-int minSize = 25;
-int maxSize = 55;
+int MIN_SPACING = 70;
+int LOW_CANNY_THRESH = 100;
+int HIGH_CANNY_THRESH = 30;
+int MIN_SIZE = 25;
+int MAX_SIZE = 55;
 
 //Threshold parameters
-int threshold_bin = 60;
+int THRESHOLD_BIN = 60;
 
 //Erosion configuration (only used if above 0)
-int erosion = 0;
+int EROSION_PX = 0;
 
-double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
+//Igore skirt
+int OUTSIDE_SKIRT_IGNORE_PX = 4;
+
+//Use otsu binarization
+int OTSU_THRESH = 0;
+
+double otsu_mask(const Mat1b src, const Mat1b& mask)
 {
 	const int N = 256;
 	int M = 0;
@@ -75,7 +73,7 @@ double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 		}
 	}
 
-	double mu = 0, scale = 1. / (M);
+	double mu = 0, scale = 1.0 / (M);
 	for(i = 0; i < N; i++)
 	{
 		mu += i*(double)h[i];
@@ -92,7 +90,7 @@ double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 		p_i = h[i] * scale;
 		mu1 *= q1;
 		q1 += p_i;
-		q2 = 1. - q1;
+		q2 = 1.0 - q1;
 
 		if(min(q1, q2) < FLT_EPSILON || max(q1, q2) > 1.0 - FLT_EPSILON)
 		{
@@ -111,36 +109,6 @@ double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
 	}
 
 	return max_val;
-}
-
-double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval, int type, const Mat1b& mask = Mat1b())
-{
-	if(mask.empty() || (mask.rows == src.rows && mask.cols == src.cols && countNonZero(mask) == src.rows * src.cols))
-	{
-		//If empty mask, or all-white mask, use threshold
-		thresh = threshold(src, dst, thresh, maxval, type);
-	}
-	else
-	{
-		//Use mask
-		bool use_otsu = (type & THRESH_OTSU) != 0;
-		if(use_otsu)
-		{
-			//If OTSU, get thresh value on mask only
-			thresh = otsu_8u_with_mask(src, mask);
-
-			//Remove THRESH_OTSU from type
-			type &= THRESH_MASK;
-		}
-
-		//Apply threshold on all image
-		thresh = threshold(src, dst, thresh, maxval, type);
-
-		//Copy original image on inverted mask
-		src.copyTo(dst, ~mask);
-	}
-
-	return thresh;
 }
 
 Mat readImage(int index)
@@ -179,14 +147,15 @@ int main(int argc, char** argv)
 		//else if(event == EVENT_MBUTTONDOWN)
 		//else if(event == EVENT_MOUSEMOVE)
 	} , &image);
-	createTrackbar("File", WINDOW_NAME, &fnumber, 20, [](int event, void* param){});
-	createTrackbar("Spacing", WINDOW_NAME, &minSpacing, 640, [](int event, void* param){});
-	createTrackbar("Canny low", WINDOW_NAME, &lowCannyThreshold, 200, [](int event, void* param){});
-	createTrackbar("Canny high", WINDOW_NAME, &highCannyThreshold, 200, [](int event, void* param){});
-	createTrackbar("Min size", WINDOW_NAME, &minSize, 640, [](int event, void* param){});
-	createTrackbar("Max size", WINDOW_NAME, &maxSize, 640, [](int event, void* param){});
-	createTrackbar("Threshold", WINDOW_NAME, &threshold_bin, 255, [](int event, void* param){});
-	createTrackbar("Erosion", WINDOW_NAME, &erosion, 10, [](int event, void* param){});
+	//createTrackbar("File", WINDOW_NAME, &fnumber, 20, [](int event, void* param){});
+	createTrackbar("Spacing", WINDOW_NAME, &MIN_SPACING, 640, [](int event, void* param){});
+	//createTrackbar("Canny low", WINDOW_NAME, &LOW_CANNY_THRESH, 200, [](int event, void* param){});
+	//createTrackbar("Canny high", WINDOW_NAME, &HIGH_CANNY_THRESH, 200, [](int event, void* param){});
+	createTrackbar("Min size", WINDOW_NAME, &MIN_SIZE, 640, [](int event, void* param){});
+	createTrackbar("Max size", WINDOW_NAME, &MAX_SIZE, 640, [](int event, void* param){});
+	createTrackbar("Threshold", WINDOW_NAME, &THRESHOLD_BIN, 120, [](int event, void* param){});
+	createTrackbar("Automatic threshold", WINDOW_NAME, &OTSU_THRESH, 1, [](int event, void* param){});
+	//createTrackbar("Erosion", WINDOW_NAME, &EROSION_PX, 10, [](int event, void* param){});
 
 	while(1)
 	{
@@ -213,7 +182,7 @@ int main(int argc, char** argv)
 
 		//Detect circles
 		vector<Vec3f> circles;
-		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, minSize, maxSize);
+		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
 
 		bool found = circles.size() > 0;
 
@@ -244,6 +213,8 @@ int main(int argc, char** argv)
 			//Binarize the roi
 			Mat roi_bin;
 
+			//roi = GaussianBlur(roi, (5, 5), 0);
+
 			if(ADAPTIVE_THRESH)
 			{
 				int block = radius / 2;
@@ -258,21 +229,15 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				if(OTSU_THRESH)
+				if(OTSU_THRESH == 1)
 				{
-					if(OTSU_THRESH_MASK)
-					{
-						//double thresh = otsu_8u_with_mask(src, mask);
-						//threshold(roi, roi_bin, 0, thresh, THRESH_BINARY, mask);
-					}
-					else
-					{					
-						threshold(roi, roi_bin, 0, 255, THRESH_BINARY + THRESH_OTSU);
-					}
+					double thresh = otsu_mask(roi, mask);
+					cout << "Automatic threshold: " << thresh << endl;
+					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 				else
 				{
-					threshold(roi, roi_bin, threshold_bin, 255, THRESH_BINARY);
+					threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
 				}
 			}
 
@@ -284,10 +249,10 @@ int main(int argc, char** argv)
 			//imshow("ROI Binary", roi_bin);
 
 			//Erode
-			if(erosion > 0)
+			if(EROSION_PX > 0)
 			{
-				int kernel = 2 * erosion + 1;
-				Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(erosion, erosion));
+				int kernel = 2 * EROSION_PX + 1;
+				Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(EROSION_PX, EROSION_PX));
 				erode(roi_bin, roi_bin, element);
 			}
 
