@@ -15,10 +15,15 @@
 #define KEY_W 119
 #define KEY_S 115
 
+#define PI 3.14159265359
+
 #define IMAGES_COUNT 20
 
-//Choose between adaptive thresold or otsu binarization
+//Use adaptive thresold
 #define ADAPTIVE_THRESH false
+
+//Use otsu binarization
+#define OTSU_THRESH false
 
 //Small erosion step to eliminate small defects
 #define ERODE false
@@ -26,12 +31,100 @@
 //Deblur picture before start
 #define DEBLUR_IMAGE false
 
-#define OUTSIDE_SKIRT_IGNORE_PX 3
+#define OUTSIDE_SKIRT_IGNORE_PX 2
 
 using namespace cv;
 using namespace std;
 
 int fnumber = 1;
+
+
+double threshold_with_mask(Mat1b& src, Mat1b& dst, double thresh, double maxval, int type, const Mat1b& mask = Mat1b())
+{
+	if(mask.empty() || (mask.rows == src.rows && mask.cols == src.cols && countNonZero(mask) == src.rows * src.cols))
+	{
+		//If empty mask, or all-white mask, use cv::threshold
+		thresh = cv::threshold(src, dst, thresh, maxval, type);
+	}
+	else
+	{
+		//Use mask
+		bool use_otsu = (type & THRESH_OTSU) != 0;
+		if(use_otsu)
+		{
+			//If OTSU, get thresh value on mask only
+			thresh = otsu_8u_with_mask(src, mask);
+			//Remove THRESH_OTSU from type
+			type &= THRESH_MASK;
+		}
+
+		//Apply cv::threshold on all image
+		thresh = cv::threshold(src, dst, thresh, maxval, type);
+
+		//Copy original image on inverted mask
+		src.copyTo(dst, ~mask);
+	}
+
+	return thresh;
+}
+
+double otsu_8u_with_mask(const Mat1b src, const Mat1b& mask)
+{
+	const int N = 256;
+	int M = 0;
+	int i, j, h[N] = {0};
+
+	for(i = 0; i < src.rows; i++)
+	{
+		const uchar* psrc = src.ptr(i);
+		const uchar* pmask = mask.ptr(i);
+		for(j = 0; j < src.cols; j++)
+		{
+			if(pmask[j])
+			{
+				h[psrc[j]]++;
+				++M;
+			}
+		}
+	}
+
+	double mu = 0, scale = 1. / (M);
+	for(i = 0; i < N; i++)
+	{
+		mu += i*(double)h[i];
+	}
+
+	mu *= scale;
+	double mu1 = 0, q1 = 0;
+	double max_sigma = 0, max_val = 0;
+
+	for(i = 0; i < N; i++)
+	{
+		double p_i, q2, mu2, sigma;
+
+		p_i = h[i] * scale;
+		mu1 *= q1;
+		q1 += p_i;
+		q2 = 1. - q1;
+
+		if(std::min(q1, q2) < FLT_EPSILON || std::max(q1, q2) > 1.0 - FLT_EPSILON)
+		{
+			continue;
+		}
+
+		mu1 = (mu1 + i*p_i) / q1;
+		mu2 = (mu - q1*mu1) / q2;
+		sigma = q1*q2*(mu1 - mu2)*(mu1 - mu2);
+
+		if(sigma > max_sigma)
+		{
+			max_sigma = sigma;
+			max_val = i;
+		}
+	}
+
+	return max_val;
+}
 
 cv::Mat readImage(int index)
 {
@@ -107,7 +200,7 @@ int main(int argc, char** argv)
 
 			//Create the roi
 			Mat roi(gray, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
-			Mat roibin;
+			Mat roi_bin;
 				
 			//Binarize the image
 			if(ADAPTIVE_THRESH)
@@ -115,26 +208,33 @@ int main(int argc, char** argv)
 				int block = radius / 2;
 				block = block % 2 == 0 ? block + 1 : block;
 				
-				adaptiveThreshold(roi, roibin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
+				adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
 
 				int size = 2;
 				int norm = 2 * size + 1;
 				Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
-				erode(roibin, roibin, element);
+				erode(roi_bin, roi_bin, element);
 			}
 			else
 			{
-				threshold(roi, roibin, 0, 255, THRESH_BINARY + THRESH_OTSU);
+				if(OTSU_THRESH)
+				{
+					threshold(roi, roi_bin, 0, 255, THRESH_BINARY + THRESH_OTSU);
+				}
+				else
+				{
+					threshold(roi, roi_bin, 60, 255, THRESH_BINARY);
+				}
 			}
 
 			//Mask outside of the cork
-			Mat mask = Mat(roibin.rows, roibin.cols, roibin.type(), Scalar(255, 255, 255));
-			circle(mask, Point(roibin.rows / 2, roibin.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
-			bitwise_or(mask, roibin, roibin);
+			Mat mask = Mat(roi_bin.rows, roi_bin.cols, roi_bin.type(), Scalar(255, 255, 255));
+			circle(mask, Point(roi_bin.rows / 2, roi_bin.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
+			bitwise_or(mask, roi_bin, roi_bin);
 
 			//Invert binary roi
-			bitwise_not(roibin, roibin);
-			imshow("ROI Binary", roibin);
+			bitwise_not(roi_bin, roi_bin);
+			imshow("ROI Binary", roi_bin);
 
 			//Erode
 			if(ERODE)
@@ -142,16 +242,41 @@ int main(int argc, char** argv)
 				int size = 1;
 				int kernel = 2 * size + 1;
 				Mat element = getStructuringElement(MORPH_CROSS, Size(kernel, kernel), Point(size, size));
-				erode(roibin, roibin, element);
-				//imshow("ROI Eroded", roibin);
+				erode(roi_bin, roi_bin, element);
+				//imshow("ROI Eroded", roi_bin);
 			}
 
-			//Measure defective area
-			//TODO <ADD CODE HERE>
+			double count = 0.0;
+			int points = 0;
+			unsigned char *input = (unsigned char*)(roi_bin.data);
+			for(int j = 0; j < roi_bin.rows; j++)
+			{
+				for(int i = 0; i < roi_bin.cols; i++)
+				{
+					if(input[roi_bin.step * j + i] > 0)
+					{
+						count++;
+					}
 
-			//Draw circle
+					points++;
+				}
+			}
+
+
+			//Measure defective area
+			double area = PI * radius * radius;
+			double defect = (count / area) * 100.0;
+
+			//std::cout << "Points: " << points << std::endl;
+			//std::cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << std::endl;
+			//std::cout << "Count: " << count << std::endl;
+			//std::cout << "Area: " << area << std::endl;
+			//std::cout << "Defect: " << defect << "%" << std::endl;
+
+			//Draw debug info
 			circle(image, center, 1, Scalar(0, 0, 255), 2, LINE_AA);
 			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
+			putText(image, std::to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
 		}
 
 		//Display result
