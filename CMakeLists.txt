@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project(Cork)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(Cork main.cpp)
+target_link_libraries(Cork ${OpenCV_LIBS})

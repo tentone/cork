@@ -27,7 +27,8 @@ echo " - Update packages."
 echo " - Installing depedencies."
 
 #Build tools
-apt-get -qq install -y build-essential cmake unzip pkg-config git checkinstall yasm
+apt-get -qq install -y build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+apt-get -qq install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
 
 #Image IO
 apt-get -qq install -y libjpeg8-dev libjasper-dev libpng12-dev
@@ -37,11 +38,6 @@ apt-get -qq install -y libjpeg-dev libpng-dev libtiff-dev libxvidcore-dev libx26
 apt-get -qq install -y libavformat-dev libswscale-dev libdc1394-22-dev libxine2-dev libv4l-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
 apt-get -qq install -y libtbb-dev libfaac-dev libmp3lame-dev libtheora-dev install libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev x264 v4l-utils
 apt-get -qq install -y libtiff5-dev
-
-#Optional dependencies
-apt-get -qq install -y libprotobuf-dev protobuf-compiler
-apt-get -qq install -y libgoogle-glog-dev libgflags-dev
-apt-get -qq install -y libgphoto2-dev libeigen3-dev libhdf5-dev doxygen
 
 #GKT for GUI
 apt-get -qq install -y libgtk-3-dev qt5-default
