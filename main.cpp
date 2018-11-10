@@ -10,18 +10,45 @@
 #define KEY_ESC 27
 #define KEY_LEFT 81
 #define KEY_RIGHT 83
+#define KEY_UP 82
+#define KEY_DOWN 84
+#define KEY_W 119
+#define KEY_S 115
 
 #define IMAGES_COUNT 20
+
+//Choose between adaptive thresold or otsu binarization
+#define ADAPTIVE_THRESH true
+
+//Deblur picture before start
+#define DEBLUR_IMAGE false
 
 using namespace cv;
 using namespace std;
 
+int fnumber = 1;
+
+cv::Mat readImage(int index)
+{
+	fnumber = index;
+
+	if(fnumber > IMAGES_COUNT)
+	{
+		fnumber = 1;
+	}
+	if(fnumber < 1)
+	{
+		fnumber = IMAGES_COUNT;
+	}
+
+	return imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
+}
+
+
 int main(int argc, char** argv)
 {
 	VideoCapture cap(0);
-	Mat src;
-
-	int fnumber = 1;
+	Mat image;
 
 	//Prepare output window
 	namedWindow(WINDOW_NAME, WINDOW_AUTOSIZE);
@@ -31,27 +58,38 @@ int main(int argc, char** argv)
 		//else if(event == EVENT_RBUTTONDOWN)
 		//else if(event == EVENT_MBUTTONDOWN)
 		//else if(event == EVENT_MOUSEMOVE)
-	} , &src);
+	} , &image);
 
 	while(1)
 	{
+		//Get image
 		if(cap.isOpened())
 		{
-			cap >> src;
+			cap >> image;
 		}
 		else
 		{
-			src = imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
+			image = readImage(fnumber);
+		}
+
+		//Deblur the image
+		if(DEBLUR_IMAGE)
+		{
+			//TODO <ADD CODE HERE>
 		}
 
 		//Convert image to grayscale
 		Mat gray;
-		cvtColor(src, gray, COLOR_BGR2GRAY);
+		cvtColor(image, gray, COLOR_BGR2GRAY);
 		//imshow("Gray", gray);
 
 		//Detect circles
 		vector<Vec3f> circles;
-		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 16, 100, 30, 1, 100);
+		int minSpacing = gray.rows / 3;
+		int lowCannyThreshold = 100;
+		int highCannyThreshold = 30;
+		int maxSize = gray.rows / 2;
+		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, minSpacing, lowCannyThreshold, highCannyThreshold, 0, maxSize);
 
 		bool found = circles.size() > 0;
 
@@ -61,22 +99,51 @@ int main(int argc, char** argv)
 			Vec3i c = circles[i];
 			Point center = Point(c[0], c[1]);
 			int radius = c[2];
+			
+			std::cout << "Radius: " << radius << std::endl;
 
-			//Isolate the circle
-			Mat cork;
-			Mat mask = Mat::zeros(src.rows, src.cols, CV_8UC1);
-			circle(mask, center, radius, Scalar(255,255,255), -1, 8, 0);
-			src.copyTo(cork, mask);
-			Mat roi(cork, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
-			imshow("ROI", roi);
+			//circle(image, center, radius, Scalar(255,255,255), -1, 8, 0);
 
-			//Debug draw
-			circle(src, center, 1, Scalar(0,100,100), 2, LINE_AA);
-			circle(src, center, radius, Scalar(255,0,255), 1, LINE_AA);
+			//Analyse defects in the roi
+			Mat roi(gray, cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2));
+			//imshow("ROI", roi);
+
+			Mat roibin;
+			
+			if(ADAPTIVE_THRESH)
+			{
+				int block = radius / 2;
+				block = block % 2 == 0 ? block + 1 : block;
+
+				std::cout << "block: " << block << std::endl;
+
+				adaptiveThreshold(roi, roibin, 200, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
+				erode(roibin, roibin, MORPH_ELLIPSE);
+			}
+			else
+			{
+				threshold(roi, roibin, 0, 255, THRESH_BINARY + THRESH_OTSU);
+			}
+
+			//Mask outside of the cork
+			Mat mask = Mat(roibin.rows, roibin.cols, roibin.type(), Scalar(255,255,255));
+			circle(mask, Point(roibin.rows / 2, roibin.cols / 2), radius, Scalar(0,0,0), -1, 8, 0);
+			bitwise_or(mask, roibin, roibin);
+
+			imshow("ROI Binary", roibin);
+
+			//Measure defective area
+
+
+			//Draw circle
+			circle(image, center, 1, Scalar(0, 0, 255), 2, LINE_AA);
+			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
 		}
 
-		imshow(WINDOW_NAME, src);
-		
+		//Display result
+		imshow(WINDOW_NAME, image);
+			
+		//Keyboard input
 		int key = waitKey(16);
 		if(key != -1)
 		{
@@ -86,17 +153,17 @@ int main(int argc, char** argv)
 			}
 			else if(key == KEY_LEFT)
 			{
-				fnumber--;
-				fnumber = fnumber < 1 ? fnumber = IMAGES_COUNT : fnumber;
+				readImage(--fnumber);
+				std::cout << "Fname:" << fnumber << std::endl;
 			}
 			else if(key == KEY_RIGHT)
 			{
-				fnumber++;
-				fnumber = fnumber > IMAGES_COUNT ? fnumber = 1 : fnumber;
+				readImage(++fnumber);
+				std::cout << "Fname:" << fnumber << std::endl;
 			}
 			else
 			{
-				std::cout << key << std::endl;
+				std::cout << "Unkown key:" << key << std::endl;
 			}
 		}
 	}
