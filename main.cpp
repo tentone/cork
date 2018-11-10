@@ -163,12 +163,10 @@ Mat readImage(int index)
 int main(int argc, char** argv)
 {
 	VideoCapture cap;
-	//string video = "http://192.168.0.124:8080/video";
-
-	if(!cap.open(0))
+	/*if(!cap.open(0))
 	{
 		cout << "Webcam not available." << endl;
-	}
+	}*/
 	
 	Mat image;
 
