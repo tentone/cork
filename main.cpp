@@ -44,28 +44,38 @@ int main(int argc, char** argv)
 			src = imread("data/" + std::to_string(image) + ".jpg", IMREAD_COLOR);
 		}
 
+		//Convert image to grayscale
 		Mat gray;
 		cvtColor(src, gray, COLOR_BGR2GRAY);
-
 		imshow("Gray", gray);
 
 		//Detect circles
 		vector<Vec3f> circles;
 		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 16, 100, 30, 1, 100);
 
+		bool found = circles.size() > 0;
+		
 		//Draw circle outline
 		for(size_t i = 0; i < circles.size(); i++)
 		{
 			Vec3i c = circles[i];
 			Point center = Point(c[0], c[1]);
-
-			//Circle center
-			circle( src, center, 1, Scalar(0,100,100), 2, LINE_AA);
-
-			//Circle outline
 			int radius = c[2];
-			circle( src, center, radius, Scalar(255,0,255), 1, LINE_AA);
+
+			//Isolate the circle
+			Mat cork;
+			Mat mask = Mat::zeros(src.rows, src.cols, CV_8UC1);
+			circle(mask, center, radius, Scalar(255,255,255), -1, 8, 0);
+			src.copyTo(cork, mask);
+			imshow("Cork Circle", cork);
+
+			//Debug draw
+			circle(src, center, 1, Scalar(0,100,100), 2, LINE_AA);
+			circle(src, center, radius, Scalar(255,0,255), 1, LINE_AA);
 		}
+
+		//
+
 
 		imshow(WINDOW_NAME, src);
 		
