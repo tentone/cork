@@ -33,8 +33,11 @@ using namespace std;
 //File number
 int fnumber = IMAGES_START;
 
-//Deblur picture before start
-bool DEBLUR_IMAGE = false;
+//Blur parameters
+bool BLUR_GLOBAL = false;
+int BLUR_GLOBAL_KSIZE = 3;
+bool BLUR_MASK = false;
+int BLUR_MASK_KSIZE = 3;
 
 //Hough parameters
 int MIN_SPACING = 100;
@@ -139,7 +142,6 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 
 double automatic_threshold(const Mat1b src, const Mat1b& mask)
 {
-	/*
 	const int N = 256;
 	int histogram[N] = {0};
 	
@@ -164,9 +166,8 @@ double automatic_threshold(const Mat1b src, const Mat1b& mask)
 			cout << i << ": " << histogram[i] << endl;
 		}
 	}
-	*/
 
-	return otsu_mask(src, mask) * 0.6;
+	return 60;
 }
 
 Mat readImage(int index)
@@ -211,16 +212,18 @@ int main(int argc, char** argv)
 			image = readImage(fnumber);
 		}
 
+
 		//Deblur the image
-		if(DEBLUR_IMAGE)
+		if(BLUR_GLOBAL)
 		{
-			//TODO <ADD CODE HERE>
+			medianBlur(image, image, BLUR_GLOBAL_KSIZE);
 		}
 
 		//Convert image to grayscale
 		Mat gray;
 		cvtColor(image, gray, COLOR_BGR2GRAY);
 		//imshow("Gray", gray);
+
 
 		//Detect circles
 		vector<Vec3f> circles;
@@ -252,7 +255,10 @@ int main(int argc, char** argv)
 			//Binarize the roi
 			Mat roi_bin;
 
-			//roi = GaussianBlur(roi, (5, 5), 0);
+			if(BLUR_MASK)
+			{
+				medianBlur(roi, roi, BLUR_MASK_KSIZE);
+			}
 
 			if(ADAPTIVE_THRESH)
 			{
@@ -270,9 +276,10 @@ int main(int argc, char** argv)
 			{
 				if(AUTOMATIC_THRESH)
 				{
-					double thresh = automatic_threshold(roi, mask);
-					//cout << "Automatic threshold: " << thresh << endl;
+					double thresh = otsu_mask(roi, mask);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+					
+					//cout << "Automatic threshold: " << thresh << endl;
 				}
 				else
 				{
@@ -351,18 +358,21 @@ int main(int argc, char** argv)
 			{
 				return 0;
 			}
-			
+			cvui::space(12);
+			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
+			cvui::space(12);
+			cvui::checkbox("Blur Mask", &BLUR_MASK);
 			cvui::space(20);
 
 			cvui::text("Threshold");
-			cvui::space(12);
-			cvui::checkbox("Adaptive", &ADAPTIVE_THRESH);
+			//cvui::space(12);
+			//cvui::checkbox("Adaptive", &ADAPTIVE_THRESH);
 			cvui::space(12);
 			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
 			cvui::space(12);
 			trackbar("Value", 200, &THRESHOLD_BIN, 10, 150, 1);
-			cvui::space(5);
-			trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
+			//cvui::space(5);
+			//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
 			cvui::space(5);
 			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
 
