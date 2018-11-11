@@ -7,6 +7,11 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#define CVUI_DISABLE_COMPILATION_NOTICES
+#define CVUI_IMPLEMENTATION
+#include "lib/cvui.h"
+
+#define DEBUG_WINDOW true
 #define WINDOW_NAME "Cork"
 
 #define KEY_ESC 27
@@ -22,27 +27,26 @@
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-//Use adaptive thresold
-#define ADAPTIVE_THRESH false
-
-//Deblur picture before start
-#define DEBLUR_IMAGE false
-
 using namespace cv;
 using namespace std;
 
 //File number
 int fnumber = IMAGES_START;
 
+//Deblur picture before start
+bool DEBLUR_IMAGE = false;
+
 //Hough parameters
-int MIN_SPACING = 70;
-int LOW_CANNY_THRESH = 100;
+int MIN_SPACING = 100;
+int LOW_CANNY_THRESH = 75;
 int HIGH_CANNY_THRESH = 30;
-int MIN_SIZE = 25;
+int MIN_SIZE = 20;
 int MAX_SIZE = 55;
 
 //Threshold parameters
 int THRESHOLD_BIN = 60;
+bool AUTOMATIC_THRESH = false;
+bool ADAPTIVE_THRESH = false;
 
 //Erosion configuration (only used if above 0)
 int EROSION_PX = 0;
@@ -50,20 +54,42 @@ int EROSION_PX = 0;
 //Igore skirt
 int OUTSIDE_SKIRT_IGNORE_PX = 4;
 
-//Use otsu binarization
-int OTSU_THRESH = 0;
+void trackbar(const cv::String& theText, int theWidth, double *theValue, double theMin, double theMax, int theSegments = 1, const char *theLabelFormat = "%.1Lf", unsigned int theOptions = 0, double theDiscreteStep = 1)
+{
+	cvui::beginRow();
+	cvui::text(theText);
+	cvui::beginColumn();
+	cvui::space(-19);
+	cvui::trackbar(theWidth, theValue, theMin, theMax, theSegments, theLabelFormat, theOptions | cvui::TRACKBAR_HIDE_SEGMENT_LABELS | cvui::TRACKBAR_HIDE_MIN_MAX_LABELS, theDiscreteStep);
+	cvui::endColumn();
+	cvui::endRow();
+}
+
+void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin, int theMax, int theSegments = 1, const char *theLabelFormat = "%.Lf", unsigned int theOptions = 0, int theDiscreteStep = 1)
+{
+	cvui::beginRow();
+	cvui::text(theText);
+	cvui::beginColumn();
+	cvui::space(-19);
+	cvui::trackbar(theWidth, theValue, theMin, theMax, theSegments, theLabelFormat, theOptions | cvui::TRACKBAR_HIDE_SEGMENT_LABELS | cvui::TRACKBAR_HIDE_MIN_MAX_LABELS, theDiscreteStep);
+	cvui::endColumn();
+	cvui::endRow();
+}
 
 double otsu_mask(const Mat1b src, const Mat1b& mask)
 {
+	//Colors
 	const int N = 256;
-	int M = 0;
-	int i, j, h[N] = {0};
 
-	for(i = 0; i < src.rows; i++)
+	int M = 0;
+
+	//Create the image histogram
+	int h[N] = {0};
+	for(int i = 0; i < src.rows; i++)
 	{
 		const uchar* psrc = src.ptr(i);
 		const uchar* pmask = mask.ptr(i);
-		for(j = 0; j < src.cols; j++)
+		for(int j = 0; j < src.cols; j++)
 		{
 			if(pmask[j])
 			{
@@ -74,16 +100,16 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 	}
 
 	double mu = 0, scale = 1.0 / (M);
-	for(i = 0; i < N; i++)
+	for(int i = 0; i < N; i++)
 	{
-		mu += i*(double)h[i];
+		mu += i * (double)h[i];
 	}
 
 	mu *= scale;
 	double mu1 = 0, q1 = 0;
 	double max_sigma = 0, max_val = 0;
 
-	for(i = 0; i < N; i++)
+	for(int i = 0; i < N; i++)
 	{
 		double p_i, q2, mu2, sigma;
 
@@ -97,9 +123,9 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 			continue;
 		}
 
-		mu1 = (mu1 + i*p_i) / q1;
-		mu2 = (mu - q1*mu1) / q2;
-		sigma = q1*q2*(mu1 - mu2)*(mu1 - mu2);
+		mu1 = (mu1 + i * p_i) / q1;
+		mu2 = (mu - q1 * mu1) / q2;
+		sigma = q1 * q2 * (mu1 - mu2) * (mu1 - mu2);
 
 		if(sigma > max_sigma)
 		{
@@ -109,6 +135,38 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 	}
 
 	return max_val;
+}
+
+double automatic_threshold(const Mat1b src, const Mat1b& mask)
+{
+	/*
+	const int N = 256;
+	int histogram[N] = {0};
+	
+	//Create the image histogram
+	for(int i = 0; i < src.rows; i++)
+	{
+		const uchar* psrc = src.ptr(i);
+		const uchar* pmask = mask.ptr(i);
+		for(int j = 0; j < src.cols; j++)
+		{
+			if(pmask[j])
+			{
+				histogram[psrc[j]]++;
+			}
+		}
+	}
+
+	for(int i = 0; i < N; i++)
+	{
+		if(histogram[i] != 0)
+		{
+			cout << i << ": " << histogram[i] << endl;
+		}
+	}
+	*/
+
+	return otsu_mask(src, mask) * 0.6;
 }
 
 Mat readImage(int index)
@@ -139,23 +197,7 @@ int main(int argc, char** argv)
 	Mat image;
 
 	//Prepare output window
-	namedWindow(WINDOW_NAME, WINDOW_AUTOSIZE);
-	setMouseCallback(WINDOW_NAME, [](int event, int x, int y, int flags, void *param)
-	{
-		//if(event == EVENT_LBUTTONDOWN){}
-		//else if(event == EVENT_RBUTTONDOWN)
-		//else if(event == EVENT_MBUTTONDOWN)
-		//else if(event == EVENT_MOUSEMOVE)
-	} , &image);
-	//createTrackbar("File", WINDOW_NAME, &fnumber, 20, [](int event, void* param){});
-	createTrackbar("Spacing", WINDOW_NAME, &MIN_SPACING, 640, [](int event, void* param){});
-	//createTrackbar("Canny low", WINDOW_NAME, &LOW_CANNY_THRESH, 200, [](int event, void* param){});
-	//createTrackbar("Canny high", WINDOW_NAME, &HIGH_CANNY_THRESH, 200, [](int event, void* param){});
-	createTrackbar("Min size", WINDOW_NAME, &MIN_SIZE, 640, [](int event, void* param){});
-	createTrackbar("Max size", WINDOW_NAME, &MAX_SIZE, 640, [](int event, void* param){});
-	createTrackbar("Threshold", WINDOW_NAME, &THRESHOLD_BIN, 120, [](int event, void* param){});
-	createTrackbar("Automatic threshold", WINDOW_NAME, &OTSU_THRESH, 1, [](int event, void* param){});
-	//createTrackbar("Erosion", WINDOW_NAME, &EROSION_PX, 10, [](int event, void* param){});
+	cvui::init(WINDOW_NAME);
 
 	while(1)
 	{
@@ -192,9 +234,6 @@ int main(int argc, char** argv)
 			Vec3i c = circles[i];
 			Point center = Point(c[0], c[1]);
 			int radius = c[2];
-				
-			//cout << "Circle point: (" << center.x << ", " << center.y << ")" << endl;
-			//cout << "Circle radius: " << radius << endl;
 			
 			//Check if fully inside of the image
 			if(radius > center.x || radius > center.y || radius + center.x > gray.cols || radius + center.y > gray.rows)
@@ -229,10 +268,10 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				if(OTSU_THRESH == 1)
+				if(AUTOMATIC_THRESH)
 				{
-					double thresh = otsu_mask(roi, mask);
-					cout << "Automatic threshold: " << thresh << endl;
+					double thresh = automatic_threshold(roi, mask);
+					//cout << "Automatic threshold: " << thresh << endl;
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 				else
@@ -279,32 +318,74 @@ int main(int argc, char** argv)
 			//cout << "Area: " << area << endl;
 			//cout << "Defect: " << defect << "%" << endl;
 
-			//Draw defects
-			for(int i = 0; i < roi_bin.rows; i++)
+			//Draw debug information
+			if(DEBUG_WINDOW)
 			{
-				for(int j = 0; j < roi_bin.cols; j++)
+				//Draw defect
+				for(int i = 0; i < roi_bin.rows; i++)
 				{
-					int t = (i * roi_bin.cols + j);// * 3;
-
-					if(roi_bin.data[t] > 0)
+					for(int j = 0; j < roi_bin.cols; j++)
 					{
-						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+						int t = (i * roi_bin.cols + j);
 
-						image.data[k + 2] = (unsigned char) 255;
+						if(roi_bin.data[t] > 0)
+						{
+							int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+
+							image.data[k + 2] = (unsigned char) 255;
+						}
 					}
 				}
-			}
 
-			circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
-			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
-			putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+				//Cicle position
+				circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
+				circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
+				putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+			}
 		}
 
-		//Display result
-		imshow(WINDOW_NAME, image);
+		if(DEBUG_WINDOW)
+		{
+			cvui::beginColumn(image, 10, 20);
+			if(cvui::button(100, 20, "Close"))
+			{
+				return 0;
+			}
 			
+			cvui::space(20);
+
+			cvui::text("Threshold");
+			cvui::space(12);
+			cvui::checkbox("Adaptive", &ADAPTIVE_THRESH);
+			cvui::space(12);
+			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
+			cvui::space(12);
+			trackbar("Value", 200, &THRESHOLD_BIN, 10, 150, 1);
+			cvui::space(5);
+			trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
+			cvui::space(5);
+			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
+
+			cvui::space(20);
+			cvui::text("Circle");
+			cvui::space(5);
+			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
+			cvui::space(5);
+			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
+			cvui::space(5);
+			trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
+			cvui::space(5);
+			trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
+			cvui::space(5);
+			trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
+			cvui::endColumn();
+
+			cvui::update();
+			cvui::imshow(WINDOW_NAME, image);
+		}
+
 		//Keyboard input
-		int key = waitKey(16);
+		int key = waitKey(1);
 		if(key != -1)
 		{
 			if(key == KEY_ESC)
