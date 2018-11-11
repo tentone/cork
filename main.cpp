@@ -41,15 +41,22 @@ int BLUR_MASK_KSIZE = 3;
 
 //Hough parameters
 int MIN_SPACING = 100;
+//It is the higher threshold of the two passed to the Canny edge detector (the lower one is twice smaller).
 int LOW_CANNY_THRESH = 75;
+//It is the accumulator threshold for the circle centers at the detection stage. The smaller it is, the more false circles may be detected. Circles, corresponding to the larger accumulator values, will be returned first.
 int HIGH_CANNY_THRESH = 30;
 int MIN_SIZE = 20;
 int MAX_SIZE = 55;
 
 //Threshold parameters
 int THRESHOLD_BIN = 60;
-bool AUTOMATIC_THRESH = false;
-bool ADAPTIVE_THRESH = false;
+bool AUTOMATIC_THRESH = true;
+bool AUTOMATIC_USE_OTSU_THRESH = false;
+bool AUTOMATIC_USE_TENTONE_THRESH = true;
+bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+
+//Color analysis
+bool COLOR_ANALISYS = false;
 
 //Erosion configuration (only used if above 0)
 int EROSION_PX = 0;
@@ -79,6 +86,9 @@ void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin
 	cvui::endRow();
 }
 
+/**
+ * Otsu treshold algorithm with mask support.
+ */
 double otsu_mask(const Mat1b src, const Mat1b& mask)
 {
 	//Colors
@@ -140,7 +150,13 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 	return max_val;
 }
 
-double automatic_threshold(const Mat1b src, const Mat1b& mask)
+/**
+ * Corsk specific automatic treshold calculation.
+ *
+ * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
+ *
+ */
+double cork_treshold(int tolerance, const Mat1b src, const Mat1b& mask)
 {
 	const int N = 256;
 	int histogram[N] = {0};
@@ -159,15 +175,52 @@ double automatic_threshold(const Mat1b src, const Mat1b& mask)
 		}
 	}
 
-	for(int i = 0; i < N; i++)
+	//Colors with more occurences in the neighorhood
+	int indexA = 0, countA = histogram[0];
+	int indexB = 0, countB = histogram[0];
+	
+	//Neighborhood to be analysed
+	int neighborhood = 10;
+	int neighborhood_half = neighborhood / 2;
+	int start = neighborhood_half;
+	int end = N - neighborhood_half;
+
+	for(int i = start; i < end; i++)
 	{
+		int count = 0;
+
+		//Analyse the neighborhood
+		for(int j = i - neighborhood_half; j < i + neighborhood_half; j++)
+		{
+			count += histogram[i];
+		}
+
+		//Compare values
+		if(count > countA)
+		{
+			indexB = indexA;
+			countB = countA;	
+
+			indexA = i;
+			countA = count;
+		}
+
 		if(histogram[i] != 0)
 		{
-			cout << i << ": " << histogram[i] << endl;
+			//cout << i << ": " << histogram[i] << endl;
 		}
 	}
 
-	return 60;
+	cout << "A: " << indexA << " -> " << countA << endl;
+	cout << "B: " << indexB << " -> " << countB << endl;
+
+	if(indexA - indexB > tolerance)
+	{
+		cout << "Colors are too close" << endl;
+		return 0;
+	}
+
+	return (indexA + indexB) / 2;
 }
 
 Mat readImage(int index)
@@ -260,31 +313,36 @@ int main(int argc, char** argv)
 				medianBlur(roi, roi, BLUR_MASK_KSIZE);
 			}
 
-			if(ADAPTIVE_THRESH)
+			if(AUTOMATIC_THRESH)
 			{
-				int block = radius / 2;
-				block = block % 2 == 0 ? block + 1 : block;
-				
-				adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
+				if(AUTOMATIC_USE_ADAPTIVE_THRESH)
+				{
+					int block = radius / 2;
+					block = block % 2 == 0 ? block + 1 : block;
+					
+					adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
 
-				int size = 2;
-				int norm = 2 * size + 1;
-				Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
-				erode(roi_bin, roi_bin, element);
+					int size = 2;
+					int norm = 2 * size + 1;
+					Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
+					erode(roi_bin, roi_bin, element);
+				}
+				else if(AUTOMATIC_USE_OTSU_THRESH)
+				{
+					//cout << "Automatic threshold: " << thresh << endl;
+					double thresh = otsu_mask(roi, mask);
+					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				}
+				else// if(AUTOMATIC_USE_TENTONE_THRESH)
+				{
+					//cout << "Automatic threshold: " << thresh << endl;
+					double thresh = cork_treshold(30, roi, mask);
+					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				}
 			}
 			else
 			{
-				if(AUTOMATIC_THRESH)
-				{
-					double thresh = otsu_mask(roi, mask);
-					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
-					
-					//cout << "Automatic threshold: " << thresh << endl;
-				}
-				else
-				{
-					threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
-				}
+				threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
 			}
 
 			//Mask outside of the cork in roi bin
@@ -354,31 +412,53 @@ int main(int argc, char** argv)
 		if(DEBUG_WINDOW)
 		{
 			cvui::beginColumn(image, 10, 20);
-			if(cvui::button(100, 20, "Close"))
+			/*if(cvui::button(100, 20, "Close"))
 			{
 				return 0;
 			}
-			cvui::space(12);
+			cvui::space(5);*/
 			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-			cvui::space(12);
+			cvui::space(5);
 			cvui::checkbox("Blur Mask", &BLUR_MASK);
-			cvui::space(20);
 
-			cvui::text("Threshold");
-			//cvui::space(12);
-			//cvui::checkbox("Adaptive", &ADAPTIVE_THRESH);
+			cvui::space(12);
+			cvui::text("Threshold ___________________");
 			cvui::space(12);
 			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-			cvui::space(12);
-			trackbar("Value", 200, &THRESHOLD_BIN, 10, 150, 1);
-			//cvui::space(5);
-			//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
+			if(!AUTOMATIC_THRESH)
+			{
+				cvui::space(12);
+				trackbar("Value", 200, &THRESHOLD_BIN, 10, 150, 1);
+			}
+			else
+			{
+				cvui::space(5);
+				if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
+				{
+					AUTOMATIC_USE_TENTONE_THRESH = false;
+					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+				}
+				cvui::space(5);
+				if(cvui::checkbox("Custom", &AUTOMATIC_USE_TENTONE_THRESH))
+				{
+					AUTOMATIC_USE_OTSU_THRESH = false;
+					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+				}
+				cvui::space(5);
+				if(cvui::checkbox("Adaptive", &AUTOMATIC_USE_ADAPTIVE_THRESH))
+				{
+					AUTOMATIC_USE_TENTONE_THRESH = false;
+					AUTOMATIC_USE_OTSU_THRESH = false;
+				}
+			}
 			cvui::space(5);
 			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
+			//cvui::space(5);
+			//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
 
-			cvui::space(20);
-			cvui::text("Circle");
-			cvui::space(5);
+			cvui::space(12);
+			cvui::text("Circle ___________________");
+			cvui::space(12);
 			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
 			cvui::space(5);
 			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
