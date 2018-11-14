@@ -56,9 +56,9 @@ bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
 bool AUTOMATIC_USE_TENTONE_THRESH = true;
 bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
-int TENTONE_THRESH_NEIGHBORHOOD = 10;
 int TENTONE_THRESH_MIN_DIFF = 40;
-int TENTONE_THRESH_NEIGHBORHOOD_FILTER = 10;
+int TENTONE_THRESH_NEIGHBORHOOD = 10;
+int TENTONE_COLOR_FILTER = 30;
 double TENTONE_THRESH_BALANCE = 0.3;
 
 //Color analysis
@@ -166,91 +166,6 @@ double otsuMask(const Mat1b src, const Mat1b& mask)
 bool isNeighbor(int value, int center, int neighborhood)
 {
 	return  value > (center - neighborhood) && value < (center + neighborhood);
-}
-
-/**
- * Corsk specific automatic treshold calculation.
- *
- * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
- *
- * @param src Input image.
- * @param mask Mask image.
- * @param min_diff Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
- * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
- */
-double corkTresholdInitial(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 5, double balance = 0.3)
-{
-	const int N = 256;
-	int histogram[N] = {0};
-	
-	//Create the image histogram
-	for(int i = 0; i < src.rows; i++)
-	{
-		const uchar* psrc = src.ptr(i);
-		const uchar* pmask = mask.ptr(i);
-		for(int j = 0; j < src.cols; j++)
-		{
-			if(pmask[j])
-			{
-				histogram[psrc[j]]++;
-			}
-		}
-	}
-
-	//Colors with more occurences in the neighorhood
-	int colorA = 0, countA = 0;
-	int colorB = 0, countB = 0;
-	
-	//Neighborhood to be analysed
-	int neighborhood_half = neighborhood / 2;
-	int start = neighborhood_half;
-	int end = N - neighborhood_half;
-
-	for(int i = start; i < end; i++)
-	{
-		int count = 0;
-
-		//Analyse the neighborhood
-		for(int j = i - neighborhood_half; j < i + neighborhood_half; j++)
-		{
-			count += histogram[i];
-		}
-
-		//Compare values
-		if(count > countA)
-		{
-			colorB = colorA;
-			countB = countA;	
-
-			colorA = i;
-			countA = count;
-		}
-	}
-
-	//If B less than A swap
-	if(colorB < colorA)
-	{
-		double tempColor = colorB;
-		double tempCount = countB;
-		colorB = colorA;
-		countB = countA;
-		colorA = tempColor;
-		countA = tempCount;
-	}
-
-	//Close to the lower index
-	cout << "Lower: " << colorA << " -> " << countA << endl;
-	cout << "Upper: " << colorB << " -> " << countB << endl;
-
-	double diff = colorB - colorA;
-
-	if(diff < min_diff)
-	{
-		cout << "Diff: Less than min_diff (" << colorB << "-" << colorA << ")" << endl;
-		return 0;
-	}
-
-	return colorA + (diff * balance);
 }
 
 /**
@@ -492,7 +407,7 @@ int main(int argc, char** argv)
 				else// if(AUTOMATIC_USE_TENTONE_THRESH)
 				{
 					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_THRESH_NEIGHBORHOOD_FILTER, TENTONE_THRESH_BALANCE);
+					double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 			}
@@ -570,7 +485,7 @@ int main(int argc, char** argv)
 			cvui::beginColumn(image, 10, 10);
 			cvui::beginRow();
 			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-			cvui::space(5);
+			cvui::space(12);
 			cvui::checkbox("Blur Mask", &BLUR_MASK);
 			cvui::endRow();
 
@@ -582,19 +497,19 @@ int main(int argc, char** argv)
 			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
 			if(AUTOMATIC_THRESH)
 			{
-				cvui::space(5);
+				cvui::space(12);
 				if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
 				{
 					AUTOMATIC_USE_TENTONE_THRESH = false;
 					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
 				}
-				cvui::space(5);
+				cvui::space(12);
 				if(cvui::checkbox("Custom", &AUTOMATIC_USE_TENTONE_THRESH))
 				{
 					AUTOMATIC_USE_OTSU_THRESH = false;
 					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
 				}
-				cvui::space(5);
+				cvui::space(12);
 				if(cvui::checkbox("Adaptive", &AUTOMATIC_USE_ADAPTIVE_THRESH))
 				{
 					AUTOMATIC_USE_TENTONE_THRESH = false;
@@ -612,30 +527,30 @@ int main(int argc, char** argv)
 			{
 				cvui::space(12);
 				trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
-				cvui::space(5);
+				cvui::space(12);
 				trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 1, 100, 1);
-				cvui::space(5);
-				trackbar("Neigh. Filter", 200, &TENTONE_THRESH_NEIGHBORHOOD_FILTER, 0, 1, 1);
-				cvui::space(5);
+				cvui::space(12);
+				trackbar("Neigh. Filter", 200, &TENTONE_COLOR_FILTER, 1, 100, 1);
+				cvui::space(12);
 				trackbar("Balance", 200, &TENTONE_THRESH_BALANCE, 0, 1, 1);	
 			}
 			
-			cvui::space(5);
+			cvui::space(12);
 			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
-			//cvui::space(5);
+			//cvui::space(12);
 			//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
 
 			cvui::space(12);
 			cvui::text("Circle ___________________");
 			cvui::space(12);
 			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
-			cvui::space(5);
+			cvui::space(12);
 			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
-			cvui::space(5);
+			cvui::space(12);
 			trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
-			cvui::space(5);
+			cvui::space(12);
 			trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
-			cvui::space(5);
+			cvui::space(12);
 			trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
 			cvui::endColumn();
 
