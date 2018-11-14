@@ -50,16 +50,23 @@ int HIGH_CANNY_THRESH = 30;
 int MIN_SIZE = 20;
 int MAX_SIZE = 55;
 
-//Threshold parameters
-int THRESHOLD_BIN = 60;
+//Automatic threshold
 bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
 bool AUTOMATIC_USE_TENTONE_THRESH = true;
 bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+
+//Threshold value
+int THRESHOLD_BIN = 60;
+
+//Tentone threshold parameters
 int TENTONE_THRESH_MIN_DIFF = 40;
 int TENTONE_THRESH_NEIGHBORHOOD = 10;
 int TENTONE_COLOR_FILTER = 30;
 double TENTONE_THRESH_BALANCE = 0.3;
+
+//Otso threhsold parameter
+double OTSU_THRESH_RATIO = 0.6;
 
 //Color analysis
 bool COLOR_ANALISYS = false;
@@ -208,16 +215,20 @@ double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int n
 
 	for(int i = start; i < end; i++)
 	{
-		int sum = 0;
+		int sum_count = 0;
+		int sum_color = 0;
+		int c = 0;
 
 		//Analyse the neighborhood
 		for(int j = i - neighborhood_half; j < i + neighborhood_half; j++)
 		{
-			sum += histogram[i];
+			sum_color += i;
+			sum_count += histogram[i];
+			c++;
 		}
 
-		colors[i] = i;
-		count[i] = sum;
+		colors[i] = sum_color / c;
+		count[i] = sum_count;
 	}
 
 	//Sort the array from bigger to smaller
@@ -260,10 +271,8 @@ double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int n
 	}
 
 	double diff = high - low;
-	if(diff < min_diff)
+	if(diff < min_diff || low == -1)
 	{
-		
-
 		return 0;
 	}
 
@@ -401,7 +410,7 @@ int main(int argc, char** argv)
 				else if(AUTOMATIC_USE_OTSU_THRESH)
 				{
 					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = otsuMask(roi, mask);
+					double thresh = OTSU_THRESH_RATIO * otsuMask(roi, mask);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 				else// if(AUTOMATIC_USE_TENTONE_THRESH)
