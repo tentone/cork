@@ -27,6 +27,8 @@
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
+#define USE_CAMERA true
+
 using namespace cv;
 using namespace std;
 
@@ -54,6 +56,10 @@ bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
 bool AUTOMATIC_USE_TENTONE_THRESH = true;
 bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+int TENTONE_THRESH_NEIGHBORHOOD = 10;
+int TENTONE_THRESH_MIN_DIFF = 40;
+int TENTONE_THRESH_NEIGHBORHOOD_FILTER = 10;
+double TENTONE_THRESH_BALANCE = 0.3;
 
 //Color analysis
 bool COLOR_ANALISYS = false;
@@ -89,7 +95,7 @@ void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin
 /**
  * Otsu treshold algorithm with mask support.
  */
-double otsu_mask(const Mat1b src, const Mat1b& mask)
+double otsuMask(const Mat1b src, const Mat1b& mask)
 {
 	//Colors
 	const int N = 256;
@@ -151,6 +157,18 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
 }
 
 /**
+ * Check if a value is in the neighborhood of another one.
+ *
+ * @param value
+ * @param center
+ * @param neighborhood
+ */
+bool isNeighbor(int value, int center, int neighborhood)
+{
+	return  value > (center - neighborhood) && value < (center + neighborhood);
+}
+
+/**
  * Corsk specific automatic treshold calculation.
  *
  * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
@@ -160,7 +178,7 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
  * @param min_diff Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
  * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
  */
-double cork_treshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 5, double treshold_balance = 0.3)
+double corkTresholdInitial(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 5, double balance = 0.3)
 {
 	const int N = 256;
 	int histogram[N] = {0};
@@ -232,7 +250,116 @@ double cork_treshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int 
 		return 0;
 	}
 
-	return colorA + (diff * treshold_balance);
+	return colorA + (diff * balance);
+}
+
+/**
+ * Corsk specific automatic treshold calculation.
+ *
+ * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
+ *
+ * @param src Input image.
+ * @param mask Mask image.
+ * @param min_diff Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
+ * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
+ */
+double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 10, int neighborhood_filter = 30, double balance = 0.3)
+{
+	const int N = 256;
+	int histogram[N] = {0};
+	
+	//Create the image histogram
+	for(int i = 0; i < src.rows; i++)
+	{
+		const uchar* psrc = src.ptr(i);
+		const uchar* pmask = mask.ptr(i);
+		for(int j = 0; j < src.cols; j++)
+		{
+			if(pmask[j])
+			{
+				histogram[psrc[j]]++;
+			}
+		}
+	}
+
+	//Count in the neighborhood
+	int count[N] = {0};
+	int colors[N] = {0};
+	
+	//Neighborhood to be analysed
+	int neighborhood_half = neighborhood / 2;
+	int start = neighborhood_half;
+	int end = N - neighborhood_half;
+
+	for(int i = start; i < end; i++)
+	{
+		int sum = 0;
+
+		//Analyse the neighborhood
+		for(int j = i - neighborhood_half; j < i + neighborhood_half; j++)
+		{
+			sum += histogram[i];
+		}
+
+		colors[i] = i;
+		count[i] = sum;
+	}
+
+	//Sort the array from bigger to smaller
+	//TODO <PROPER SORTING ALGORITHM>
+	//TODO <EXPLICIT SIMD>
+	for(int i = 0; i < N; i++)
+	{
+		for(int j = i; j < N; j++)
+		{
+			if(count[i] < count[j])
+		 	{
+		 		int temp = count[i];
+		 		count[i] = count[j];
+		 		count[j] = temp;
+
+		 		temp = colors[i];
+		 		colors[i] = colors[j];
+		 		colors[j] = temp;
+		 	}
+		}
+	}
+
+	//Colors with more occurences
+	int high = colors[0];
+	int low = -1;
+	
+	//Select the b color (the next color with more occurences far from b)
+	for(int i = 0; i < 10; i++)
+	{
+		int highc = max(colors[i], high);
+		int lowc = min(colors[i], high);
+		
+		if((highc - lowc) < neighborhood_filter)
+		{
+			continue;
+		}
+		
+		low = colors[i];
+		break;
+	}
+
+	double diff = high - low;
+	if(diff < min_diff)
+	{
+		
+
+		return 0;
+	}
+
+	return low + (diff * balance);
+}
+
+bool hasCorkColorTone(const Mat src, Vec3f circle)
+{
+	//TODO <ADD CODE HERE>
+
+	return true;
 }
 
 Mat readImage(int index)
@@ -255,26 +382,29 @@ Mat readImage(int index)
 int main(int argc, char** argv)
 {
 	VideoCapture cap;
-	if(!cap.open(0))
-	{
-		cout << "Webcam not available." << endl;
-	}
 	
-	//cap.set(CAP_PROP_FPS, 25);
-	cap.set(CAP_PROP_FRAME_WIDTH, 640);
-	cap.set(CAP_PROP_FRAME_HEIGHT, 480);
-	//cap.set(CAP_PROP_FORMAT, CAP_MODE_BGR);
-	//cap.set(CAP_PROP_CONVERT_RGB, true);
+	if(USE_CAMERA)
+	{
+		if(!cap.open(0))
+		{
+			cout << "Webcam not available." << endl;
+		}
+		
+		cap.set(CAP_PROP_FPS, 25);
+		cap.set(CAP_PROP_FRAME_WIDTH, 640);
+		cap.set(CAP_PROP_FRAME_HEIGHT, 480);
+		cap.set(CAP_PROP_FORMAT, CAP_MODE_BGR);
+	}
 
 	
 	Mat image;
-	
-	cap >> image;
 
+	/*
+	cap >> image;
 	imshow("test", image);
 	waitKey(0);
 	return 0;
-	
+	*/
 
 	//Prepare output window
 	cvui::init(WINDOW_NAME);
@@ -356,13 +486,13 @@ int main(int argc, char** argv)
 				else if(AUTOMATIC_USE_OTSU_THRESH)
 				{
 					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = otsu_mask(roi, mask);
+					double thresh = otsuMask(roi, mask);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 				else// if(AUTOMATIC_USE_TENTONE_THRESH)
 				{
 					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = cork_treshold(roi, mask);
+					double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_THRESH_NEIGHBORHOOD_FILTER, TENTONE_THRESH_BALANCE);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 			}
@@ -437,26 +567,20 @@ int main(int argc, char** argv)
 
 		if(DEBUG_WINDOW)
 		{
-			cvui::beginColumn(image, 10, 20);
-			/*if(cvui::button(100, 20, "Close"))
-			{
-				return 0;
-			}
-			cvui::space(5);*/
+			cvui::beginColumn(image, 10, 10);
+			cvui::beginRow();
 			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
 			cvui::space(5);
 			cvui::checkbox("Blur Mask", &BLUR_MASK);
+			cvui::endRow();
 
 			cvui::space(12);
 			cvui::text("Threshold ___________________");
+
 			cvui::space(12);
+			cvui::beginRow();
 			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-			if(!AUTOMATIC_THRESH)
-			{
-				cvui::space(12);
-				trackbar("Value", 200, &THRESHOLD_BIN, 10, 150, 1);
-			}
-			else
+			if(AUTOMATIC_THRESH)
 			{
 				cvui::space(5);
 				if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
@@ -477,6 +601,25 @@ int main(int argc, char** argv)
 					AUTOMATIC_USE_OTSU_THRESH = false;
 				}
 			}
+			cvui::endRow();
+			
+			if(!AUTOMATIC_THRESH)
+			{
+				cvui::space(12);
+				trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
+			}
+			else if(AUTOMATIC_USE_TENTONE_THRESH)
+			{
+				cvui::space(12);
+				trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
+				cvui::space(5);
+				trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 1, 100, 1);
+				cvui::space(5);
+				trackbar("Neigh. Filter", 200, &TENTONE_THRESH_NEIGHBORHOOD_FILTER, 0, 1, 1);
+				cvui::space(5);
+				trackbar("Balance", 200, &TENTONE_THRESH_BALANCE, 0, 1, 1);	
+			}
+			
 			cvui::space(5);
 			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
 			//cvui::space(5);
