@@ -255,12 +255,26 @@ Mat readImage(int index)
 int main(int argc, char** argv)
 {
 	VideoCapture cap;
-	/*if(!cap.open(0))
+	if(!cap.open(0))
 	{
 		cout << "Webcam not available." << endl;
-	}*/
+	}
+	
+	//cap.set(CAP_PROP_FPS, 25);
+	cap.set(CAP_PROP_FRAME_WIDTH, 640);
+	cap.set(CAP_PROP_FRAME_HEIGHT, 480);
+	//cap.set(CAP_PROP_FORMAT, CAP_MODE_BGR);
+	//cap.set(CAP_PROP_CONVERT_RGB, true);
+
 	
 	Mat image;
+	
+	cap >> image;
+
+	imshow("test", image);
+	waitKey(0);
+	return 0;
+	
 
 	//Prepare output window
 	cvui::init(WINDOW_NAME);
