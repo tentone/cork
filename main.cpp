@@ -155,8 +155,12 @@ double otsu_mask(const Mat1b src, const Mat1b& mask)
  *
  * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
  *
+ * @param src Input image.
+ * @param mask Mask image.
+ * @param min_diff Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
+ * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
  */
-double cork_treshold(int tolerance, const Mat1b src, const Mat1b& mask)
+double cork_treshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 5, double treshold_balance = 0.3)
 {
 	const int N = 256;
 	int histogram[N] = {0};
@@ -176,11 +180,10 @@ double cork_treshold(int tolerance, const Mat1b src, const Mat1b& mask)
 	}
 
 	//Colors with more occurences in the neighorhood
-	int indexA = 0, countA = histogram[0];
-	int indexB = 0, countB = histogram[0];
+	int colorA = 0, countA = 0;
+	int colorB = 0, countB = 0;
 	
 	//Neighborhood to be analysed
-	int neighborhood = 10;
 	int neighborhood_half = neighborhood / 2;
 	int start = neighborhood_half;
 	int end = N - neighborhood_half;
@@ -198,29 +201,38 @@ double cork_treshold(int tolerance, const Mat1b src, const Mat1b& mask)
 		//Compare values
 		if(count > countA)
 		{
-			indexB = indexA;
+			colorB = colorA;
 			countB = countA;	
 
-			indexA = i;
+			colorA = i;
 			countA = count;
-		}
-
-		if(histogram[i] != 0)
-		{
-			//cout << i << ": " << histogram[i] << endl;
 		}
 	}
 
-	cout << "A: " << indexA << " -> " << countA << endl;
-	cout << "B: " << indexB << " -> " << countB << endl;
-
-	if(indexA - indexB > tolerance)
+	//If B less than A swap
+	if(colorB < colorA)
 	{
-		cout << "Colors are too close" << endl;
+		double tempColor = colorB;
+		double tempCount = countB;
+		colorB = colorA;
+		countB = countA;
+		colorA = tempColor;
+		countA = tempCount;
+	}
+
+	//Close to the lower index
+	cout << "Lower: " << colorA << " -> " << countA << endl;
+	cout << "Upper: " << colorB << " -> " << countB << endl;
+
+	double diff = colorB - colorA;
+
+	if(diff < min_diff)
+	{
+		cout << "Diff: Less than min_diff (" << colorB << "-" << colorA << ")" << endl;
 		return 0;
 	}
 
-	return (indexA + indexB) / 2;
+	return colorA + (diff * treshold_balance);
 }
 
 Mat readImage(int index)
@@ -336,7 +348,7 @@ int main(int argc, char** argv)
 				else// if(AUTOMATIC_USE_TENTONE_THRESH)
 				{
 					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = cork_treshold(30, roi, mask);
+					double thresh = cork_treshold(roi, mask);
 					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 				}
 			}
