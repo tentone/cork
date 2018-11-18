@@ -27,10 +27,10 @@
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-#define USE_CAMERA true
+#define USE_CAMERA false
 #define USE_USB_CAMERA false
-#define USE_IP_CAMERA true
 
+#define USE_IP_CAMERA true
 #define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
 //#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
 
@@ -47,13 +47,13 @@ bool BLUR_MASK = false;
 int BLUR_MASK_KSIZE = 3;
 
 //Hough parameters
-int MIN_SPACING = 100;
+int MIN_SPACING = 400;
 //It is the higher threshold of the two passed to the Canny edge detector (the lower one is twice smaller).
-int LOW_CANNY_THRESH = 75;
+int LOW_CANNY_THRESH = 120;
 //It is the accumulator threshold for the circle centers at the detection stage. The smaller it is, the more false circles may be detected. Circles, corresponding to the larger accumulator values, will be returned first.
 int HIGH_CANNY_THRESH = 30;
-int MIN_SIZE = 20;
-int MAX_SIZE = 55;
+int MIN_SIZE = 47;
+int MAX_SIZE = 70;
 
 //Automatic threshold
 bool AUTOMATIC_THRESH = true;
