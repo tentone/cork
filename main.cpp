@@ -31,8 +31,8 @@
 #define USE_USB_CAMERA false
 #define USE_IP_CAMERA true
 
-//#define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
-#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
+#define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
+//#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
 
 using namespace cv;
 using namespace std;
