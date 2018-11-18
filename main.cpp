@@ -28,6 +28,11 @@
 #define IMAGES_COUNT 20
 
 #define USE_CAMERA true
+#define USE_USB_CAMERA false
+#define USE_IP_CAMERA true
+
+//#define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
+#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/h264_pcm.sdp"
 
 using namespace cv;
 using namespace std;
@@ -309,26 +314,36 @@ int main(int argc, char** argv)
 	
 	if(USE_CAMERA)
 	{
-		if(!cap.open(0))
+		if(USE_USB_CAMERA)
 		{
-			cout << "Webcam not available." << endl;
+			if(!cap.open(0))
+			{
+				cout << "Webcam not available." << endl;
+			}
+
+			//Set resolution
+			cap.set(CAP_PROP_FRAME_WIDTH, 1280);
+			cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+
+			if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH)!=1280)
+			{
+				cout << "Unable to set webcam 1280x720" << endl;
+			}
+
+			//Set exposure
+			cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
+			cap.set(CAP_PROP_EXPOSURE, -100);
+
+			//Focus
+			//cap.set(CAP_PROP_FOCUS, 0);
 		}
-
-		//Set resolution
-		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-		cap.set(CAP_PROP_FRAME_HEIGHT, 720);
-
-		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH)!=1280)
+		else if(USE_IP_CAMERA)
 		{
-			cout << "Unable to set webcam 1280x720" << endl;
+			if(!cap.open(IP_CAMERA_ADDRESS))
+			{
+				cout << "Camera not available." << endl;
+			}
 		}
-
-		//Set exposure
-		cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
-		cap.set(CAP_PROP_EXPOSURE, -100);
-
-		//Focus
-		//cap.set(CAP_PROP_FOCUS, 0);
 	}
 
 	

@@ -10,7 +10,6 @@ compile_commands.json
 CTestTestfile.cmake
 
 #Build
-Cork
-SOEM/
-
+cork
+lib/
 build/
