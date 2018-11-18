@@ -32,7 +32,7 @@
 #define USE_IP_CAMERA true
 
 //#define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
-#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/h264_pcm.sdp"
+#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
 
 using namespace cv;
 using namespace std;
@@ -523,6 +523,26 @@ int main(int argc, char** argv)
 			cvui::space(12);
 			cvui::checkbox("Blur Mask", &BLUR_MASK);
 			cvui::endRow();
+
+			if(BLUR_GLOBAL)
+			{
+				cvui::space(12);
+				trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
+				if(BLUR_GLOBAL_KSIZE % 2 == 0)
+				{
+					BLUR_GLOBAL_KSIZE++;
+				}
+			}
+
+			if(BLUR_MASK)
+			{
+				cvui::space(12);
+				trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
+				if(BLUR_MASK_KSIZE % 2 == 0)
+				{
+					BLUR_MASK_KSIZE++;
+				}
+			}
 
 			cvui::space(12);
 			cvui::text("Threshold ___________________");
