@@ -12,3 +12,5 @@ CTestTestfile.cmake
 #Build
 Cork
 SOEM/
+
+build/
