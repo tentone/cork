@@ -29,7 +29,6 @@
 
 #define USE_CAMERA false
 #define USE_USB_CAMERA false
-
 #define USE_IP_CAMERA true
 #define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
 //#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
@@ -74,7 +73,7 @@ double TENTONE_THRESH_BALANCE = 0.3;
 double OTSU_THRESH_RATIO = 0.6;
 
 //Color analysis
-bool COLOR_ANALISYS = false;
+bool SPLIT_COLOR_CHANNELS = true;
 
 //Erosion configuration (only used if above 0)
 int EROSION_PX = 0;
@@ -349,13 +348,6 @@ int main(int argc, char** argv)
 	
 	Mat image;
 
-	/*
-	cap >> image;
-	imshow("test", image);
-	waitKey(0);
-	return 0;
-	*/
-
 	//Prepare output window
 	cvui::init(WINDOW_NAME);
 
@@ -372,17 +364,34 @@ int main(int argc, char** argv)
 		}
 
 
+
 		//Deblur the image
 		if(BLUR_GLOBAL)
 		{
 			medianBlur(image, image, BLUR_GLOBAL_KSIZE);
 		}
-
-		//Convert image to grayscale
+		
 		Mat gray;
-		cvtColor(image, gray, COLOR_BGR2GRAY);
-		//imshow("Gray", gray);
 
+		//Split color channels
+		if(SPLIT_COLOR_CHANNELS)
+		{
+			Mat bgr[3];
+
+			split(image, bgr);
+			
+			imshow("B", bgr[0]);
+			imshow("G", bgr[1]);
+			imshow("R", bgr[2]);
+
+			gray = bgr[0];
+		}
+		//Convert image to grayscale
+		else
+		{
+			cvtColor(image, gray, COLOR_BGR2GRAY);
+			//imshow("Gray", gray);
+		}
 
 		//Detect circles
 		vector<Vec3f> circles;
