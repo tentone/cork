@@ -70,10 +70,10 @@ int TENTONE_COLOR_FILTER = 30;
 double TENTONE_THRESH_BALANCE = 0.3;
 
 //Otso threhsold parameter
-double OTSU_THRESH_RATIO = 0.6;
+double OTSU_THRESH_RATIO = 0.8;
 
 //Color analysis
-bool SPLIT_COLOR_CHANNELS = true;
+bool SPLIT_COLOR_CHANNELS = false;
 
 //Erosion configuration (only used if above 0)
 int EROSION_PX = 0;
@@ -236,8 +236,6 @@ double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int n
 	}
 
 	//Sort the array from bigger to smaller
-	//TODO <PROPER SORTING ALGORITHM>
-	//TODO <EXPLICIT SIMD>
 	for(int i = 0; i < N; i++)
 	{
 		for(int j = i; j < N; j++)
@@ -363,8 +361,6 @@ int main(int argc, char** argv)
 			image = readImage(fnumber);
 		}
 
-
-
 		//Deblur the image
 		if(BLUR_GLOBAL)
 		{
@@ -380,11 +376,11 @@ int main(int argc, char** argv)
 
 			split(image, bgr);
 			
-			imshow("B", bgr[0]);
+			//imshow("B", bgr[0]);
 			imshow("G", bgr[1]);
 			imshow("R", bgr[2]);
 
-			gray = bgr[0];
+			gray = bgr[1];
 		}
 		//Convert image to grayscale
 		else
