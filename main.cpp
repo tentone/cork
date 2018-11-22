@@ -64,13 +64,13 @@ bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
 int THRESHOLD_BIN = 60;
 
 //Tentone threshold parameters
-int TENTONE_THRESH_MIN_DIFF = 40;
-int TENTONE_THRESH_NEIGHBORHOOD = 10;
-int TENTONE_COLOR_FILTER = 30;
-double TENTONE_THRESH_BALANCE = 0.3;
+int TENTONE_THRESH_MIN_DIFF = 15;
+int TENTONE_THRESH_NEIGHBORHOOD = 15;
+int TENTONE_COLOR_FILTER = 15;
+double TENTONE_THRESH_BALANCE = 0.5;
 
 //Otso threhsold parameter
-double OTSU_THRESH_RATIO = 0.8;
+double OTSU_THRESH_RATIO = 1.0;
 
 //Color analysis
 bool SPLIT_COLOR_CHANNELS = false;
@@ -186,10 +186,13 @@ bool isNeighbor(int value, int center, int neighborhood)
  *
  * @param src Input image.
  * @param mask Mask image.
- * @param min_diff Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
+ * @param min_color_separation Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
  * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
+ * @param min_neighborhood_separation Min separation between the neighbors.
+ * @param balance Ratio between the two colors with more occurences.
+ * @param min_occorrences_ratio Ratio of occurences between the two colors with more occurences.
  */
-double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int neighborhood = 10, int neighborhood_filter = 30, double balance = 0.3)
+double corkTreshold(const Mat1b src, const Mat1b& mask, int min_color_separation = 15, int neighborhood = 15, int min_neighborhood_separation = 15, double balance = 0.5, double min_occorrences_ratio = 0.65)
 {
 	const int N = 256;
 	int histogram[N] = {0};
@@ -255,27 +258,36 @@ double corkTreshold(const Mat1b src, const Mat1b& mask, int min_diff = 40, int n
 
 	//Colors with more occurences
 	int high = colors[0];
-	int low = -1;
+	int low = -1, low_count = 0;
 	
-	//Select the b color (the next color with more occurences far from b)
-	for(int i = 0; i < 10; i++)
+	//Select the low color (the next color with more occurences)
+	for(int i = 1; i < N; i++)
 	{
 		int highc = max(colors[i], high);
 		int lowc = min(colors[i], high);
 		
-		if((highc - lowc) < neighborhood_filter)
+		if((highc - lowc) < min_neighborhood_separation)
 		{
 			continue;
 		}
 		
+		low_count = count[i];
 		low = colors[i];
 		break;
 	}
 
-	double diff = high - low;
-	if(diff < min_diff || low == -1)
+	double diff = (high > low) ? high - low : low - high;
+	double ratio = (double)low_count / (double)count[0];
+	
+	if(diff < min_color_separation || ratio < min_occorrences_ratio || low == -1)
 	{
+		//cout << "Ratio:" << ratio << endl;
+		//cout << "Diff:" << diff << ", MinDiff:" << min_color_separation << ", High:" << high << ", Low:" << low << endl;
 		return 0;
+	}
+	else
+	{
+		//cout << "High:" << high << "(" << count[0] << "), Low:" << low << "(" << low_count << ")" << endl;
 	}
 
 	return low + (diff * balance);
@@ -588,7 +600,7 @@ int main(int argc, char** argv)
 				cvui::space(12);
 				trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
 				cvui::space(12);
-				trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 1, 100, 1);
+				trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 3, 100, 1);
 				cvui::space(12);
 				trackbar("Neigh. Filter", 200, &TENTONE_COLOR_FILTER, 1, 100, 1);
 				cvui::space(12);
