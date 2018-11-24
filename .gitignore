@@ -13,3 +13,5 @@ CTestTestfile.cmake
 cork
 lib/
 build/
+
+save_image
