@@ -27,7 +27,7 @@
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-#define USE_CAMERA false
+#define USE_CAMERA true
 #define USE_USB_CAMERA false
 #define USE_IP_CAMERA true
 #define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
@@ -81,6 +81,9 @@ int EROSION_PX = 0;
 //Igore skirt
 int OUTSIDE_SKIRT_IGNORE_PX = 4;
 
+/**
+ * Create a GUI trackbar.
+ */
 void trackbar(const cv::String& theText, int theWidth, double *theValue, double theMin, double theMax, int theSegments = 1, const char *theLabelFormat = "%.1Lf", unsigned int theOptions = 0, double theDiscreteStep = 1)
 {
 	cvui::beginRow();
@@ -92,6 +95,9 @@ void trackbar(const cv::String& theText, int theWidth, double *theValue, double 
 	cvui::endRow();
 }
 
+/**
+ * Create a GUI trackbar.
+ */
 void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin, int theMax, int theSegments = 1, const char *theLabelFormat = "%.Lf", unsigned int theOptions = 0, int theDiscreteStep = 1)
 {
 	cvui::beginRow();
@@ -340,8 +346,8 @@ int main(int argc, char** argv)
 			}
 
 			//Set exposure
-			cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
-			cap.set(CAP_PROP_EXPOSURE, -100);
+			//cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
+			//cap.set(CAP_PROP_EXPOSURE, -100);
 
 			//Focus
 			//cap.set(CAP_PROP_FOCUS, 0);
