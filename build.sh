@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm cork
+
 mkdir build
 cd build
 cmake ..
