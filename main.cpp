@@ -1,5 +1,11 @@
 #include <iostream>
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <unistd.h>
+
+#include "tcamcamera.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -29,10 +35,13 @@
 
 #define USE_CAMERA true
 #define USE_USB_CAMERA false
-#define USE_IP_CAMERA true
+#define USE_IP_CAMERA false
+#define USE_USB_TCAM true
+
 #define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
 //#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
 
+using namespace gsttcam;
 using namespace cv;
 using namespace std;
 
@@ -80,6 +89,16 @@ int EROSION_PX = 0;
 
 //Igore skirt
 int OUTSIDE_SKIRT_IGNORE_PX = 4;
+
+/**
+ * Image status structure to be passed to the callback function.
+ */
+typedef struct
+{
+	int counter;
+	bool busy;
+	Mat frame; 
+} ImageStatus;
 
 /**
  * Create a GUI trackbar.
@@ -299,6 +318,9 @@ double corkTreshold(const Mat1b src, const Mat1b& mask, int min_color_separation
 	return low + (diff * balance);
 }
 
+/**
+ * Check if the image inside of the circle has an overall cork like tonality.
+ */
 bool hasCorkColorTone(const Mat src, Vec3f circle)
 {
 	//TODO <ADD CODE HERE>
@@ -306,7 +328,10 @@ bool hasCorkColorTone(const Mat src, Vec3f circle)
 	return true;
 }
 
-Mat readImage(int index)
+/**
+ * Read image from file.
+ */
+Mat readImageFile(int index)
 {
 	fnumber = index;
 
@@ -322,13 +347,79 @@ Mat readImage(int index)
 	return imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
 }
 
+/**
+ * Callback called for new images by the internal appsink.
+ *
+ * Called from a TcamCamera object using the "set_new_frame_callback" method.
+ */
+GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
+{
+	int width, height ;
+	const GstStructure *str;
+
+	//Cast gpointer to ImageStatus*
+	ImageStatus *pdata = (ImageStatus*)data;
+	pdata->counter++;
+
+	//The following lines demonstrate, how to acces the image data in the GstSample.
+	GstSample *sample = gst_app_sink_pull_sample(appsink);
+	GstBuffer *buffer = gst_sample_get_buffer(sample);
+	GstMapInfo info;
+
+	gst_buffer_map(buffer, &info, GST_MAP_READ);
+	
+	if(info.data != NULL) 
+	{
+		//info.data contains the image data as blob of unsigned char 
+		GstCaps *caps = gst_sample_get_caps(sample);
+
+		//Get a string containg the pixel format, width and height of the image        
+		str = gst_caps_get_structure (caps, 0);    
+
+		if(strcmp(gst_structure_get_string (str, "format"),"BGRx") == 0)  
+		{
+			//Now query the width and height of the image
+			gst_structure_get_int (str, "width", &width);
+			gst_structure_get_int (str, "height", &height);
+
+			//Create a cv::Mat, copy image data into that and save the image.
+			pdata->frame.create(height,width, CV_8UC(4));
+			memcpy(pdata->frame.data, info.data, width*height*4);
+		}
+	}
+	
+	//Calling Unref is important!
+	gst_buffer_unmap (buffer, &info);
+	gst_sample_unref(sample);
+
+	//Set our flag of new image to true, so our main thread knows about a new image.
+	return GST_FLOW_OK;
+}
 
 int main(int argc, char** argv)
 {
 	VideoCapture cap;
-	
+	TcamCamera cam("46810320");
+
+	ImageStatus status;
+	status.counter = 0;
+
 	if(USE_CAMERA)
 	{
+		if(USE_USB_TCAM)
+		{
+			//Set video format, resolution and frame rate
+			cam.set_capture_format("BGRx", FrameSize{1920,1080}, FrameRate{60,1});
+
+			//Comment following line, if no live video display is wanted.
+			cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
+
+			//Register a callback to be called for each new frame
+			cam.set_new_frame_callback(getFrameTcamCallback, &status);
+			
+			//Start the camera
+			cam.start();
+		}
 		if(USE_USB_CAMERA)
 		{
 			if(!cap.open(0))
@@ -370,13 +461,20 @@ int main(int argc, char** argv)
 	while(1)
 	{
 		//Get image
-		if(cap.isOpened())
+		if(USE_CAMERA)
 		{
-			cap >> image;
+			if(USE_USB_TCAM)
+			{
+				image = status.frame;
+			}
+			else if(cap.isOpened())
+			{
+				cap >> image;
+			}
 		}
 		else
 		{
-			image = readImage(fnumber);
+			image = readImageFile(fnumber);
 		}
 
 		//Deblur the image
@@ -646,12 +744,12 @@ int main(int argc, char** argv)
 			}
 			else if(key == KEY_LEFT)
 			{
-				readImage(--fnumber);
+				readImageFile(--fnumber);
 				cout << "Fname:" << fnumber << endl;
 			}
 			else if(key == KEY_RIGHT)
 			{
-				readImage(++fnumber);
+				readImageFile(++fnumber);
 				cout << "Fname:" << fnumber << endl;
 			}
 			else
