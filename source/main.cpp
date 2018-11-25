@@ -5,17 +5,19 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "tcamcamera.h"
-
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include "tcamcamera.h"
+
 #define CVUI_DISABLE_COMPILATION_NOTICES
 #define CVUI_IMPLEMENTATION
 #include "../lib/cvui.h"
+
+#include "threshold.hpp"
 
 #define DEBUG_WINDOW true
 #define WINDOW_NAME "Cork"
@@ -66,8 +68,7 @@ int MAX_SIZE = 70;
 //Automatic threshold
 bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
-bool AUTOMATIC_USE_TENTONE_THRESH = true;
-bool AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+bool AUTOMATIC_USE_HISTOGRAM_THRESH = true;
 
 //Threshold value
 int THRESHOLD_BIN = 60;
@@ -83,9 +84,6 @@ double OTSU_THRESH_RATIO = 1.0;
 
 //Color analysis
 bool SPLIT_COLOR_CHANNELS = false;
-
-//Erosion configuration (only used if above 0)
-int EROSION_PX = 0;
 
 //Igore skirt
 int OUTSIDE_SKIRT_IGNORE_PX = 4;
@@ -129,70 +127,6 @@ void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin
 }
 
 /**
- * Otsu treshold algorithm with mask support.
- */
-double otsuMask(const Mat1b src, const Mat1b& mask)
-{
-	//Colors
-	const int N = 256;
-
-	int M = 0;
-
-	//Create the image histogram
-	int h[N] = {0};
-	for(int i = 0; i < src.rows; i++)
-	{
-		const uchar* psrc = src.ptr(i);
-		const uchar* pmask = mask.ptr(i);
-		for(int j = 0; j < src.cols; j++)
-		{
-			if(pmask[j])
-			{
-				h[psrc[j]]++;
-				++M;
-			}
-		}
-	}
-
-	double mu = 0, scale = 1.0 / (M);
-	for(int i = 0; i < N; i++)
-	{
-		mu += i * (double)h[i];
-	}
-
-	mu *= scale;
-	double mu1 = 0, q1 = 0;
-	double max_sigma = 0, max_val = 0;
-
-	for(int i = 0; i < N; i++)
-	{
-		double p_i, q2, mu2, sigma;
-
-		p_i = h[i] * scale;
-		mu1 *= q1;
-		q1 += p_i;
-		q2 = 1.0 - q1;
-
-		if(min(q1, q2) < FLT_EPSILON || max(q1, q2) > 1.0 - FLT_EPSILON)
-		{
-			continue;
-		}
-
-		mu1 = (mu1 + i * p_i) / q1;
-		mu2 = (mu - q1 * mu1) / q2;
-		sigma = q1 * q2 * (mu1 - mu2) * (mu1 - mu2);
-
-		if(sigma > max_sigma)
-		{
-			max_sigma = sigma;
-			max_val = i;
-		}
-	}
-
-	return max_val;
-}
-
-/**
  * Check if a value is in the neighborhood of another one.
  *
  * @param value
@@ -202,120 +136,6 @@ double otsuMask(const Mat1b src, const Mat1b& mask)
 bool isNeighbor(int value, int center, int neighborhood)
 {
 	return  value > (center - neighborhood) && value < (center + neighborhood);
-}
-
-/**
- * Corsk specific automatic treshold calculation.
- *
- * Differently from the OTSU algorithm that always aceppts a separations between the values this algorithm can allow situations were there is no sparation.
- *
- * @param src Input image.
- * @param mask Mask image.
- * @param min_color_separation Minimum separation between the colors found to get a treshold, if the diff exceds this limit 0 is returned.
- * @param neighborhood Neighborhood to analyse when creating the comulative histogram.
- * @param min_neighborhood_separation Min separation between the neighbors.
- * @param balance Ratio between the two colors with more occurences.
- * @param min_occorrences_ratio Ratio of occurences between the two colors with more occurences.
- */
-double corkTreshold(const Mat1b src, const Mat1b& mask, int min_color_separation = 15, int neighborhood = 15, int min_neighborhood_separation = 15, double balance = 0.5, double min_occorrences_ratio = 0.65)
-{
-	const int N = 256;
-	int histogram[N] = {0};
-	
-	//Create the image histogram
-	for(int i = 0; i < src.rows; i++)
-	{
-		const uchar* psrc = src.ptr(i);
-		const uchar* pmask = mask.ptr(i);
-		for(int j = 0; j < src.cols; j++)
-		{
-			if(pmask[j])
-			{
-				histogram[psrc[j]]++;
-			}
-		}
-	}
-
-	//Count in the neighborhood
-	int count[N] = {0};
-	int colors[N] = {0};
-	
-	//Neighborhood to be analysed
-	int neighborhood_half = neighborhood / 2;
-	int start = neighborhood_half;
-	int end = N - neighborhood_half;
-
-	for(int i = start; i < end; i++)
-	{
-		int sum_count = 0;
-		int sum_color = 0;
-		int c = 0;
-
-		//Analyse the neighborhood
-		for(int j = i - neighborhood_half; j < i + neighborhood_half; j++)
-		{
-			sum_color += i;
-			sum_count += histogram[i];
-			c++;
-		}
-
-		colors[i] = sum_color / c;
-		count[i] = sum_count;
-	}
-
-	//Sort the array from bigger to smaller
-	for(int i = 0; i < N; i++)
-	{
-		for(int j = i; j < N; j++)
-		{
-			if(count[i] < count[j])
-		 	{
-		 		int temp = count[i];
-		 		count[i] = count[j];
-		 		count[j] = temp;
-
-		 		temp = colors[i];
-		 		colors[i] = colors[j];
-		 		colors[j] = temp;
-		 	}
-		}
-	}
-
-	//Colors with more occurences
-	int high = colors[0];
-	int low = -1, low_count = 0;
-	
-	//Select the low color (the next color with more occurences)
-	for(int i = 1; i < N; i++)
-	{
-		int highc = max(colors[i], high);
-		int lowc = min(colors[i], high);
-		
-		if((highc - lowc) < min_neighborhood_separation)
-		{
-			continue;
-		}
-		
-		low_count = count[i];
-		low = colors[i];
-		break;
-	}
-
-	double diff = (high > low) ? high - low : low - high;
-	double ratio = (double)low_count / (double)count[0];
-	
-	if(diff < min_color_separation || ratio < min_occorrences_ratio || low == -1)
-	{
-		//cout << "Ratio:" << ratio << endl;
-		//cout << "Diff:" << diff << ", MinDiff:" << min_color_separation << ", High:" << high << ", Low:" << low << endl;
-		return 0;
-	}
-	else
-	{
-		//cout << "High:" << high << "(" << count[0] << "), Low:" << low << "(" << low_count << ")" << endl;
-	}
-
-	return low + (diff * balance);
 }
 
 /**
@@ -352,8 +172,6 @@ Mat readImageFile(int index)
  */
 void processFrame(Mat &image)
 {
-	cout << "Process Frame" << endl;
-
 	//Deblur the image
 	if(BLUR_GLOBAL)
 	{
@@ -419,28 +237,16 @@ void processFrame(Mat &image)
 
 		if(AUTOMATIC_THRESH)
 		{
-			if(AUTOMATIC_USE_ADAPTIVE_THRESH)
-			{
-				int block = radius / 2;
-				block = block % 2 == 0 ? block + 1 : block;
-				
-				adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
-
-				int size = 2;
-				int norm = 2 * size + 1;
-				Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
-				erode(roi_bin, roi_bin, element);
-			}
-			else if(AUTOMATIC_USE_OTSU_THRESH)
+			if(AUTOMATIC_USE_OTSU_THRESH)
 			{
 				//cout << "Automatic threshold: " << thresh << endl;
-				double thresh = OTSU_THRESH_RATIO * otsuMask(roi, mask);
+				double thresh = OTSU_THRESH_RATIO * otsuThreshold(roi, mask);
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
-			else// if(AUTOMATIC_USE_TENTONE_THRESH)
+			else// if(AUTOMATIC_USE_HISTOGRAM_THRESH)
 			{
 				//cout << "Automatic threshold: " << thresh << endl;
-				double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
+				double thresh = histogramThreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
@@ -454,15 +260,6 @@ void processFrame(Mat &image)
 
 		//Invert binary roi
 		bitwise_not(roi_bin, roi_bin);
-		//imshow("ROI Binary", roi_bin);
-
-		//Erode
-		if(EROSION_PX > 0)
-		{
-			int kernel = 2 * EROSION_PX + 1;
-			Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(EROSION_PX, EROSION_PX));
-			erode(roi_bin, roi_bin, element);
-		}
 
 		//Measure defective area
 		double count = 0.0;
@@ -553,19 +350,11 @@ void processFrame(Mat &image)
 			cvui::space(12);
 			if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
 			{
-				AUTOMATIC_USE_TENTONE_THRESH = false;
-				AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+				AUTOMATIC_USE_HISTOGRAM_THRESH = false;
 			}
 			cvui::space(12);
-			if(cvui::checkbox("Custom", &AUTOMATIC_USE_TENTONE_THRESH))
+			if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HISTOGRAM_THRESH))
 			{
-				AUTOMATIC_USE_OTSU_THRESH = false;
-				AUTOMATIC_USE_ADAPTIVE_THRESH = false;
-			}
-			cvui::space(12);
-			if(cvui::checkbox("Adaptive", &AUTOMATIC_USE_ADAPTIVE_THRESH))
-			{
-				AUTOMATIC_USE_TENTONE_THRESH = false;
 				AUTOMATIC_USE_OTSU_THRESH = false;
 			}
 		}
@@ -576,7 +365,7 @@ void processFrame(Mat &image)
 			cvui::space(12);
 			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
 		}
-		else if(AUTOMATIC_USE_TENTONE_THRESH)
+		else if(AUTOMATIC_USE_HISTOGRAM_THRESH)
 		{
 			cvui::space(12);
 			trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
@@ -590,8 +379,6 @@ void processFrame(Mat &image)
 		
 		cvui::space(12);
 		trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
-		//cvui::space(12);
-		//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
 
 		cvui::space(12);
 		cvui::text("Circle ___________________");
@@ -738,11 +525,9 @@ int main(int argc, char** argv)
 	while(1)
 	{
 		//Get image
-		if(USE_CAMERA)
+		if(USE_CAMERA && !USE_USB_TCAM)
 		{
-			if(USE_USB_TCAM)
-			{}
-			else if(cap.isOpened())
+			if(cap.isOpened())
 			{
 				Mat image;
 				cap >> image;
@@ -751,7 +536,8 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			//processFrame(readImageFile(fnumber));
+			Mat image = readImageFile(fnumber);
+			processFrame(image);
 		}
 
 		//Keyboard input
@@ -762,22 +548,20 @@ int main(int argc, char** argv)
 			{
 				return 0;
 			}
-			else if(key == KEY_LEFT)
+			else if(!USE_CAMERA)
 			{
-				readImageFile(--fnumber);
-				cout << "Fname:" << fnumber << endl;
-			}
-			else if(key == KEY_RIGHT)
-			{
-				readImageFile(++fnumber);
-				cout << "Fname:" << fnumber << endl;
-			}
-			else
-			{
-				cout << "Unkown key:" << key << endl;
+				if(key == KEY_LEFT)
+				{
+					readImageFile(--fnumber);
+					cout << "Fname:" << fnumber << endl;
+				}
+				else if(key == KEY_RIGHT)
+				{
+					readImageFile(++fnumber);
+					cout << "Fname:" << fnumber << endl;
+				}
 			}
 		}
-
 	}
 
 	if(USE_CAMERA && USE_USB_TCAM)
