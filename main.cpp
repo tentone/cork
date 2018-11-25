@@ -374,16 +374,16 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 		GstCaps *caps = gst_sample_get_caps(sample);
 
 		//Get a string containg the pixel format, width and height of the image        
-		str = gst_caps_get_structure (caps, 0);    
+		str = gst_caps_get_structure(caps, 0);    
 
 		if(strcmp(gst_structure_get_string (str, "format"),"BGRx") == 0)  
 		{
 			//Now query the width and height of the image
-			gst_structure_get_int (str, "width", &width);
-			gst_structure_get_int (str, "height", &height);
+			gst_structure_get_int(str, "width", &width);
+			gst_structure_get_int(str, "height", &height);
 
 			//Create a cv::Mat, copy image data into that and save the image.
-			pdata->frame.create(height,width, CV_8UC(4));
+			pdata->frame.create(height, width, CV_8UC(4));
 			memcpy(pdata->frame.data, info.data, width*height*4);
 		}
 	}
@@ -398,6 +398,8 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 
 int main(int argc, char** argv)
 {
+	gst_init(&argc, &argv);
+
 	VideoCapture cap;
 	TcamCamera cam("46810320");
 
@@ -409,10 +411,7 @@ int main(int argc, char** argv)
 		if(USE_USB_TCAM)
 		{
 			//Set video format, resolution and frame rate
-			cam.set_capture_format("BGRx", FrameSize{1920,1080}, FrameRate{60,1});
-
-			//Comment following line, if no live video display is wanted.
-			cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
+			cam.set_capture_format("BGRx", FrameSize{1920, 1080}, FrameRate{30,1});
 
 			//Register a callback to be called for each new frame
 			cam.set_new_frame_callback(getFrameTcamCallback, &status);
@@ -452,9 +451,6 @@ int main(int argc, char** argv)
 		}
 	}
 
-	
-	Mat image;
-
 	//Prepare output window
 	cvui::init(WINDOW_NAME);
 
@@ -465,22 +461,25 @@ int main(int argc, char** argv)
 		{
 			if(USE_USB_TCAM)
 			{
-				image = status.frame;
+				if(status.frame.empty() || status.busy)
+				{
+					continue;
+				}
 			}
 			else if(cap.isOpened())
 			{
-				cap >> image;
+				cap >> status.frame;
 			}
 		}
 		else
 		{
-			image = readImageFile(fnumber);
+			status.frame = readImageFile(fnumber);
 		}
 
 		//Deblur the image
 		if(BLUR_GLOBAL)
 		{
-			medianBlur(image, image, BLUR_GLOBAL_KSIZE);
+			medianBlur(status.frame, status.frame, BLUR_GLOBAL_KSIZE);
 		}
 		
 		Mat gray;
@@ -490,7 +489,7 @@ int main(int argc, char** argv)
 		{
 			Mat bgr[3];
 
-			split(image, bgr);
+			split(status.frame, bgr);
 			
 			//imshow("B", bgr[0]);
 			imshow("G", bgr[1]);
@@ -501,7 +500,7 @@ int main(int argc, char** argv)
 		//Convert image to grayscale
 		else
 		{
-			cvtColor(image, gray, COLOR_BGR2GRAY);
+			cvtColor(status.frame, gray, COLOR_BGR2GRAY);
 			//imshow("Gray", gray);
 		}
 
@@ -622,23 +621,23 @@ int main(int argc, char** argv)
 
 						if(roi_bin.data[t] > 0)
 						{
-							int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+							int k = ((i + roi_rect.y) * status.frame.cols + (j + roi_rect.x)) * 3;
 
-							image.data[k + 2] = (unsigned char) 255;
+							status.frame.data[k + 2] = (unsigned char) 255;
 						}
 					}
 				}
 
 				//Cicle position
-				circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
-				circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
-				putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+				circle(status.frame, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
+				circle(status.frame, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
+				putText(status.frame, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
 			}
 		}
 
 		if(DEBUG_WINDOW)
 		{
-			cvui::beginColumn(image, 10, 10);
+			cvui::beginColumn(status.frame, 10, 10);
 			cvui::beginRow();
 			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
 			cvui::space(12);
@@ -731,7 +730,7 @@ int main(int argc, char** argv)
 			cvui::endColumn();
 
 			cvui::update();
-			cvui::imshow(WINDOW_NAME, image);
+			cvui::imshow(WINDOW_NAME, status.frame);
 		}
 
 		//Keyboard input
@@ -757,6 +756,11 @@ int main(int argc, char** argv)
 				cout << "Unkown key:" << key << endl;
 			}
 		}
+	}
+
+	if(USE_CAMERA && USE_USB_TCAM)
+	{
+		cam.stop();
 	}
 
 	return 0;

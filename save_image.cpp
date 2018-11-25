@@ -70,11 +70,11 @@ GstFlowReturn new_frame_cb(GstAppSink *appsink, gpointer data)
 		//Get a string containg the pixel format, width and height of the image        
 		str = gst_caps_get_structure (caps, 0);    
 
-		if(strcmp(gst_structure_get_string (str, "format"),"BGRx") == 0)  
+		if(strcmp(gst_structure_get_string(str, "format"),"BGRx") == 0)  
 		{
 			//Now query the width and height of the image
-			gst_structure_get_int (str, "width", &width);
-			gst_structure_get_int (str, "height", &height);
+			gst_structure_get_int(str, "width", &width);
+			gst_structure_get_int(str, "height", &height);
 
 			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.create(height,width, CV_8UC(4));
