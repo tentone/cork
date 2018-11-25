@@ -15,7 +15,7 @@
 
 #define CVUI_DISABLE_COMPILATION_NOTICES
 #define CVUI_IMPLEMENTATION
-#include "lib/cvui.h"
+#include "../lib/cvui.h"
 
 #define DEBUG_WINDOW true
 #define WINDOW_NAME "Cork"
@@ -348,6 +348,285 @@ Mat readImageFile(int index)
 }
 
 /**
+ * Process a frame captured from the camera.
+ */
+void processFrame(Mat &image)
+{
+	cout << "Process Frame" << endl;
+
+	//Deblur the image
+	if(BLUR_GLOBAL)
+	{
+		medianBlur(image, image, BLUR_GLOBAL_KSIZE);
+	}
+	
+	Mat gray;
+
+	//Split color channels
+	if(SPLIT_COLOR_CHANNELS)
+	{
+		Mat bgr[3];
+
+		split(image, bgr);
+		
+		//imshow("B", bgr[0]);
+		imshow("G", bgr[1]);
+		imshow("R", bgr[2]);
+
+		gray = bgr[1];
+	}
+	//Convert image to grayscale
+	else
+	{
+		cvtColor(image, gray, COLOR_BGR2GRAY);
+		//imshow("Gray", gray);
+	}
+
+	//Detect circles
+	vector<Vec3f> circles;
+	HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
+
+	bool found = circles.size() > 0;
+
+	//Draw circle outline
+	for(size_t i = 0; i < circles.size(); i++)
+	{
+		Vec3i c = circles[i];
+		Point center = Point(c[0], c[1]);
+		int radius = c[2];
+		
+		//Check if fully inside of the image
+		if(radius > center.x || radius > center.y || radius + center.x > gray.cols || radius + center.y > gray.rows)
+		{
+			continue;
+		}
+
+		//Create the roi
+		Rect roi_rect = Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
+		Mat roi = Mat(gray, roi_rect);
+		
+		//Circle mask for the roi
+		Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
+		circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
+
+		//Binarize the roi
+		Mat roi_bin;
+
+		if(BLUR_MASK)
+		{
+			medianBlur(roi, roi, BLUR_MASK_KSIZE);
+		}
+
+		if(AUTOMATIC_THRESH)
+		{
+			if(AUTOMATIC_USE_ADAPTIVE_THRESH)
+			{
+				int block = radius / 2;
+				block = block % 2 == 0 ? block + 1 : block;
+				
+				adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
+
+				int size = 2;
+				int norm = 2 * size + 1;
+				Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
+				erode(roi_bin, roi_bin, element);
+			}
+			else if(AUTOMATIC_USE_OTSU_THRESH)
+			{
+				//cout << "Automatic threshold: " << thresh << endl;
+				double thresh = OTSU_THRESH_RATIO * otsuMask(roi, mask);
+				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+			}
+			else// if(AUTOMATIC_USE_TENTONE_THRESH)
+			{
+				//cout << "Automatic threshold: " << thresh << endl;
+				double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
+				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+			}
+		}
+		else
+		{
+			threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
+		}
+
+		//Mask outside of the cork in roi bin
+		bitwise_or(mask, roi_bin, roi_bin);
+
+		//Invert binary roi
+		bitwise_not(roi_bin, roi_bin);
+		//imshow("ROI Binary", roi_bin);
+
+		//Erode
+		if(EROSION_PX > 0)
+		{
+			int kernel = 2 * EROSION_PX + 1;
+			Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(EROSION_PX, EROSION_PX));
+			erode(roi_bin, roi_bin, element);
+		}
+
+		//Measure defective area
+		double count = 0.0;
+		unsigned char *data = (unsigned char*)(roi_bin.data);
+		for(int j = 0; j < roi_bin.rows; j++)
+		{
+			for(int i = 0; i < roi_bin.cols; i++)
+			{
+				if(data[roi_bin.step * j + i] > 0)
+				{
+					count++;
+				}
+			}
+		}
+
+		double area = PI * radius * radius;
+		double defect = (count / area) * 100.0;
+
+		//cout << "Points: " << points << endl;
+		//cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << endl;
+		//cout << "Count: " << count << endl;
+		//cout << "Area: " << area << endl;
+		//cout << "Defect: " << defect << "%" << endl;
+
+		//Draw debug information
+		if(DEBUG_WINDOW)
+		{
+			//Draw defect
+			for(int i = 0; i < roi_bin.rows; i++)
+			{
+				for(int j = 0; j < roi_bin.cols; j++)
+				{
+					int t = (i * roi_bin.cols + j);
+
+					if(roi_bin.data[t] > 0)
+					{
+						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+
+						image.data[k + 2] = (unsigned char) 255;
+					}
+				}
+			}
+
+			//Cicle position
+			circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
+			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
+			putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+		}
+	}
+
+	if(DEBUG_WINDOW)
+	{
+		cvui::beginColumn(image, 10, 10);
+		cvui::beginRow();
+		cvui::checkbox("Blur Global", &BLUR_GLOBAL);
+		cvui::space(12);
+		cvui::checkbox("Blur Mask", &BLUR_MASK);
+		cvui::endRow();
+
+		if(BLUR_GLOBAL)
+		{
+			cvui::space(12);
+			trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
+			if(BLUR_GLOBAL_KSIZE % 2 == 0)
+			{
+				BLUR_GLOBAL_KSIZE++;
+			}
+		}
+
+		if(BLUR_MASK)
+		{
+			cvui::space(12);
+			trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
+			if(BLUR_MASK_KSIZE % 2 == 0)
+			{
+				BLUR_MASK_KSIZE++;
+			}
+		}
+
+		cvui::space(12);
+		cvui::text("Threshold ___________________");
+
+		cvui::space(12);
+		cvui::beginRow();
+		cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
+		if(AUTOMATIC_THRESH)
+		{
+			cvui::space(12);
+			if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
+			{
+				AUTOMATIC_USE_TENTONE_THRESH = false;
+				AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+			}
+			cvui::space(12);
+			if(cvui::checkbox("Custom", &AUTOMATIC_USE_TENTONE_THRESH))
+			{
+				AUTOMATIC_USE_OTSU_THRESH = false;
+				AUTOMATIC_USE_ADAPTIVE_THRESH = false;
+			}
+			cvui::space(12);
+			if(cvui::checkbox("Adaptive", &AUTOMATIC_USE_ADAPTIVE_THRESH))
+			{
+				AUTOMATIC_USE_TENTONE_THRESH = false;
+				AUTOMATIC_USE_OTSU_THRESH = false;
+			}
+		}
+		cvui::endRow();
+		
+		if(!AUTOMATIC_THRESH)
+		{
+			cvui::space(12);
+			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
+		}
+		else if(AUTOMATIC_USE_TENTONE_THRESH)
+		{
+			cvui::space(12);
+			trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
+			cvui::space(12);
+			trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 3, 100, 1);
+			cvui::space(12);
+			trackbar("Neigh. Filter", 200, &TENTONE_COLOR_FILTER, 1, 100, 1);
+			cvui::space(12);
+			trackbar("Balance", 200, &TENTONE_THRESH_BALANCE, 0, 1, 1);	
+		}
+		
+		cvui::space(12);
+		trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
+		//cvui::space(12);
+		//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
+
+		cvui::space(12);
+		cvui::text("Circle ___________________");
+		cvui::space(12);
+		trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
+		cvui::space(12);
+		trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
+		cvui::space(12);
+		trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
+		cvui::space(12);
+		trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
+		cvui::space(12);
+		trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
+		cvui::endColumn();
+
+		cvui::update();
+		cvui::imshow(WINDOW_NAME, image);
+	}
+}
+
+/**
+ * List available properties helper function.
+ */
+void listTcamProperties(TcamCamera &cam)
+{
+	//Get a list of all supported properties and print it out
+	auto properties = cam.get_camera_property_list();
+	std::cout << "Properties:" << std::endl;
+	for(auto &prop : properties)
+	{
+		std::cout << prop->to_string() << std::endl;
+	}
+}
+
+/**
  * Callback called for new images by the internal appsink.
  *
  * Called from a TcamCamera object using the "set_new_frame_callback" method.
@@ -385,6 +664,8 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.create(height, width, CV_8UC(4));
 			memcpy(pdata->frame.data, info.data, width*height*4);
+
+			processFrame(pdata->frame);
 		}
 	}
 	
@@ -460,277 +741,17 @@ int main(int argc, char** argv)
 		if(USE_CAMERA)
 		{
 			if(USE_USB_TCAM)
-			{
-				if(status.frame.empty() || status.busy)
-				{
-					continue;
-				}
-			}
+			{}
 			else if(cap.isOpened())
 			{
-				cap >> status.frame;
+				Mat image;
+				cap >> image;
+				processFrame(image);
 			}
 		}
 		else
 		{
-			status.frame = readImageFile(fnumber);
-		}
-
-		//Deblur the image
-		if(BLUR_GLOBAL)
-		{
-			medianBlur(status.frame, status.frame, BLUR_GLOBAL_KSIZE);
-		}
-		
-		Mat gray;
-
-		//Split color channels
-		if(SPLIT_COLOR_CHANNELS)
-		{
-			Mat bgr[3];
-
-			split(status.frame, bgr);
-			
-			//imshow("B", bgr[0]);
-			imshow("G", bgr[1]);
-			imshow("R", bgr[2]);
-
-			gray = bgr[1];
-		}
-		//Convert image to grayscale
-		else
-		{
-			cvtColor(status.frame, gray, COLOR_BGR2GRAY);
-			//imshow("Gray", gray);
-		}
-
-		//Detect circles
-		vector<Vec3f> circles;
-		HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
-
-		bool found = circles.size() > 0;
-
-		//Draw circle outline
-		for(size_t i = 0; i < circles.size(); i++)
-		{
-			Vec3i c = circles[i];
-			Point center = Point(c[0], c[1]);
-			int radius = c[2];
-			
-			//Check if fully inside of the image
-			if(radius > center.x || radius > center.y || radius + center.x > gray.cols || radius + center.y > gray.rows)
-			{
-				continue;
-			}
-
-			//Create the roi
-			Rect roi_rect = Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
-			Mat roi = Mat(gray, roi_rect);
-			
-			//Circle mask for the roi
-			Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
-			circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
-
-			//Binarize the roi
-			Mat roi_bin;
-
-			if(BLUR_MASK)
-			{
-				medianBlur(roi, roi, BLUR_MASK_KSIZE);
-			}
-
-			if(AUTOMATIC_THRESH)
-			{
-				if(AUTOMATIC_USE_ADAPTIVE_THRESH)
-				{
-					int block = radius / 2;
-					block = block % 2 == 0 ? block + 1 : block;
-					
-					adaptiveThreshold(roi, roi_bin, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, block, 2);
-
-					int size = 2;
-					int norm = 2 * size + 1;
-					Mat element = getStructuringElement(MORPH_ELLIPSE, Size(norm, norm), Point(size, size));
-					erode(roi_bin, roi_bin, element);
-				}
-				else if(AUTOMATIC_USE_OTSU_THRESH)
-				{
-					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = OTSU_THRESH_RATIO * otsuMask(roi, mask);
-					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
-				}
-				else// if(AUTOMATIC_USE_TENTONE_THRESH)
-				{
-					//cout << "Automatic threshold: " << thresh << endl;
-					double thresh = corkTreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
-					threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
-				}
-			}
-			else
-			{
-				threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
-			}
-
-			//Mask outside of the cork in roi bin
-			bitwise_or(mask, roi_bin, roi_bin);
-
-			//Invert binary roi
-			bitwise_not(roi_bin, roi_bin);
-			//imshow("ROI Binary", roi_bin);
-
-			//Erode
-			if(EROSION_PX > 0)
-			{
-				int kernel = 2 * EROSION_PX + 1;
-				Mat element = getStructuringElement(MORPH_RECT, Size(kernel, kernel), Point(EROSION_PX, EROSION_PX));
-				erode(roi_bin, roi_bin, element);
-			}
-
-			//Measure defective area
-			double count = 0.0;
-			unsigned char *data = (unsigned char*)(roi_bin.data);
-			for(int j = 0; j < roi_bin.rows; j++)
-			{
-				for(int i = 0; i < roi_bin.cols; i++)
-				{
-					if(data[roi_bin.step * j + i] > 0)
-					{
-						count++;
-					}
-				}
-			}
-
-			double area = PI * radius * radius;
-			double defect = (count / area) * 100.0;
-
-			//cout << "Points: " << points << endl;
-			//cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << endl;
-			//cout << "Count: " << count << endl;
-			//cout << "Area: " << area << endl;
-			//cout << "Defect: " << defect << "%" << endl;
-
-			//Draw debug information
-			if(DEBUG_WINDOW)
-			{
-				//Draw defect
-				for(int i = 0; i < roi_bin.rows; i++)
-				{
-					for(int j = 0; j < roi_bin.cols; j++)
-					{
-						int t = (i * roi_bin.cols + j);
-
-						if(roi_bin.data[t] > 0)
-						{
-							int k = ((i + roi_rect.y) * status.frame.cols + (j + roi_rect.x)) * 3;
-
-							status.frame.data[k + 2] = (unsigned char) 255;
-						}
-					}
-				}
-
-				//Cicle position
-				circle(status.frame, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
-				circle(status.frame, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
-				putText(status.frame, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
-			}
-		}
-
-		if(DEBUG_WINDOW)
-		{
-			cvui::beginColumn(status.frame, 10, 10);
-			cvui::beginRow();
-			cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-			cvui::space(12);
-			cvui::checkbox("Blur Mask", &BLUR_MASK);
-			cvui::endRow();
-
-			if(BLUR_GLOBAL)
-			{
-				cvui::space(12);
-				trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
-				if(BLUR_GLOBAL_KSIZE % 2 == 0)
-				{
-					BLUR_GLOBAL_KSIZE++;
-				}
-			}
-
-			if(BLUR_MASK)
-			{
-				cvui::space(12);
-				trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
-				if(BLUR_MASK_KSIZE % 2 == 0)
-				{
-					BLUR_MASK_KSIZE++;
-				}
-			}
-
-			cvui::space(12);
-			cvui::text("Threshold ___________________");
-
-			cvui::space(12);
-			cvui::beginRow();
-			cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-			if(AUTOMATIC_THRESH)
-			{
-				cvui::space(12);
-				if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
-				{
-					AUTOMATIC_USE_TENTONE_THRESH = false;
-					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
-				}
-				cvui::space(12);
-				if(cvui::checkbox("Custom", &AUTOMATIC_USE_TENTONE_THRESH))
-				{
-					AUTOMATIC_USE_OTSU_THRESH = false;
-					AUTOMATIC_USE_ADAPTIVE_THRESH = false;
-				}
-				cvui::space(12);
-				if(cvui::checkbox("Adaptive", &AUTOMATIC_USE_ADAPTIVE_THRESH))
-				{
-					AUTOMATIC_USE_TENTONE_THRESH = false;
-					AUTOMATIC_USE_OTSU_THRESH = false;
-				}
-			}
-			cvui::endRow();
-			
-			if(!AUTOMATIC_THRESH)
-			{
-				cvui::space(12);
-				trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
-			}
-			else if(AUTOMATIC_USE_TENTONE_THRESH)
-			{
-				cvui::space(12);
-				trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
-				cvui::space(12);
-				trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 3, 100, 1);
-				cvui::space(12);
-				trackbar("Neigh. Filter", 200, &TENTONE_COLOR_FILTER, 1, 100, 1);
-				cvui::space(12);
-				trackbar("Balance", 200, &TENTONE_THRESH_BALANCE, 0, 1, 1);	
-			}
-			
-			cvui::space(12);
-			trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
-			//cvui::space(12);
-			//trackbar("Erosion", 200, &EROSION_PX, 0, 10, 1);
-
-			cvui::space(12);
-			cvui::text("Circle ___________________");
-			cvui::space(12);
-			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
-			cvui::space(12);
-			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
-			cvui::space(12);
-			trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
-			cvui::space(12);
-			trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
-			cvui::space(12);
-			trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
-			cvui::endColumn();
-
-			cvui::update();
-			cvui::imshow(WINDOW_NAME, status.frame);
+			//processFrame(readImageFile(fnumber));
 		}
 
 		//Keyboard input
@@ -756,6 +777,7 @@ int main(int argc, char** argv)
 				cout << "Unkown key:" << key << endl;
 			}
 		}
+
 	}
 
 	if(USE_CAMERA && USE_USB_TCAM)

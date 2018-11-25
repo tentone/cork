@@ -23,9 +23,5 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${TISCAMERA_DIR}/examples/cpp/co
 add_definitions(${GSTREAMER_CFLAGS_OTHER}) 
 
 #Build main
-add_executable(cork main.cpp ${TISCAMERA_DIR}/examples/cpp/common/tcamcamera.cpp)
+add_executable(cork ./source/main.cpp ${TISCAMERA_DIR}/examples/cpp/common/tcamcamera.cpp)
 target_link_libraries(cork ${OpenCV_LIBS} ${TCAMLIB_LIBRARIES} ${GSTREAMER_LIBRARIES})
-
-#Build save image
-add_executable(save_image save_image.cpp ${TISCAMERA_DIR}/examples/cpp/common/tcamcamera.cpp)
-target_link_libraries(save_image ${OpenCV_LIBS} ${TCAMLIB_LIBRARIES} ${GSTREAMER_LIBRARIES})
