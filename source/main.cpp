@@ -17,7 +17,8 @@
 #define CVUI_IMPLEMENTATION
 #include "../lib/cvui.h"
 
-#include "threshold.hpp"
+#include "ImageStatus.hpp"
+#include "Threshold.hpp"
 
 #define DEBUG_WINDOW true
 #define WINDOW_NAME "Cork"
@@ -32,14 +33,19 @@
 
 #define PI 3.14159265359
 
+//Input sources
+#define FILE 0
+#define USB_CAMERA 1
+#define IP_CAMERA 2
+#define TCAM_CAMERA 3
+
+#define INPUT_SOURCE 0
+
+//File range
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-#define USE_CAMERA true
-#define USE_USB_CAMERA false
-#define USE_IP_CAMERA false
-#define USE_USB_TCAM true
-
+//IP Camera address
 #define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
 //#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
 
@@ -57,27 +63,25 @@ bool BLUR_MASK = false;
 int BLUR_MASK_KSIZE = 3;
 
 //Hough parameters
-int MIN_SPACING = 400;
-//It is the higher threshold of the two passed to the Canny edge detector (the lower one is twice smaller).
 int LOW_CANNY_THRESH = 120;
-//It is the accumulator threshold for the circle centers at the detection stage. The smaller it is, the more false circles may be detected. Circles, corresponding to the larger accumulator values, will be returned first.
-int HIGH_CANNY_THRESH = 30;
+int HIGH_CANNY_THRESH = 30; //The smaller it is, the more false circles may be detected.
 int MIN_SIZE = 47;
 int MAX_SIZE = 70;
+int MIN_SPACING = 400;
 
 //Automatic threshold
 bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
-bool AUTOMATIC_USE_HISTOGRAM_THRESH = true;
+bool AUTOMATIC_USE_HIST_THRESH = true;
 
 //Threshold value
 int THRESHOLD_BIN = 60;
 
 //Tentone threshold parameters
-int TENTONE_THRESH_MIN_DIFF = 15;
-int TENTONE_THRESH_NEIGHBORHOOD = 15;
-int TENTONE_COLOR_FILTER = 15;
-double TENTONE_THRESH_BALANCE = 0.5;
+int HIST_THRESH_MIN_DIFF = 15;
+int HIST_THRESH_NEIGHBORHOOD = 15;
+int HIST_COLOR_FILTER = 15;
+double HIST_THRESH_BALANCE = 0.5;
 
 //Otso threhsold parameter
 double OTSU_THRESH_RATIO = 1.0;
@@ -85,18 +89,8 @@ double OTSU_THRESH_RATIO = 1.0;
 //Color analysis
 bool SPLIT_COLOR_CHANNELS = false;
 
-//Igore skirt
-int OUTSIDE_SKIRT_IGNORE_PX = 4;
-
-/**
- * Image status structure to be passed to the callback function.
- */
-typedef struct
-{
-	int counter;
-	bool busy;
-	Mat frame; 
-} ImageStatus;
+//Outside skirt size in pixels
+int OUTSIDE_SKIRT = 4;
 
 /**
  * Create a GUI trackbar.
@@ -225,7 +219,7 @@ void processFrame(Mat &image)
 		
 		//Circle mask for the roi
 		Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
-		circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT_IGNORE_PX, Scalar(0, 0, 0), -1, 8, 0);
+		circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT, Scalar(0, 0, 0), -1, 8, 0);
 
 		//Binarize the roi
 		Mat roi_bin;
@@ -243,10 +237,10 @@ void processFrame(Mat &image)
 				double thresh = OTSU_THRESH_RATIO * otsuThreshold(roi, mask);
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
-			else// if(AUTOMATIC_USE_HISTOGRAM_THRESH)
+			else// if(AUTOMATIC_USE_HIST_THRESH)
 			{
 				//cout << "Automatic threshold: " << thresh << endl;
-				double thresh = histogramThreshold(roi, mask, TENTONE_THRESH_MIN_DIFF, TENTONE_THRESH_NEIGHBORHOOD, TENTONE_COLOR_FILTER, TENTONE_THRESH_BALANCE);
+				double thresh = histogramThreshold(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
@@ -313,85 +307,85 @@ void processFrame(Mat &image)
 	if(DEBUG_WINDOW)
 	{
 		cvui::beginColumn(image, 10, 10);
-		cvui::beginRow();
-		cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-		cvui::space(12);
-		cvui::checkbox("Blur Mask", &BLUR_MASK);
-		cvui::endRow();
+			cvui::beginRow();
+				cvui::checkbox("Blur Global", &BLUR_GLOBAL);
+				cvui::space(12);
+				cvui::checkbox("Blur Mask", &BLUR_MASK);
+			cvui::endRow();
 
-		if(BLUR_GLOBAL)
-		{
-			cvui::space(12);
-			trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
-			if(BLUR_GLOBAL_KSIZE % 2 == 0)
+			if(BLUR_GLOBAL)
 			{
-				BLUR_GLOBAL_KSIZE++;
+				cvui::space(12);
+				trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
+				if(BLUR_GLOBAL_KSIZE % 2 == 0)
+				{
+					BLUR_GLOBAL_KSIZE++;
+				}
 			}
-		}
 
-		if(BLUR_MASK)
-		{
-			cvui::space(12);
-			trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
-			if(BLUR_MASK_KSIZE % 2 == 0)
+			if(BLUR_MASK)
 			{
-				BLUR_MASK_KSIZE++;
+				cvui::space(12);
+				trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
+				if(BLUR_MASK_KSIZE % 2 == 0)
+				{
+					BLUR_MASK_KSIZE++;
+				}
 			}
-		}
 
-		cvui::space(12);
-		cvui::text("Threshold ___________________");
-
-		cvui::space(12);
-		cvui::beginRow();
-		cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-		if(AUTOMATIC_THRESH)
-		{
 			cvui::space(12);
-			if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
+			cvui::text("Threshold ___________________");
+
+			cvui::space(12);
+			cvui::beginRow();
+				cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
+				if(AUTOMATIC_THRESH)
+				{
+					cvui::space(12);
+					if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
+					{
+						AUTOMATIC_USE_HIST_THRESH = false;
+					}
+					cvui::space(12);
+					if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HIST_THRESH))
+					{
+						AUTOMATIC_USE_OTSU_THRESH = false;
+					}
+				}
+			cvui::endRow();
+			
+			if(!AUTOMATIC_THRESH)
 			{
-				AUTOMATIC_USE_HISTOGRAM_THRESH = false;
+				cvui::space(12);
+				trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
 			}
-			cvui::space(12);
-			if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HISTOGRAM_THRESH))
+			else if(AUTOMATIC_USE_HIST_THRESH)
 			{
-				AUTOMATIC_USE_OTSU_THRESH = false;
+				cvui::space(12);
+				trackbar("Min-diff", 200, &HIST_THRESH_MIN_DIFF, 5, 100, 1);
+				cvui::space(12);
+				trackbar("Neighborhood", 200, &HIST_THRESH_NEIGHBORHOOD, 3, 100, 1);
+				cvui::space(12);
+				trackbar("Neigh. Filter", 200, &HIST_COLOR_FILTER, 1, 100, 1);
+				cvui::space(12);
+				trackbar("Balance", 200, &HIST_THRESH_BALANCE, 0, 1, 1);	
 			}
-		}
-		cvui::endRow();
-		
-		if(!AUTOMATIC_THRESH)
-		{
+			
 			cvui::space(12);
-			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
-		}
-		else if(AUTOMATIC_USE_HISTOGRAM_THRESH)
-		{
-			cvui::space(12);
-			trackbar("Min-diff", 200, &TENTONE_THRESH_MIN_DIFF, 5, 100, 1);
-			cvui::space(12);
-			trackbar("Neighborhood", 200, &TENTONE_THRESH_NEIGHBORHOOD, 3, 100, 1);
-			cvui::space(12);
-			trackbar("Neigh. Filter", 200, &TENTONE_COLOR_FILTER, 1, 100, 1);
-			cvui::space(12);
-			trackbar("Balance", 200, &TENTONE_THRESH_BALANCE, 0, 1, 1);	
-		}
-		
-		cvui::space(12);
-		trackbar("Skirt", 200, &OUTSIDE_SKIRT_IGNORE_PX, 0, 20, 1);
+			trackbar("Skirt", 200, &OUTSIDE_SKIRT, 0, 20, 1);
 
-		cvui::space(12);
-		cvui::text("Circle ___________________");
-		cvui::space(12);
-		trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
-		cvui::space(12);
-		trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
-		cvui::space(12);
-		trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
-		cvui::space(12);
-		trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
-		cvui::space(12);
-		trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
+			cvui::space(12);
+			cvui::text("Circle ___________________");
+			cvui::space(12);
+			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
+			cvui::space(12);
+			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
+			cvui::space(12);
+			trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
+			cvui::space(12);
+			trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
+			cvui::space(12);
+			trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
 		cvui::endColumn();
 
 		cvui::update();
@@ -474,70 +468,66 @@ int main(int argc, char** argv)
 	ImageStatus status;
 	status.counter = 0;
 
-	if(USE_CAMERA)
+	if(INPUT_SOURCE == TCAM_CAMERA)
 	{
-		if(USE_USB_TCAM)
-		{
-			//Set video format, resolution and frame rate
-			cam.set_capture_format("BGRx", FrameSize{1920, 1080}, FrameRate{30,1});
+		//Set video format, resolution and frame rate
+		cam.set_capture_format("BGRx", FrameSize{1920, 1080}, FrameRate{30,1});
 
-			//Register a callback to be called for each new frame
-			cam.set_new_frame_callback(getFrameTcamCallback, &status);
-			
-			//Start the camera
-			cam.start();
+		//Register a callback to be called for each new frame
+		cam.set_new_frame_callback(getFrameTcamCallback, &status);
+		
+		//Start the camera
+		cam.start();
+	}
+	else if(INPUT_SOURCE == USB_CAMERA)
+	{
+		if(!cap.open(0))
+		{
+			cout << "Cork: Webcam not available." << endl;
 		}
-		if(USE_USB_CAMERA)
+
+		//Set resolution
+		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
+		cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+
+		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH)!=1280)
 		{
-			if(!cap.open(0))
-			{
-				cout << "Webcam not available." << endl;
-			}
-
-			//Set resolution
-			cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-			cap.set(CAP_PROP_FRAME_HEIGHT, 720);
-
-			if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH)!=1280)
-			{
-				cout << "Unable to set webcam 1280x720" << endl;
-			}
-
-			//Set exposure
-			//cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
-			//cap.set(CAP_PROP_EXPOSURE, -100);
-
-			//Focus
-			//cap.set(CAP_PROP_FOCUS, 0);
+			cout << "Cork: Unable to set webcam resolution to 1280x720." << endl;
 		}
-		else if(USE_IP_CAMERA)
+
+		//Set exposure
+		//cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
+		//cap.set(CAP_PROP_EXPOSURE, -100);
+
+		//Focus
+		//cap.set(CAP_PROP_FOCUS, 0);
+	}
+	else if(INPUT_SOURCE == IP_CAMERA)
+	{
+		if(!cap.open(IP_CAMERA_ADDRESS))
 		{
-			if(!cap.open(IP_CAMERA_ADDRESS))
-			{
-				cout << "Camera not available." << endl;
-			}
+			cout << "Cork: IP Camera not available." << endl;
 		}
 	}
 
 	//Prepare output window
 	cvui::init(WINDOW_NAME);
 
-	while(1)
+	while(true)
 	{
 		//Get image
-		if(USE_CAMERA && !USE_USB_TCAM)
+		if(INPUT_SOURCE == FILE)
+		{
+			status.frame = readImageFile(fnumber);
+			processFrame(status.frame);
+		}
+		else if(INPUT_SOURCE == USB_CAMERA || INPUT_SOURCE == IP_CAMERA)
 		{
 			if(cap.isOpened())
 			{
-				Mat image;
-				cap >> image;
-				processFrame(image);
+				cap >> status.frame;
+				processFrame(status.frame);
 			}
-		}
-		else
-		{
-			Mat image = readImageFile(fnumber);
-			processFrame(image);
 		}
 
 		//Keyboard input
@@ -548,23 +538,23 @@ int main(int argc, char** argv)
 			{
 				return 0;
 			}
-			else if(!USE_CAMERA)
+			else if(INPUT_SOURCE == FILE)
 			{
 				if(key == KEY_LEFT)
 				{
 					readImageFile(--fnumber);
-					cout << "Fname:" << fnumber << endl;
+					cout << "Cork: Previous image, " << fnumber << endl;
 				}
 				else if(key == KEY_RIGHT)
 				{
 					readImageFile(++fnumber);
-					cout << "Fname:" << fnumber << endl;
+					cout << "Cork: Next image, " << fnumber << endl;
 				}
 			}
 		}
 	}
 
-	if(USE_CAMERA && USE_USB_TCAM)
+	if(INPUT_SOURCE == TCAM_CAMERA)
 	{
 		cam.stop();
 	}
