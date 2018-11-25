@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
+#include <thread>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -20,8 +21,8 @@
 #include "ImageStatus.hpp"
 #include "Threshold.hpp"
 
-#define DEBUG_WINDOW true
-#define WINDOW_NAME "Cork"
+#define DEBUG true
+#define WINDOW "Cork"
 
 #define KEY_ESC 27
 #define KEY_LEFT 81
@@ -39,7 +40,7 @@
 #define IP_CAMERA 2
 #define TCAM_CAMERA 3
 
-#define INPUT_SOURCE 0
+#define INPUT_SOURCE TCAM_CAMERA
 
 //File range
 #define IMAGES_START 0
@@ -134,6 +135,9 @@ bool isNeighbor(int value, int center, int neighborhood)
 
 /**
  * Check if the image inside of the circle has an overall cork like tonality.
+ *
+ * @param src
+ * @param circle Area to be analysed
  */
 bool hasCorkColorTone(const Mat src, Vec3f circle)
 {
@@ -178,20 +182,15 @@ void processFrame(Mat &image)
 	if(SPLIT_COLOR_CHANNELS)
 	{
 		Mat bgr[3];
-
 		split(image, bgr);
-		
-		//imshow("B", bgr[0]);
-		imshow("G", bgr[1]);
-		imshow("R", bgr[2]);
 
+		//Use the gree channel
 		gray = bgr[1];
 	}
 	//Convert image to grayscale
 	else
 	{
 		cvtColor(image, gray, COLOR_BGR2GRAY);
-		//imshow("Gray", gray);
 	}
 
 	//Detect circles
@@ -279,8 +278,10 @@ void processFrame(Mat &image)
 		//cout << "Defect: " << defect << "%" << endl;
 
 		//Draw debug information
-		if(DEBUG_WINDOW)
+		if(DEBUG)
 		{
+			int pixel_size = TCAM_CAMERA ? 4 : 3;
+
 			//Draw defect
 			for(int i = 0; i < roi_bin.rows; i++)
 			{
@@ -290,7 +291,7 @@ void processFrame(Mat &image)
 
 					if(roi_bin.data[t] > 0)
 					{
-						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * 3;
+						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * pixel_size;
 
 						image.data[k + 2] = (unsigned char) 255;
 					}
@@ -304,92 +305,92 @@ void processFrame(Mat &image)
 		}
 	}
 
-	if(DEBUG_WINDOW)
+	if(DEBUG)
 	{
 		cvui::beginColumn(image, 10, 10);
-			cvui::beginRow();
-				cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-				cvui::space(12);
-				cvui::checkbox("Blur Mask", &BLUR_MASK);
-			cvui::endRow();
+		cvui::beginRow();
+		cvui::checkbox("Blur Global", &BLUR_GLOBAL);
+		cvui::space(12);
+		cvui::checkbox("Blur Mask", &BLUR_MASK);
+		cvui::endRow();
 
-			if(BLUR_GLOBAL)
+		if(BLUR_GLOBAL)
+		{
+			cvui::space(12);
+			trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
+			if(BLUR_GLOBAL_KSIZE % 2 == 0)
 			{
-				cvui::space(12);
-				trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
-				if(BLUR_GLOBAL_KSIZE % 2 == 0)
-				{
-					BLUR_GLOBAL_KSIZE++;
-				}
+				BLUR_GLOBAL_KSIZE++;
 			}
+		}
 
-			if(BLUR_MASK)
+		if(BLUR_MASK)
+		{
+			cvui::space(12);
+			trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
+			if(BLUR_MASK_KSIZE % 2 == 0)
 			{
-				cvui::space(12);
-				trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
-				if(BLUR_MASK_KSIZE % 2 == 0)
-				{
-					BLUR_MASK_KSIZE++;
-				}
+				BLUR_MASK_KSIZE++;
 			}
+		}
 
-			cvui::space(12);
-			cvui::text("Threshold ___________________");
+		cvui::space(12);
+		cvui::text("Threshold");
 
+		cvui::space(12);
+		cvui::beginRow();
+		cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
+		if(AUTOMATIC_THRESH)
+		{
 			cvui::space(12);
-			cvui::beginRow();
-				cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-				if(AUTOMATIC_THRESH)
-				{
-					cvui::space(12);
-					if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
-					{
-						AUTOMATIC_USE_HIST_THRESH = false;
-					}
-					cvui::space(12);
-					if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HIST_THRESH))
-					{
-						AUTOMATIC_USE_OTSU_THRESH = false;
-					}
-				}
-			cvui::endRow();
-			
-			if(!AUTOMATIC_THRESH)
+			if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
 			{
-				cvui::space(12);
-				trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
+				AUTOMATIC_USE_HIST_THRESH = false;
 			}
-			else if(AUTOMATIC_USE_HIST_THRESH)
+			cvui::space(12);
+			if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HIST_THRESH))
 			{
-				cvui::space(12);
-				trackbar("Min-diff", 200, &HIST_THRESH_MIN_DIFF, 5, 100, 1);
-				cvui::space(12);
-				trackbar("Neighborhood", 200, &HIST_THRESH_NEIGHBORHOOD, 3, 100, 1);
-				cvui::space(12);
-				trackbar("Neigh. Filter", 200, &HIST_COLOR_FILTER, 1, 100, 1);
-				cvui::space(12);
-				trackbar("Balance", 200, &HIST_THRESH_BALANCE, 0, 1, 1);	
+				AUTOMATIC_USE_OTSU_THRESH = false;
 			}
-			
+		}
+		cvui::endRow();
+		
+		if(!AUTOMATIC_THRESH)
+		{
 			cvui::space(12);
-			trackbar("Skirt", 200, &OUTSIDE_SKIRT, 0, 20, 1);
+			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
+		}
+		else if(AUTOMATIC_USE_HIST_THRESH)
+		{
+			cvui::space(12);
+			trackbar("Min-diff", 200, &HIST_THRESH_MIN_DIFF, 5, 100, 1);
+			cvui::space(12);
+			trackbar("Neighborhood", 200, &HIST_THRESH_NEIGHBORHOOD, 3, 100, 1);
+			cvui::space(12);
+			trackbar("Neigh. Filter", 200, &HIST_COLOR_FILTER, 1, 100, 1);
+			cvui::space(12);
+			trackbar("Balance", 200, &HIST_THRESH_BALANCE, 0, 1, 1);	
+		}
+		
+		cvui::space(12);
+		trackbar("Skirt", 200, &OUTSIDE_SKIRT, 0, 20, 1);
 
-			cvui::space(12);
-			cvui::text("Circle ___________________");
-			cvui::space(12);
-			trackbar("Spacing", 200, &MIN_SPACING, 1, 400, 1);
-			cvui::space(12);
-			trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
-			cvui::space(12);
-			trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
-			cvui::space(12);
-			trackbar("Min size", 200, &MIN_SIZE, 0, 100, 1);
-			cvui::space(12);
-			trackbar("Max size", 200, &MAX_SIZE, 0, 300, 1);
+		cvui::space(12);
+		cvui::text("Circle");
+		cvui::space(12);
+		trackbar("Spacing", 200, &MIN_SPACING, 1, 600, 1);
+		cvui::space(12);
+		trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
+		cvui::space(12);
+		trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
+		cvui::space(12);
+		trackbar("Min size", 200, &MIN_SIZE, 0, 200, 1);
+		cvui::space(12);
+		trackbar("Max size", 200, &MAX_SIZE, 0, 700, 1);
 		cvui::endColumn();
 
 		cvui::update();
-		cvui::imshow(WINDOW_NAME, image);
+		cvui::imshow(WINDOW, image);
 	}
 }
 
@@ -400,10 +401,10 @@ void listTcamProperties(TcamCamera &cam)
 {
 	//Get a list of all supported properties and print it out
 	auto properties = cam.get_camera_property_list();
-	std::cout << "Properties:" << std::endl;
+	cout << "Properties:" << endl;
 	for(auto &prop : properties)
 	{
-		std::cout << prop->to_string() << std::endl;
+		cout << prop->to_string() << endl;
 	}
 }
 
@@ -436,26 +437,32 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 		//Get a string containg the pixel format, width and height of the image        
 		str = gst_caps_get_structure(caps, 0);    
 
-		if(strcmp(gst_structure_get_string (str, "format"),"BGRx") == 0)  
+		if(strcmp(gst_structure_get_string(str, "format"),"BGRx") == 0)  
 		{
 			//Now query the width and height of the image
 			gst_structure_get_int(str, "width", &width);
 			gst_structure_get_int(str, "height", &height);
 
-			//Create a cv::Mat, copy image data into that and save the image.
+			//Create a Mat, copy image data into that and save the image.
 			pdata->frame.create(height, width, CV_8UC(4));
-			memcpy(pdata->frame.data, info.data, width*height*4);
+			memcpy(pdata->frame.data, info.data, width * height * 4);
 
+			//resize(pdata->frame, pdata->frame, Size(640, 480));
 			processFrame(pdata->frame);
 		}
 	}
 	
-	//Calling Unref is important!
-	gst_buffer_unmap (buffer, &info);
+	//Clean up, unref and unmap buffers (to prevent leaks).
+	gst_buffer_unmap(buffer, &info);
 	gst_sample_unref(sample);
 
 	//Set our flag of new image to true, so our main thread knows about a new image.
 	return GST_FLOW_OK;
+}
+
+void wait()
+{
+	this_thread::sleep_for(chrono::duration<int, ratio<1,1000>>(200));
 }
 
 int main(int argc, char** argv)
@@ -470,14 +477,27 @@ int main(int argc, char** argv)
 
 	if(INPUT_SOURCE == TCAM_CAMERA)
 	{
-		//Set video format, resolution and frame rate
-		cam.set_capture_format("BGRx", FrameSize{1920, 1080}, FrameRate{30,1});
-
-		//Register a callback to be called for each new frame
+		cam.set_capture_format("BGRx", FrameSize{1920, 1200}, FrameRate{30, 1});
+		cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
-		
-		//Start the camera
 		cam.start();
+		
+		shared_ptr<Property> exposureAuto = cam.get_property("Exposure Auto");
+		exposureAuto->set(cam, 0);
+		
+		shared_ptr<Property> exposureValue = cam.get_property("Exposure");
+		exposureValue->set(cam, 1e5);
+
+		shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
+		gainAuto->set(cam, 0);
+		
+		shared_ptr<Property> gainValue = cam.get_property("Gain");
+		gainValue->set(cam, 50);
+
+		shared_ptr<Property> brightness = cam.get_property("Brightness");
+		brightness->set(cam, 50);
+
+		//listTcamProperties(cam);
 	}
 	else if(INPUT_SOURCE == USB_CAMERA)
 	{
@@ -486,7 +506,6 @@ int main(int argc, char** argv)
 			cout << "Cork: Webcam not available." << endl;
 		}
 
-		//Set resolution
 		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
 		cap.set(CAP_PROP_FRAME_HEIGHT, 720);
 
@@ -494,13 +513,6 @@ int main(int argc, char** argv)
 		{
 			cout << "Cork: Unable to set webcam resolution to 1280x720." << endl;
 		}
-
-		//Set exposure
-		//cap.set(CAP_PROP_AUTO_EXPOSURE, 0);
-		//cap.set(CAP_PROP_EXPOSURE, -100);
-
-		//Focus
-		//cap.set(CAP_PROP_FOCUS, 0);
 	}
 	else if(INPUT_SOURCE == IP_CAMERA)
 	{
@@ -511,7 +523,10 @@ int main(int argc, char** argv)
 	}
 
 	//Prepare output window
-	cvui::init(WINDOW_NAME);
+	if(DEBUG)
+	{
+		cvui::init(WINDOW);
+	}
 
 	while(true)
 	{
@@ -529,6 +544,7 @@ int main(int argc, char** argv)
 				processFrame(status.frame);
 			}
 		}
+		else if(INPUT_SOURCE == TCAM_CAMERA){}
 
 		//Keyboard input
 		int key = waitKey(1);
@@ -538,7 +554,8 @@ int main(int argc, char** argv)
 			{
 				return 0;
 			}
-			else if(INPUT_SOURCE == FILE)
+			
+			if(INPUT_SOURCE == FILE)
 			{
 				if(key == KEY_LEFT)
 				{
