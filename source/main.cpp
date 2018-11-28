@@ -232,14 +232,14 @@ void processFrame(Mat &image)
 		{
 			if(AUTOMATIC_USE_OTSU_THRESH)
 			{
-				//cout << "Automatic threshold: " << thresh << endl;
 				double thresh = OTSU_THRESH_RATIO * otsuThreshold(roi, mask);
+				cout << "Otsu Automatic threshold: " << thresh << endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 			else// if(AUTOMATIC_USE_HIST_THRESH)
 			{
-				//cout << "Automatic threshold: " << thresh << endl;
 				double thresh = histogramThreshold(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
+				cout << "Histogram automatic threshold: " << thresh << endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
@@ -392,6 +392,30 @@ void processFrame(Mat &image)
 		cvui::update();
 		cvui::imshow(WINDOW, image);
 	}
+
+	//Keyboard input
+	int key = waitKey(1);
+	if(key != -1)
+	{
+		if(key == KEY_ESC)
+		{
+			//return 0;
+		}
+		
+		if(INPUT_SOURCE == FILE)
+		{
+			if(key == KEY_LEFT)
+			{
+				readImageFile(--fnumber);
+				cout << "Cork: Previous image, " << fnumber << endl;
+			}
+			else if(key == KEY_RIGHT)
+			{
+				readImageFile(++fnumber);
+				cout << "Cork: Next image, " << fnumber << endl;
+			}
+		}
+	}
 }
 
 /**
@@ -415,7 +439,7 @@ void listTcamProperties(TcamCamera &cam)
  */
 GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 {
-	int width, height ;
+	int width, height;
 	const GstStructure *str;
 
 	//Cast gpointer to ImageStatus*
@@ -437,18 +461,21 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 		//Get a string containg the pixel format, width and height of the image        
 		str = gst_caps_get_structure(caps, 0);    
 
-		if(strcmp(gst_structure_get_string(str, "format"),"BGRx") == 0)  
+		if(strcmp(gst_structure_get_string(str, "format"), "BGRx") == 0)  
 		{
 			//Now query the width and height of the image
 			gst_structure_get_int(str, "width", &width);
 			gst_structure_get_int(str, "height", &height);
 
 			//Create a Mat, copy image data into that and save the image.
-			pdata->frame.create(height, width, CV_8UC(4));
-			memcpy(pdata->frame.data, info.data, width * height * 4);
+			pdata->frame.data = info.data;
 
-			//resize(pdata->frame, pdata->frame, Size(640, 480));
-			processFrame(pdata->frame);
+			resize(pdata->frame, pdata->resized, Size(800, 500));
+			processFrame(pdata->resized);
+		}
+		else
+		{
+			cout << "Cork: Not the expected pixel format." << endl;
 		}
 	}
 	
@@ -477,8 +504,13 @@ int main(int argc, char** argv)
 
 	if(INPUT_SOURCE == TCAM_CAMERA)
 	{
-		cam.set_capture_format("BGRx", FrameSize{1920, 1200}, FrameRate{30, 1});
-		cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
+		int width = 1920;
+		int height = 1200;
+
+		status.frame.create(height, width, CV_8UC(4));
+
+		cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{30, 1});
+		//cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
 		cam.start();
 		
@@ -486,13 +518,13 @@ int main(int argc, char** argv)
 		exposureAuto->set(cam, 0);
 		
 		shared_ptr<Property> exposureValue = cam.get_property("Exposure");
-		exposureValue->set(cam, 1e5);
+		exposureValue->set(cam, 1e3);
 
 		shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
 		gainAuto->set(cam, 0);
 		
 		shared_ptr<Property> gainValue = cam.get_property("Gain");
-		gainValue->set(cam, 50);
+		gainValue->set(cam, 30);
 
 		shared_ptr<Property> brightness = cam.get_property("Brightness");
 		brightness->set(cam, 50);
@@ -509,7 +541,7 @@ int main(int argc, char** argv)
 		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
 		cap.set(CAP_PROP_FRAME_HEIGHT, 720);
 
-		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH)!=1280)
+		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH) != 1280)
 		{
 			cout << "Cork: Unable to set webcam resolution to 1280x720." << endl;
 		}
@@ -544,30 +576,9 @@ int main(int argc, char** argv)
 				processFrame(status.frame);
 			}
 		}
-		else if(INPUT_SOURCE == TCAM_CAMERA){}
-
-		//Keyboard input
-		int key = waitKey(1);
-		if(key != -1)
+		else if(INPUT_SOURCE == TCAM_CAMERA)
 		{
-			if(key == KEY_ESC)
-			{
-				return 0;
-			}
-			
-			if(INPUT_SOURCE == FILE)
-			{
-				if(key == KEY_LEFT)
-				{
-					readImageFile(--fnumber);
-					cout << "Cork: Previous image, " << fnumber << endl;
-				}
-				else if(key == KEY_RIGHT)
-				{
-					readImageFile(++fnumber);
-					cout << "Cork: Next image, " << fnumber << endl;
-				}
-			}
+			wait();
 		}
 	}
 
