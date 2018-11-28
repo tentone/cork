@@ -75,6 +75,9 @@ bool AUTOMATIC_THRESH = true;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
 bool AUTOMATIC_USE_HIST_THRESH = true;
 
+bool SEMIAUTO_THRESH = false;
+double SEMIAUTO_THRESH_TOLERANCE = 0.3;
+
 //Threshold value
 int THRESHOLD_BIN = 60;
 
@@ -243,6 +246,16 @@ void processFrame(Mat &image)
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
+		else if(SEMIAUTO_THRESH)
+		{
+			double thresh = otsuThreshold(roi, mask);
+			double delta = thresh - THRESHOLD_BIN;
+			delta *= SEMIAUTO_THRESH_TOLERANCE;
+			thresh = THRESHOLD_BIN + delta;
+
+			cout << "Semi Automatic threshold: " << thresh << endl;
+			threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+		}
 		else
 		{
 			threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
@@ -340,6 +353,8 @@ void processFrame(Mat &image)
 		cvui::space(12);
 		cvui::beginRow();
 		cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
+		cvui::checkbox("SemiAuto", &SEMIAUTO_THRESH);
+
 		if(AUTOMATIC_THRESH)
 		{
 			cvui::space(12);
@@ -355,12 +370,19 @@ void processFrame(Mat &image)
 		}
 		cvui::endRow();
 		
-		if(!AUTOMATIC_THRESH)
+		if(!AUTOMATIC_THRESH || SEMIAUTO_THRESH)
 		{
 			cvui::space(12);
 			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
 		}
-		else if(AUTOMATIC_USE_HIST_THRESH)
+
+		if(SEMIAUTO_THRESH)
+		{
+			cvui::space(12);
+			trackbar("Tolerance", 200, &SEMIAUTO_THRESH_TOLERANCE, 0.0, 1.0, 0.01);
+		}
+
+		if(AUTOMATIC_THRESH && AUTOMATIC_USE_HIST_THRESH)
 		{
 			cvui::space(12);
 			trackbar("Min-diff", 200, &HIST_THRESH_MIN_DIFF, 5, 100, 1);
