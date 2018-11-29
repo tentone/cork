@@ -66,17 +66,17 @@ int BLUR_MASK_KSIZE = 3;
 //Hough parameters
 int LOW_CANNY_THRESH = 120;
 int HIGH_CANNY_THRESH = 30; //The smaller it is, the more false circles may be detected.
-int MIN_SIZE = 47;
-int MAX_SIZE = 70;
-int MIN_SPACING = 400;
+int MIN_SIZE = 80;
+int MAX_SIZE = 400;
+int MIN_SPACING = 500;
 
 //Automatic threshold
-bool AUTOMATIC_THRESH = true;
+bool AUTOMATIC_THRESH = false;
 bool AUTOMATIC_USE_OTSU_THRESH = false;
-bool AUTOMATIC_USE_HIST_THRESH = true;
+bool AUTOMATIC_USE_HIST_THRESH = false;
 
-bool SEMIAUTO_THRESH = false;
-double SEMIAUTO_THRESH_TOLERANCE = 0.3;
+bool SEMIAUTO_THRESH = true;
+double SEMIAUTO_THRESH_TOLERANCE = 0.4;
 
 //Threshold value
 int THRESHOLD_BIN = 60;
@@ -94,7 +94,7 @@ double OTSU_THRESH_RATIO = 1.0;
 bool SPLIT_COLOR_CHANNELS = false;
 
 //Outside skirt size in pixels
-int OUTSIDE_SKIRT = 4;
+int OUTSIDE_SKIRT = 7;
 
 /**
  * Create a GUI trackbar.
@@ -168,11 +168,22 @@ Mat readImageFile(int index)
 	return imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
 }
 
+bool saveNextFrame = false;
+int saveFrameCounter = 0;
+
 /**
  * Process a frame captured from the camera.
  */
 void processFrame(Mat &image)
 {
+	if(saveNextFrame)
+	{
+		cout << "Save frame" << endl;
+
+		saveNextFrame = false;
+		imwrite("./" + to_string(saveFrameCounter++) + ".png", image);
+	}
+
 	//Deblur the image
 	if(BLUR_GLOBAL)
 	{
@@ -249,9 +260,7 @@ void processFrame(Mat &image)
 		else if(SEMIAUTO_THRESH)
 		{
 			double thresh = otsuThreshold(roi, mask);
-			double delta = thresh - THRESHOLD_BIN;
-			delta *= SEMIAUTO_THRESH_TOLERANCE;
-			thresh = THRESHOLD_BIN + delta;
+			thresh = (thresh * SEMIAUTO_THRESH_TOLERANCE) + (THRESHOLD_BIN * (1 - SEMIAUTO_THRESH_TOLERANCE));
 
 			cout << "Semi Automatic threshold: " << thresh << endl;
 			threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
@@ -421,7 +430,7 @@ void processFrame(Mat &image)
 	{
 		if(key == KEY_ESC)
 		{
-			//return 0;
+			saveNextFrame = true;
 		}
 		
 		if(INPUT_SOURCE == FILE)
@@ -492,7 +501,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
-			resize(pdata->frame, pdata->resized, Size(800, 500));
+			resize(pdata->frame, pdata->resized, Size(1024, 640));
 			processFrame(pdata->resized);
 		}
 		else
