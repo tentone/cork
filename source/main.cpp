@@ -133,7 +133,7 @@ void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin
  */
 bool isNeighbor(int value, int center, int neighborhood)
 {
-	return  value > (center - neighborhood) && value < (center + neighborhood);
+	return value > (center - neighborhood) && value < (center + neighborhood);
 }
 
 /**
