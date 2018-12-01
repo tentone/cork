@@ -66,8 +66,8 @@ int BLUR_MASK_KSIZE = 3;
 //Hough parameters
 int LOW_CANNY_THRESH = 120;
 int HIGH_CANNY_THRESH = 30; //The smaller it is, the more false circles may be detected.
-int MIN_SIZE = 80;
-int MAX_SIZE = 400;
+int MIN_SIZE = 110;
+int MAX_SIZE = 190;
 int MIN_SPACING = 500;
 
 //Automatic threshold
@@ -470,6 +470,8 @@ void listTcamProperties(TcamCamera &cam)
  */
 GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 {
+	int64 init = getTickCount();
+
 	int width, height;
 	const GstStructure *str;
 
@@ -501,7 +503,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
-			resize(pdata->frame, pdata->resized, Size(1024, 640));
+			resize(pdata->frame, pdata->resized, Size(800, 500));//Size(1024, 640));
 			processFrame(pdata->resized);
 		}
 		else
@@ -513,6 +515,11 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 	//Clean up, unref and unmap buffers (to prevent leaks).
 	gst_buffer_unmap(buffer, &info);
 	gst_sample_unref(sample);
+
+	int64 end = getTickCount();
+	double secs = (end - init) / getTickFrequency();
+
+	cout << "Cork: Processing time was " << secs << " s." << endl;
 
 	//Set our flag of new image to true, so our main thread knows about a new image.
 	return GST_FLOW_OK;
@@ -540,7 +547,7 @@ int main(int argc, char** argv)
 
 		status.frame.create(height, width, CV_8UC(4));
 
-		cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{30, 1});
+		cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{50, 1});
 		//cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
 		cam.start();
