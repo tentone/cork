@@ -18,8 +18,9 @@
 #define CVUI_IMPLEMENTATION
 #include "../lib/cvui.h"
 
-#include "ImageStatus.hpp"
-#include "Threshold.hpp"
+#include "image_status.hpp"
+#include "threshold.hpp"
+#include "configuration.hpp"
 
 #define DEBUG true
 #define WINDOW "Cork"
@@ -40,7 +41,14 @@
 #define IP_CAMERA 2
 #define TCAM_CAMERA 3
 
-#define INPUT_SOURCE TCAM_CAMERA
+#define INPUT_SOURCE_A TCAM_CAMERA
+#define INPUT_SOURCE_B USB_CAMERA
+
+#define USB_CAMERA_A 0
+#define USB_CAMERA_B 1
+
+#define TCAM_CAMERA_SERIAL_A "46810320"
+#define TCAM_CAMERA_SERIAL_B "46810320"
 
 //File range
 #define IMAGES_START 0
@@ -134,19 +142,6 @@ void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin
 bool isNeighbor(int value, int center, int neighborhood)
 {
 	return value > (center - neighborhood) && value < (center + neighborhood);
-}
-
-/**
- * Check if the image inside of the circle has an overall cork like tonality.
- *
- * @param src
- * @param circle Area to be analysed
- */
-bool hasCorkColorTone(const Mat src, Vec3f circle)
-{
-	//TODO <ADD CODE HERE>
-
-	return true;
 }
 
 /**
@@ -302,7 +297,7 @@ void processFrame(Mat &image)
 		//Draw debug information
 		if(DEBUG)
 		{
-			int pixel_size = TCAM_CAMERA ? 4 : 3;
+			int channels = image.channels();
 
 			//Draw defect
 			for(int i = 0; i < roi_bin.rows; i++)
@@ -313,13 +308,12 @@ void processFrame(Mat &image)
 
 					if(roi_bin.data[t] > 0)
 					{
-						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * pixel_size;
+						int k = ((i + roi_rect.y) * image.cols + (j + roi_rect.x)) * channels;
 
 						image.data[k + 2] = (unsigned char) 255;
 					}
 				}
 			}
-
 			//Cicle position
 			circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
 			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
@@ -433,7 +427,7 @@ void processFrame(Mat &image)
 			saveNextFrame = true;
 		}
 		
-		if(INPUT_SOURCE == FILE)
+		if(INPUT_SOURCE_A == FILE)
 		{
 			if(key == KEY_LEFT)
 			{
@@ -535,12 +529,12 @@ int main(int argc, char** argv)
 	gst_init(&argc, &argv);
 
 	VideoCapture cap;
-	TcamCamera cam("46810320");
+	TcamCamera cam(TCAM_CAMERA_SERIAL_A);
 
 	ImageStatus status;
 	status.counter = 0;
 
-	if(INPUT_SOURCE == TCAM_CAMERA)
+	if(INPUT_SOURCE_A == TCAM_CAMERA)
 	{
 		int width = 1920;
 		int height = 1200;
@@ -548,7 +542,6 @@ int main(int argc, char** argv)
 		status.frame.create(height, width, CV_8UC(4));
 
 		cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{50, 1});
-		//cam.enable_video_display(gst_element_factory_make("ximagesink", NULL));
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
 		cam.start();
 		
@@ -569,9 +562,9 @@ int main(int argc, char** argv)
 
 		//listTcamProperties(cam);
 	}
-	else if(INPUT_SOURCE == USB_CAMERA)
+	else if(INPUT_SOURCE_A == USB_CAMERA)
 	{
-		if(!cap.open(0))
+		if(!cap.open(1))
 		{
 			cout << "Cork: Webcam not available." << endl;
 		}
@@ -584,7 +577,7 @@ int main(int argc, char** argv)
 			cout << "Cork: Unable to set webcam resolution to 1280x720." << endl;
 		}
 	}
-	else if(INPUT_SOURCE == IP_CAMERA)
+	else if(INPUT_SOURCE_A == IP_CAMERA)
 	{
 		if(!cap.open(IP_CAMERA_ADDRESS))
 		{
@@ -601,12 +594,12 @@ int main(int argc, char** argv)
 	while(true)
 	{
 		//Get image
-		if(INPUT_SOURCE == FILE)
+		if(INPUT_SOURCE_A == FILE)
 		{
 			status.frame = readImageFile(fnumber);
 			processFrame(status.frame);
 		}
-		else if(INPUT_SOURCE == USB_CAMERA || INPUT_SOURCE == IP_CAMERA)
+		else if(INPUT_SOURCE_A == USB_CAMERA || INPUT_SOURCE_A == IP_CAMERA)
 		{
 			if(cap.isOpened())
 			{
@@ -614,13 +607,13 @@ int main(int argc, char** argv)
 				processFrame(status.frame);
 			}
 		}
-		else if(INPUT_SOURCE == TCAM_CAMERA)
+		else if(INPUT_SOURCE_A == TCAM_CAMERA)
 		{
 			wait();
 		}
 	}
 
-	if(INPUT_SOURCE == TCAM_CAMERA)
+	if(INPUT_SOURCE_A == TCAM_CAMERA)
 	{
 		cam.stop();
 	}
