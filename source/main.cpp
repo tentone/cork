@@ -22,6 +22,7 @@
 #include "input/image_status.hpp"
 
 #define DEBUG true
+
 #define WINDOW "Cork"
 
 #define KEY_ESC 27
@@ -63,6 +64,12 @@ using namespace std;
 
 //File number
 int fnumber = IMAGES_START;
+
+bool corkInA = false;
+double corkADefect = 0.0;
+
+bool corkInB = false;
+double corkBDefect = 0.0;
 
 //Blur parameters
 bool BLUR_GLOBAL = false;

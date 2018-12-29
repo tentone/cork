@@ -31,6 +31,9 @@ apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD
 apt-get -qq update
 apt-get install ros-melodic-desktop-full
 
+echo " - Installing NodeJS"
+apt-get -qq install nodejs npm
+
 #Intall dependencies
 echo " - Installing depedencies."
 
