@@ -20,7 +20,8 @@
 
 #include "image_status.hpp"
 #include "threshold.hpp"
-#include "configuration.hpp"
+#include "config/configuration.hpp"
+#include "config/camera_configuration.hpp"
 
 #define DEBUG true
 #define WINDOW "Cork"
@@ -147,7 +148,7 @@ bool isNeighbor(int value, int center, int neighborhood)
 /**
  * Read image from file.
  */
-Mat readImageFile(int index)
+cv::Mat readImageFile(int index)
 {
 	fnumber = index;
 
@@ -160,7 +161,7 @@ Mat readImageFile(int index)
 		fnumber = IMAGES_COUNT;
 	}
 
-	return imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
+	return cv::imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
 }
 
 bool saveNextFrame = false;
@@ -169,29 +170,29 @@ int saveFrameCounter = 0;
 /**
  * Process a frame captured from the camera.
  */
-void processFrame(Mat &image)
+void processFrame(cv::Mat &image)
 {
 	if(saveNextFrame)
 	{
-		cout << "Save frame" << endl;
+		std::cout << "Save frame" << std::endl;
 
 		saveNextFrame = false;
-		imwrite("./" + to_string(saveFrameCounter++) + ".png", image);
+		cv::imwrite("./" + to_string(saveFrameCounter++) + ".png", image);
 	}
 
 	//Deblur the image
 	if(BLUR_GLOBAL)
 	{
-		medianBlur(image, image, BLUR_GLOBAL_KSIZE);
+		cv::medianBlur(image, image, BLUR_GLOBAL_KSIZE);
 	}
 	
-	Mat gray;
+	cv::Mat gray;
 
 	//Split color channels
 	if(SPLIT_COLOR_CHANNELS)
 	{
-		Mat bgr[3];
-		split(image, bgr);
+		cv::Mat bgr[3];
+		cv::split(image, bgr);
 
 		//Use the gree channel
 		gray = bgr[1];
@@ -199,12 +200,12 @@ void processFrame(Mat &image)
 	//Convert image to grayscale
 	else
 	{
-		cvtColor(image, gray, COLOR_BGR2GRAY);
+		cv::cvtColor(image, gray, COLOR_BGR2GRAY);
 	}
 
 	//Detect circles
 	vector<Vec3f> circles;
-	HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
+	cv::HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
 
 	bool found = circles.size() > 0;
 
@@ -212,7 +213,7 @@ void processFrame(Mat &image)
 	for(size_t i = 0; i < circles.size(); i++)
 	{
 		Vec3i c = circles[i];
-		Point center = Point(c[0], c[1]);
+		cv::Point center = cv::Point(c[0], c[1]);
 		int radius = c[2];
 		
 		//Check if fully inside of the image
@@ -223,18 +224,18 @@ void processFrame(Mat &image)
 
 		//Create the roi
 		Rect roi_rect = Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
-		Mat roi = Mat(gray, roi_rect);
+		cv::Mat roi = cv::Mat(gray, roi_rect);
 		
 		//Circle mask for the roi
-		Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
-		circle(mask, Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT, Scalar(0, 0, 0), -1, 8, 0);
+		cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
+		circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT, Scalar(0, 0, 0), -1, 8, 0);
 
 		//Binarize the roi
-		Mat roi_bin;
+		cv::Mat roi_bin;
 
 		if(BLUR_MASK)
 		{
-			medianBlur(roi, roi, BLUR_MASK_KSIZE);
+			cv::medianBlur(roi, roi, BLUR_MASK_KSIZE);
 		}
 
 		if(AUTOMATIC_THRESH)
@@ -242,13 +243,13 @@ void processFrame(Mat &image)
 			if(AUTOMATIC_USE_OTSU_THRESH)
 			{
 				double thresh = OTSU_THRESH_RATIO * otsuThreshold(roi, mask);
-				cout << "Otsu Automatic threshold: " << thresh << endl;
+				std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 			else// if(AUTOMATIC_USE_HIST_THRESH)
 			{
 				double thresh = histogramThreshold(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
-				cout << "Histogram automatic threshold: " << thresh << endl;
+				std::cout << "Histogram automatic threshold: " << thresh << std::endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
@@ -257,7 +258,7 @@ void processFrame(Mat &image)
 			double thresh = otsuThreshold(roi, mask);
 			thresh = (thresh * SEMIAUTO_THRESH_TOLERANCE) + (THRESHOLD_BIN * (1 - SEMIAUTO_THRESH_TOLERANCE));
 
-			cout << "Semi Automatic threshold: " << thresh << endl;
+			std::cout << "Semi Automatic threshold: " << thresh << std::endl;
 			threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 		}
 		else
@@ -288,11 +289,11 @@ void processFrame(Mat &image)
 		double area = PI * radius * radius;
 		double defect = (count / area) * 100.0;
 
-		//cout << "Points: " << points << endl;
-		//cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << endl;
-		//cout << "Count: " << count << endl;
-		//cout << "Area: " << area << endl;
-		//cout << "Defect: " << defect << "%" << endl;
+		//std::cout << "cv::Points: " << points << std::endl;
+		//std::cout << "Resolution: " << (roi_bin.rows * roi_bin.cols) << std::endl;
+		//std::cout << "Count: " << count << std::endl;
+		//std::cout << "Area: " << area << std::endl;
+		//std::cout << "Defect: " << defect << "%" << std::endl;
 
 		//Draw debug information
 		if(DEBUG)
@@ -432,12 +433,12 @@ void processFrame(Mat &image)
 			if(key == KEY_LEFT)
 			{
 				readImageFile(--fnumber);
-				cout << "Cork: Previous image, " << fnumber << endl;
+				std::cout << "Cork: Previous image, " << fnumber << std::endl;
 			}
 			else if(key == KEY_RIGHT)
 			{
 				readImageFile(++fnumber);
-				cout << "Cork: Next image, " << fnumber << endl;
+				std::cout << "Cork: Next image, " << fnumber << std::endl;
 			}
 		}
 	}
@@ -450,10 +451,10 @@ void listTcamProperties(TcamCamera &cam)
 {
 	//Get a list of all supported properties and print it out
 	auto properties = cam.get_camera_property_list();
-	cout << "Properties:" << endl;
+	std::cout << "Properties:" << std::endl;
 	for(auto &prop : properties)
 	{
-		cout << prop->to_string() << endl;
+		std::cout << prop->to_string() << std::endl;
 	}
 }
 
@@ -494,7 +495,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			gst_structure_get_int(str, "width", &width);
 			gst_structure_get_int(str, "height", &height);
 
-			//Create a Mat, copy image data into that and save the image.
+			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
 			resize(pdata->frame, pdata->resized, Size(800, 500));//Size(1024, 640));
@@ -502,7 +503,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 		}
 		else
 		{
-			cout << "Cork: Not the expected pixel format." << endl;
+			std::cout << "Cork: Not the expected pixel format." << std::endl;
 		}
 	}
 	
@@ -513,7 +514,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 	int64 end = getTickCount();
 	double secs = (end - init) / getTickFrequency();
 
-	cout << "Cork: Processing time was " << secs << " s." << endl;
+	std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
 
 	//Set our flag of new image to true, so our main thread knows about a new image.
 	return GST_FLOW_OK;
@@ -566,7 +567,7 @@ int main(int argc, char** argv)
 	{
 		if(!cap.open(1))
 		{
-			cout << "Cork: Webcam not available." << endl;
+			std::cout << "Cork: Webcam not available." << std::endl;
 		}
 
 		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
@@ -574,14 +575,14 @@ int main(int argc, char** argv)
 
 		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH) != 1280)
 		{
-			cout << "Cork: Unable to set webcam resolution to 1280x720." << endl;
+			std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
 		}
 	}
 	else if(INPUT_SOURCE_A == IP_CAMERA)
 	{
 		if(!cap.open(IP_CAMERA_ADDRESS))
 		{
-			cout << "Cork: IP Camera not available." << endl;
+			std::cout << "Cork: IP Camera not available." << std::endl;
 		}
 	}
 

@@ -6,28 +6,28 @@ class Configuration
 {
 public:
 	//Blur parameters
-	bool BLUR_GLOBAL = false;
-	int BLUR_GLOBAL_KSIZE = 3;
-	bool BLUR_MASK = false;
-	int BLUR_MASK_KSIZE = 3;
+	bool blurGlobal = false;
+	int blurGlobalKSize = 3;
+	bool blurMask = false;
+	int blurMaskKSize = 3;
 
 	//Hough parameters
-	int LOW_CANNY_THRESH = 120;
-	int HIGH_CANNY_THRESH = 30; //The smaller it is, the more false circles may be detected.
-	int MIN_SIZE = 110;
-	int MAX_SIZE = 190;
-	int MIN_SPACING = 500;
+	int lowCannyThresh = 120;
+	int highCannyThresh = 30; //The smaller it is, the more false circles may be detected.
+	int minSize = 110;
+	int maxSize = 190;
+	int minSpacing = 500;
 
 	//Automatic threshold
-	bool AUTOMATIC_THRESH = false;
+	bool automaticThresh = false;
 	bool AUTOMATIC_USE_OTSU_THRESH = false;
 	bool AUTOMATIC_USE_HIST_THRESH = false;
 
-	bool SEMIAUTO_THRESH = true;
-	double SEMIAUTO_THRESH_TOLERANCE = 0.4;
+	bool semiAutoThresh = true;
+	double semiAutoThreshTolerance = 0.4;
 
 	//Threshold value
-	int THRESHOLD_BIN = 60;
+	int thresholdValue = 60;
 
 	//Tentone threshold parameters
 	int HIST_THRESH_MIN_DIFF = 15;
@@ -39,8 +39,8 @@ public:
 	double OTSU_THRESH_RATIO = 1.0;
 
 	//Color analysis
-	bool SPLIT_COLOR_CHANNELS = false;
+	bool splitColorChannels = false;
 
 	//Outside skirt size in pixels
-	int OUTSIDE_SKIRT = 7;
+	int outsizeSkirt = 7;
 };

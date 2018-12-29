@@ -1,7 +1,7 @@
 #include <opencv2/core.hpp>
 
 /**
- * Image status structure to be passed to the callback function.
+ * Image status structure to be passed to the TCAM callback function.
  */
 class ImageStatus
 {

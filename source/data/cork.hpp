@@ -1,3 +1,5 @@
+#include <opencv2/core.hpp>
+
 /**
  * Represents a detected cork.
  */
@@ -5,5 +7,5 @@ class Cork
 {
 public:
 	int id;
-	Circle circle;
+	cv::Circle circle;
 };
