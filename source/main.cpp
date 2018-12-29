@@ -18,8 +18,8 @@
 #define CVUI_IMPLEMENTATION
 #include "../lib/cvui.h"
 
-#include "image_status.hpp"
 #include "threshold.hpp"
+#include "input/image_status.hpp"
 #include "config/configuration.hpp"
 #include "config/camera_configuration.hpp"
 
@@ -242,20 +242,20 @@ void processFrame(cv::Mat &image)
 		{
 			if(AUTOMATIC_USE_OTSU_THRESH)
 			{
-				double thresh = OTSU_THRESH_RATIO * otsuThreshold(roi, mask);
+				double thresh = OTSU_THRESH_RATIO * Threshold::otsuMask(roi, mask);
 				std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 			else// if(AUTOMATIC_USE_HIST_THRESH)
 			{
-				double thresh = histogramThreshold(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
+				double thresh = Threshold::histogram(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
 				std::cout << "Histogram automatic threshold: " << thresh << std::endl;
 				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
 		else if(SEMIAUTO_THRESH)
 		{
-			double thresh = otsuThreshold(roi, mask);
+			double thresh = Threshold::otsuMask(roi, mask);
 			thresh = (thresh * SEMIAUTO_THRESH_TOLERANCE) + (THRESHOLD_BIN * (1 - SEMIAUTO_THRESH_TOLERANCE));
 
 			std::cout << "Semi Automatic threshold: " << thresh << std::endl;

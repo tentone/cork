@@ -1,3 +1,4 @@
+#pragma once
 
 /**
  * Stores the cork detection configuration.
@@ -20,8 +21,8 @@ public:
 
 	//Automatic threshold
 	bool automaticThresh = false;
-	bool AUTOMATIC_USE_OTSU_THRESH = false;
-	bool AUTOMATIC_USE_HIST_THRESH = false;
+	bool automaticUseOtsuThresh = false;
+	bool automaticUseHistogramThresh = false;
 
 	bool semiAutoThresh = true;
 	double semiAutoThreshTolerance = 0.4;
@@ -30,13 +31,13 @@ public:
 	int thresholdValue = 60;
 
 	//Tentone threshold parameters
-	int HIST_THRESH_MIN_DIFF = 15;
-	int HIST_THRESH_NEIGHBORHOOD = 15;
-	int HIST_COLOR_FILTER = 15;
-	double HIST_THRESH_BALANCE = 0.5;
+	int histThreshMinDiff = 15;
+	int histThreshNeighborhood = 15;
+	int histThreshColorFilter = 15;
+	double histThreshBalance = 0.5;
 
 	//Otso threhsold parameter
-	double OTSU_THRESH_RATIO = 1.0;
+	double otsuThreshRatio = 1.0;
 
 	//Color analysis
 	bool splitColorChannels = false;
