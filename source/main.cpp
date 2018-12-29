@@ -20,8 +20,6 @@
 
 #include "threshold.hpp"
 #include "input/image_status.hpp"
-#include "config/configuration.hpp"
-#include "config/camera_configuration.hpp"
 
 #define DEBUG true
 #define WINDOW "Cork"
@@ -209,7 +207,7 @@ void processFrame(cv::Mat &image)
 
 	bool found = circles.size() > 0;
 
-	//Draw circle outline
+	//Iterate all found circles
 	for(size_t i = 0; i < circles.size(); i++)
 	{
 		Vec3i c = circles[i];
@@ -498,7 +496,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
-			resize(pdata->frame, pdata->resized, Size(800, 500));//Size(1024, 640));
+			resize(pdata->frame, pdata->resized, Size(768, 480));//Size(1024, 640));
 			processFrame(pdata->resized);
 		}
 		else
@@ -570,8 +568,8 @@ int main(int argc, char** argv)
 			std::cout << "Cork: Webcam not available." << std::endl;
 		}
 
-		cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-		cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+		//cap.set(CAP_PROP_FRAME_WIDTH, 1280);
+		//cap.set(CAP_PROP_FRAME_HEIGHT, 720);
 
 		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH) != 1280)
 		{

@@ -24,6 +24,13 @@ echo " - Update packages."
 #echo " - Remove old installations of x264."
 #apt-get -qq remove -y x264 libx264-dev
 
+#Install ROS
+echo " - Installing ROS"
+sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+apt-get -qq update
+apt-get install ros-melodic-desktop-full
+
 #Intall dependencies
 echo " - Installing depedencies."
 
