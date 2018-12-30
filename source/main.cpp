@@ -20,7 +20,7 @@
 
 #include "gui.hpp"
 
-//#include "input/camera_input.hpp"
+#include "input/camera_input.hpp"
 #include "input/camera_config.hpp"
 #include "input/image_status.hpp"
 
@@ -42,8 +42,6 @@
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-using namespace gsttcam;
-
 //File number
 int fnumber = IMAGES_START;
 bool corkFound = false;
@@ -57,7 +55,7 @@ Configuration config;
 /**
  * Camera input configuration.
  */
-CameraConfiguration cameraConfig;
+CameraConfig cameraConfig;
 
 /**
  * Read image from file.
@@ -250,7 +248,7 @@ void processFrame(cv::Mat &image)
 			saveNextFrame = true;
 		}
 		
-		if(cameraConfig.input == CameraConfiguration::FILE)
+		if(cameraConfig.input == CameraConfig::FILE)
 		{
 			if(key == KEY_LEFT)
 			{
@@ -338,40 +336,40 @@ int main(int argc, char** argv)
 	gst_init(&argc, &argv);
 
 	cv::VideoCapture cap;
-	TcamCamera cam(cameraConfig.tcamSerial);
+	gsttcam::TcamCamera cam(cameraConfig.tcamSerial);
 
 	ImageStatus status;
 	status.counter = 0;
 
-	if(cameraConfig.input == CameraConfiguration::TCAM)
+	if(cameraConfig.input == CameraConfig::TCAM)
 	{
 		int width = 1920;
 		int height = 1200;
 
 		status.frame.create(height, width, CV_8UC(4));
 
-		cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{50, 1});
+		cam.set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
 		cam.start();
 		
-		std::shared_ptr<Property> exposureAuto = cam.get_property("Exposure Auto");
+		std::shared_ptr<gsttcam::Property> exposureAuto = cam.get_property("Exposure Auto");
 		exposureAuto->set(cam, 0);
 		
-		std::shared_ptr<Property> exposureValue = cam.get_property("Exposure");
+		std::shared_ptr<gsttcam::Property> exposureValue = cam.get_property("Exposure");
 		exposureValue->set(cam, 1e3);
 
-		std::shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
+		std::shared_ptr<gsttcam::Property> gainAuto = cam.get_property("Gain Auto");
 		gainAuto->set(cam, 0);
 		
-		std::shared_ptr<Property> gainValue = cam.get_property("Gain");
+		std::shared_ptr<gsttcam::Property> gainValue = cam.get_property("Gain");
 		gainValue->set(cam, 30);
 
-		std::shared_ptr<Property> brightness = cam.get_property("Brightness");
+		std::shared_ptr<gsttcam::Property> brightness = cam.get_property("Brightness");
 		brightness->set(cam, 50);
 
 		//listTcamProperties(cam);
 	}
-	else if(cameraConfig.input == CameraConfiguration::USB)
+	else if(cameraConfig.input == CameraConfig::USB)
 	{
 		if(!cap.open(cameraConfig.usbNumber))
 		{
@@ -386,7 +384,7 @@ int main(int argc, char** argv)
 			std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
 		}
 	}
-	else if(cameraConfig.input == CameraConfiguration::IP)
+	else if(cameraConfig.input == CameraConfig::IP)
 	{
 		if(!cap.open(cameraConfig.ipAddress))
 		{
@@ -403,12 +401,12 @@ int main(int argc, char** argv)
 	while(true)
 	{
 		//Get image
-		if(cameraConfig.input == CameraConfiguration::FILE)
+		if(cameraConfig.input == CameraConfig::FILE)
 		{
 			status.frame = readImageFile(fnumber);
 			processFrame(status.frame);
 		}
-		else if(cameraConfig.input == CameraConfiguration::USB || cameraConfig.input == CameraConfiguration::IP)
+		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
 		{
 			if(cap.isOpened())
 			{
@@ -416,13 +414,13 @@ int main(int argc, char** argv)
 				processFrame(status.frame);
 			}
 		}
-		else if(cameraConfig.input == CameraConfiguration::TCAM)
+		else if(cameraConfig.input == CameraConfig::TCAM)
 		{
 			wait();
 		}
 	}
 
-	if(cameraConfig.input == CameraConfiguration::TCAM)
+	if(cameraConfig.input == CameraConfig::TCAM)
 	{
 		cam.stop();
 	}

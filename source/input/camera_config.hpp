@@ -5,7 +5,7 @@
 /**
  * Stores the camera configuration to be used.
  */
-class CameraConfiguration
+class CameraConfig
 {
 public:
 	const static int FILE = 0;
@@ -41,9 +41,9 @@ public:
 	 */
 	std::string ipAddress;
 
-	CameraConfiguration()
+	CameraConfig()
 	{
-		input = CameraConfiguration::TCAM;
+		input = CameraConfig::TCAM;
 		usbNumber = 0;
 		tcamSerial = "46810320";
 		ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";

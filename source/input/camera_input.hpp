@@ -17,6 +17,7 @@
 #include "tcamcamera.h"
 
 #include "camera_config.hpp"
+#include "image_status.hpp"
 
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
@@ -25,9 +26,10 @@ class CameraInput
 {
 public:
 	CameraConfig config;
-	VideoCapture cap;
-	TcamCamera cam;
 	ImageStatus status;
+	
+	cv::VideoCapture cap;
+	gsttcam::TcamCamera *cam = nullptr;
 
 	int width = 640;
 	int height = 480;
@@ -37,89 +39,33 @@ public:
 		config = _config;
 	}
 
+	/**
+	 * Start the camera capture.
+	 */
 	void start()
 	{
-		if(config.input == CameraConfiguration::TCAM)
-		{
-			int width = 1920;
-			int height = 1200;
 
-			status.frame.create(height, width, CV_8UC(4));
-
-			cam.set_capture_format("BGRx", FrameSize{width, height}, FrameRate{50, 1});
-			cam.set_new_frame_callback(getFrameTcamCallback, &status);
-			cam.start();
-			
-			shared_ptr<Property> exposureAuto = cam.get_property("Exposure Auto");
-			exposureAuto->set(cam, 0);
-			
-			shared_ptr<Property> exposureValue = cam.get_property("Exposure");
-			exposureValue->set(cam, 1e3);
-
-			shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
-			gainAuto->set(cam, 0);
-			
-			shared_ptr<Property> gainValue = cam.get_property("Gain");
-			gainValue->set(cam, 30);
-
-			shared_ptr<Property> brightness = cam.get_property("Brightness");
-			brightness->set(cam, 50);
-
-			//listTcamProperties(cam);
-		}
-		else if(config.input == CameraConfiguration::USB)
-		{
-			if(!cap.open(1))
-			{
-				std::cout << "Cork: Webcam not available." << std::endl;
-			}
-
-			cap.set(CAP_PROP_FRAME_WIDTH, width);
-			cap.set(CAP_PROP_FRAME_HEIGHT, height);
-
-			if(cap.get(CAP_PROP_FRAME_HEIGHT) != height || cap.get(CAP_PROP_FRAME_WIDTH) != width)
-			{
-				std::cout << "Cork: Unable to set usb webcam resolution." << std::endl;
-			}
-		}
-		else if(config.input == CameraConfiguration::IP)
-		{
-			if(!cap.open(config.ipAddress))
-			{
-				std::cout << "Cork: IP Camera not available." << std::endl;
-			}
-		}
 	}
 
+	/**
+	 * Capture frame from the camera.
+	 */
 	void update()
 	{
-		if(config.input == CameraConfiguration::FILE)
-		{
-			status.frame = readImageFile(fnumber);
-			processFrame(status.frame);
-		}
-		else if(config.input == CameraConfiguration::USB || config.input == CameraConfiguration::IP)
-		{
-			if(cap.isOpened())
-			{
-				cap >> status.frame;
-				processFrame(status.frame);
-			}
-		}
-		else if(config.input == CameraConfiguration::TCAM)
-		{
-			wait();
-		}
+
 	}
 
+	/**
+	 * Stop the camera capture.
+	 */
 	void stop()
 	{
-		if(config.input == CameraConfiguration::TCAM)
-		{
-			wait();
-		}
+
 	}
 
+	/**
+	 * Put the calling thread to sleep for a bit. 
+	 */
 	static void wait()
 	{
 		std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(200));
@@ -128,7 +74,7 @@ public:
 	/**
 	 * List available properties helper function.
 	 */
-	static void listTcamProperties(TcamCamera &cam)
+	static void listTcamProperties(gsttcam::TcamCamera &cam)
 	{
 		//Get a list of all supported properties and print it out
 		auto properties = cam.get_camera_property_list();
