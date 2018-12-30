@@ -43,7 +43,6 @@
 #define IMAGES_COUNT 20
 
 using namespace gsttcam;
-using namespace cv;
 
 //File number
 int fnumber = IMAGES_START;
@@ -76,7 +75,7 @@ cv::Mat readImageFile(int index)
 		fnumber = IMAGES_COUNT;
 	}
 
-	return cv::imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
+	return cv::imread("data/" + std::to_string(fnumber) + ".jpg", cv::IMREAD_COLOR);
 }
 
 bool saveNextFrame = false;
@@ -115,19 +114,19 @@ void processFrame(cv::Mat &image)
 	//Convert image to grayscale
 	else
 	{
-		cv::cvtColor(image, gray, COLOR_BGR2GRAY);
+		cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 	}
 
 	//Detect circles
-	std::vector<Vec3f> circles;
-	cv::HoughCircles(gray, circles, HOUGH_GRADIENT, 1, config.minSpacing, config.lowCannyThresh, config.highCannyThresh, config.minSize, config.maxSize);
+	std::vector<cv::Vec3f> circles;
+	cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config.minSpacing, config.lowCannyThresh, config.highCannyThresh, config.minSize, config.maxSize);
 
 	bool found = circles.size() > 0;
 
 	//Iterate all found circles
 	for(size_t i = 0; i < circles.size(); i++)
 	{
-		Vec3i c = circles[i];
+		cv::Vec3i c = circles[i];
 		cv::Point center = cv::Point(c[0], c[1]);
 		int radius = c[2];
 		
@@ -143,7 +142,7 @@ void processFrame(cv::Mat &image)
 		
 		//Circle mask for the roi
 		cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), cv::Scalar(255, 255, 255));
-		circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config.outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
+		cv::circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config.outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
 
 		//Binarize the roi
 		cv::Mat roi_bin;
@@ -159,13 +158,13 @@ void processFrame(cv::Mat &image)
 			{
 				double thresh = Threshold::otsuMask(roi, mask);
 				std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
-				cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 			else// if(config.automaticUseHistogramThresh)
 			{
 				double thresh = Threshold::histogram(roi, mask, config.histThreshMinDiff, config.histThreshNeighborhood, config.histThreshColorFilter, config.histThreshBalance);
 				std::cout << "Histogram automatic threshold: " << thresh << std::endl;
-				cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 		}
 		else if(config.semiAutoThresh)
@@ -174,11 +173,11 @@ void processFrame(cv::Mat &image)
 			thresh = (thresh * config.semiAutoThreshTolerance) + (config.thresholdValue * (1 - config.semiAutoThreshTolerance));
 
 			std::cout << "Semi Automatic threshold: " << thresh << std::endl;
-			cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+			cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 		}
 		else
 		{
-			cv::threshold(roi, roi_bin, config.thresholdValue, 255, THRESH_BINARY);
+			cv::threshold(roi, roi_bin, config.thresholdValue, 255, cv::THRESH_BINARY);
 		}
 
 		//Mask outside of the cork in roi bin
@@ -231,9 +230,9 @@ void processFrame(cv::Mat &image)
 				}
 			}
 			//Cicle position
-			circle(image, center, 1, cv::Scalar(255, 0, 0), 2, LINE_AA);
-			circle(image, center, radius, cv::Scalar(0, 255, 000), 1, LINE_AA);
-			putText(image, std::to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
+			cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
+			cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
+			cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
 		}
 	}
 
@@ -243,7 +242,7 @@ void processFrame(cv::Mat &image)
 	}
 
 	//Keyboard input
-	int key = waitKey(1);
+	int key = cv::waitKey(1);
 	if(key != -1)
 	{
 		if(key == KEY_ESC)
@@ -274,7 +273,7 @@ void processFrame(cv::Mat &image)
  */
 GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 {
-	int64 init = getTickCount();
+	int64 init = cv::getTickCount();
 
 	int width, height;
 	const GstStructure *str;
@@ -307,7 +306,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
-			resize(pdata->frame, pdata->resized, Size(768, 480));
+			resize(pdata->frame, pdata->resized, cv::Size(768, 480));
 			processFrame(pdata->resized);
 		}
 		else
@@ -320,8 +319,8 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 	gst_buffer_unmap(buffer, &info);
 	gst_sample_unref(sample);
 
-	int64 end = getTickCount();
-	double secs = (end - init) / getTickFrequency();
+	int64 end = cv::getTickCount();
+	double secs = (end - init) / cv::getTickFrequency();
 
 	std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
 
@@ -338,7 +337,7 @@ int main(int argc, char** argv)
 {
 	gst_init(&argc, &argv);
 
-	VideoCapture cap;
+	cv::VideoCapture cap;
 	TcamCamera cam(cameraConfig.tcamSerial);
 
 	ImageStatus status;
@@ -379,10 +378,10 @@ int main(int argc, char** argv)
 			std::cout << "Cork: Webcam not available." << std::endl;
 		}
 
-		//cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-		//cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+		//cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+		//cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 
-		if(cap.get(CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(CAP_PROP_FRAME_WIDTH) != 1280)
+		if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(cv::CAP_PROP_FRAME_WIDTH) != 1280)
 		{
 			std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
 		}
