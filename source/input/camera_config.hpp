@@ -16,14 +16,14 @@ public:
 	/**
 	 * Indicates the camera input source.
 	 */
-	int inputSource;
+	int input;
 	
 	/**
 	 * The USB camera number to use.
 	 *
 	 * Used when input source set to USB.
 	 */
-	int usbCamera;
+	int usbNumber;
 	
 	/**
 	 * Serial number of the camera to use.
@@ -40,4 +40,12 @@ public:
 	 * Examples rtsp://admin:123456@192.168.0.10:554/live/ch0 or rtsp://192.168.0.124:8080/video/h264
 	 */
 	std::string ipAddress;
+
+	CameraConfiguration()
+	{
+		input = CameraConfiguration::TCAM;
+		usbNumber = 0;
+		tcamSerial = "46810320";
+		ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
+	}
 };

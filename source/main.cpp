@@ -14,11 +14,13 @@
 
 #include "tcamcamera.h"
 
-#define CVUI_DISABLE_COMPILATION_NOTICES
-#define CVUI_IMPLEMENTATION
-#include "../lib/cvui.h"
-
 #include "threshold.hpp"
+#include "config.hpp"
+#include "cork_analyser.hpp"
+
+#include "gui.hpp"
+
+#include "input/camera_config.hpp"
 #include "input/image_status.hpp"
 
 #define DEBUG true
@@ -35,120 +37,27 @@
 
 #define PI 3.14159265359
 
-//Input sources
-#define FILE 0
-#define USB_CAMERA 1
-#define IP_CAMERA 2
-#define TCAM_CAMERA 3
-
-#define INPUT_SOURCE_A TCAM_CAMERA
-#define INPUT_SOURCE_B USB_CAMERA
-
-#define USB_CAMERA_A 0
-#define USB_CAMERA_B 1
-
-#define TCAM_CAMERA_SERIAL_A "46810320"
-#define TCAM_CAMERA_SERIAL_B "46810320"
-
 //File range
 #define IMAGES_START 0
 #define IMAGES_COUNT 20
 
-//IP Camera address
-#define IP_CAMERA_ADDRESS "rtsp://admin:123456@192.168.0.10:554/live/ch0"
-//#define IP_CAMERA_ADDRESS "rtsp://192.168.0.124:8080/video/h264"
-
 using namespace gsttcam;
 using namespace cv;
-using namespace std;
 
 //File number
 int fnumber = IMAGES_START;
-
-bool corkInA = false;
-double corkADefect = 0.0;
-
-bool corkInB = false;
-double corkBDefect = 0.0;
-
-//Blur parameters
-bool BLUR_GLOBAL = false;
-int BLUR_GLOBAL_KSIZE = 3;
-bool BLUR_MASK = false;
-int BLUR_MASK_KSIZE = 3;
-
-//Hough parameters
-int LOW_CANNY_THRESH = 120;
-int HIGH_CANNY_THRESH = 30; //The smaller it is, the more false circles may be detected.
-int MIN_SIZE = 110;
-int MAX_SIZE = 190;
-int MIN_SPACING = 500;
-
-//Automatic threshold
-bool AUTOMATIC_THRESH = false;
-bool AUTOMATIC_USE_OTSU_THRESH = false;
-bool AUTOMATIC_USE_HIST_THRESH = false;
-
-bool SEMIAUTO_THRESH = true;
-double SEMIAUTO_THRESH_TOLERANCE = 0.4;
-
-//Threshold value
-int THRESHOLD_BIN = 60;
-
-//Tentone threshold parameters
-int HIST_THRESH_MIN_DIFF = 15;
-int HIST_THRESH_NEIGHBORHOOD = 15;
-int HIST_COLOR_FILTER = 15;
-double HIST_THRESH_BALANCE = 0.5;
-
-//Otso threhsold parameter
-double OTSU_THRESH_RATIO = 1.0;
-
-//Color analysis
-bool SPLIT_COLOR_CHANNELS = false;
-
-//Outside skirt size in pixels
-int OUTSIDE_SKIRT = 7;
+bool corkFound = false;
+double corkDefect = 0.0;
 
 /**
- * Create a GUI trackbar.
+ * Cork detector configuration.
  */
-void trackbar(const cv::String& theText, int theWidth, double *theValue, double theMin, double theMax, int theSegments = 1, const char *theLabelFormat = "%.1Lf", unsigned int theOptions = 0, double theDiscreteStep = 1)
-{
-	cvui::beginRow();
-	cvui::text(theText);
-	cvui::beginColumn();
-	cvui::space(-19);
-	cvui::trackbar(theWidth, theValue, theMin, theMax, theSegments, theLabelFormat, theOptions | cvui::TRACKBAR_HIDE_SEGMENT_LABELS | cvui::TRACKBAR_HIDE_MIN_MAX_LABELS, theDiscreteStep);
-	cvui::endColumn();
-	cvui::endRow();
-}
+Configuration config;
 
 /**
- * Create a GUI trackbar.
+ * Camera input configuration.
  */
-void trackbar(const cv::String& theText, int theWidth, int *theValue, int theMin, int theMax, int theSegments = 1, const char *theLabelFormat = "%.Lf", unsigned int theOptions = 0, int theDiscreteStep = 1)
-{
-	cvui::beginRow();
-	cvui::text(theText);
-	cvui::beginColumn();
-	cvui::space(-19);
-	cvui::trackbar(theWidth, theValue, theMin, theMax, theSegments, theLabelFormat, theOptions | cvui::TRACKBAR_HIDE_SEGMENT_LABELS | cvui::TRACKBAR_HIDE_MIN_MAX_LABELS, theDiscreteStep);
-	cvui::endColumn();
-	cvui::endRow();
-}
-
-/**
- * Check if a value is in the neighborhood of another one.
- *
- * @param value
- * @param center
- * @param neighborhood
- */
-bool isNeighbor(int value, int center, int neighborhood)
-{
-	return value > (center - neighborhood) && value < (center + neighborhood);
-}
+CameraConfiguration cameraConfig;
 
 /**
  * Read image from file.
@@ -166,7 +75,7 @@ cv::Mat readImageFile(int index)
 		fnumber = IMAGES_COUNT;
 	}
 
-	return cv::imread("data/" + to_string(fnumber) + ".jpg", IMREAD_COLOR);
+	return cv::imread("data/" + std::to_string(fnumber) + ".jpg", IMREAD_COLOR);
 }
 
 bool saveNextFrame = false;
@@ -182,19 +91,19 @@ void processFrame(cv::Mat &image)
 		std::cout << "Save frame" << std::endl;
 
 		saveNextFrame = false;
-		cv::imwrite("./" + to_string(saveFrameCounter++) + ".png", image);
+		cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", image);
 	}
 
 	//Deblur the image
-	if(BLUR_GLOBAL)
+	if(config.blurGlobal)
 	{
-		cv::medianBlur(image, image, BLUR_GLOBAL_KSIZE);
+		cv::medianBlur(image, image, config.blurGlobalKSize);
 	}
 	
 	cv::Mat gray;
 
 	//Split color channels
-	if(SPLIT_COLOR_CHANNELS)
+	if(config.splitColorChannels)
 	{
 		cv::Mat bgr[3];
 		cv::split(image, bgr);
@@ -209,8 +118,8 @@ void processFrame(cv::Mat &image)
 	}
 
 	//Detect circles
-	vector<Vec3f> circles;
-	cv::HoughCircles(gray, circles, HOUGH_GRADIENT, 1, MIN_SPACING, LOW_CANNY_THRESH, HIGH_CANNY_THRESH, MIN_SIZE, MAX_SIZE);
+	std::vector<Vec3f> circles;
+	cv::HoughCircles(gray, circles, HOUGH_GRADIENT, 1, config.minSpacing, config.lowCannyThresh, config.highCannyThresh, config.minSize, config.maxSize);
 
 	bool found = circles.size() > 0;
 
@@ -228,47 +137,47 @@ void processFrame(cv::Mat &image)
 		}
 
 		//Create the roi
-		Rect roi_rect = Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
+		cv::Rect roi_rect = cv::Rect(center.x - radius, center.y - radius, radius * 2, radius * 2);
 		cv::Mat roi = cv::Mat(gray, roi_rect);
 		
 		//Circle mask for the roi
-		cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), Scalar(255, 255, 255));
-		circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - OUTSIDE_SKIRT, Scalar(0, 0, 0), -1, 8, 0);
+		cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), cv::Scalar(255, 255, 255));
+		circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config.outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
 
 		//Binarize the roi
 		cv::Mat roi_bin;
 
-		if(BLUR_MASK)
+		if(config.blurMask)
 		{
-			cv::medianBlur(roi, roi, BLUR_MASK_KSIZE);
+			cv::medianBlur(roi, roi, config.blurMaskKSize);
 		}
 
-		if(AUTOMATIC_THRESH)
+		if(config.automaticThresh)
 		{
-			if(AUTOMATIC_USE_OTSU_THRESH)
+			if(config.automaticUseOtsuThresh)
 			{
-				double thresh = OTSU_THRESH_RATIO * Threshold::otsuMask(roi, mask);
+				double thresh = Threshold::otsuMask(roi, mask);
 				std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
-				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
-			else// if(AUTOMATIC_USE_HIST_THRESH)
+			else// if(config.automaticUseHistogramThresh)
 			{
-				double thresh = Threshold::histogram(roi, mask, HIST_THRESH_MIN_DIFF, HIST_THRESH_NEIGHBORHOOD, HIST_COLOR_FILTER, HIST_THRESH_BALANCE);
+				double thresh = Threshold::histogram(roi, mask, config.histThreshMinDiff, config.histThreshNeighborhood, config.histThreshColorFilter, config.histThreshBalance);
 				std::cout << "Histogram automatic threshold: " << thresh << std::endl;
-				threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+				cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 			}
 		}
-		else if(SEMIAUTO_THRESH)
+		else if(config.semiAutoThresh)
 		{
 			double thresh = Threshold::otsuMask(roi, mask);
-			thresh = (thresh * SEMIAUTO_THRESH_TOLERANCE) + (THRESHOLD_BIN * (1 - SEMIAUTO_THRESH_TOLERANCE));
+			thresh = (thresh * config.semiAutoThreshTolerance) + (config.thresholdValue * (1 - config.semiAutoThreshTolerance));
 
 			std::cout << "Semi Automatic threshold: " << thresh << std::endl;
-			threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
+			cv::threshold(roi, roi_bin, thresh, 255, THRESH_BINARY);
 		}
 		else
 		{
-			threshold(roi, roi_bin, THRESHOLD_BIN, 255, THRESH_BINARY);
+			cv::threshold(roi, roi_bin, config.thresholdValue, 255, THRESH_BINARY);
 		}
 
 		//Mask outside of the cork in roi bin
@@ -321,107 +230,15 @@ void processFrame(cv::Mat &image)
 				}
 			}
 			//Cicle position
-			circle(image, center, 1, Scalar(255, 0, 0), 2, LINE_AA);
-			circle(image, center, radius, Scalar(0, 255, 000), 1, LINE_AA);
-			putText(image, to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 255));
+			circle(image, center, 1, cv::Scalar(255, 0, 0), 2, LINE_AA);
+			circle(image, center, radius, cv::Scalar(0, 255, 000), 1, LINE_AA);
+			putText(image, std::to_string(defect) + "%", center, FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
 		}
 	}
 
 	if(DEBUG)
 	{
-		cvui::beginColumn(image, 10, 10);
-		cvui::beginRow();
-		cvui::checkbox("Blur Global", &BLUR_GLOBAL);
-		cvui::space(12);
-		cvui::checkbox("Blur Mask", &BLUR_MASK);
-		cvui::endRow();
-
-		if(BLUR_GLOBAL)
-		{
-			cvui::space(12);
-			trackbar("Blur Global Kernel", 200, &BLUR_GLOBAL_KSIZE, 3, 101, 2);
-			if(BLUR_GLOBAL_KSIZE % 2 == 0)
-			{
-				BLUR_GLOBAL_KSIZE++;
-			}
-		}
-
-		if(BLUR_MASK)
-		{
-			cvui::space(12);
-			trackbar("Blur Mask Kernel", 200, &BLUR_MASK_KSIZE, 3, 101, 2);
-			if(BLUR_MASK_KSIZE % 2 == 0)
-			{
-				BLUR_MASK_KSIZE++;
-			}
-		}
-
-		cvui::space(12);
-		cvui::text("Threshold");
-
-		cvui::space(12);
-		cvui::beginRow();
-		cvui::checkbox("Automatic", &AUTOMATIC_THRESH);
-		cvui::checkbox("SemiAuto", &SEMIAUTO_THRESH);
-
-		if(AUTOMATIC_THRESH)
-		{
-			cvui::space(12);
-			if(cvui::checkbox("Otsu", &AUTOMATIC_USE_OTSU_THRESH))
-			{
-				AUTOMATIC_USE_HIST_THRESH = false;
-			}
-			cvui::space(12);
-			if(cvui::checkbox("Histogram", &AUTOMATIC_USE_HIST_THRESH))
-			{
-				AUTOMATIC_USE_OTSU_THRESH = false;
-			}
-		}
-		cvui::endRow();
-		
-		if(!AUTOMATIC_THRESH || SEMIAUTO_THRESH)
-		{
-			cvui::space(12);
-			trackbar("Threshold", 200, &THRESHOLD_BIN, 10, 150, 1);
-		}
-
-		if(SEMIAUTO_THRESH)
-		{
-			cvui::space(12);
-			trackbar("Tolerance", 200, &SEMIAUTO_THRESH_TOLERANCE, 0.0, 1.0, 0.01);
-		}
-
-		if(AUTOMATIC_THRESH && AUTOMATIC_USE_HIST_THRESH)
-		{
-			cvui::space(12);
-			trackbar("Min-diff", 200, &HIST_THRESH_MIN_DIFF, 5, 100, 1);
-			cvui::space(12);
-			trackbar("Neighborhood", 200, &HIST_THRESH_NEIGHBORHOOD, 3, 100, 1);
-			cvui::space(12);
-			trackbar("Neigh. Filter", 200, &HIST_COLOR_FILTER, 1, 100, 1);
-			cvui::space(12);
-			trackbar("Balance", 200, &HIST_THRESH_BALANCE, 0, 1, 1);	
-		}
-		
-		cvui::space(12);
-		trackbar("Skirt", 200, &OUTSIDE_SKIRT, 0, 20, 1);
-
-		cvui::space(12);
-		cvui::text("Circle");
-		cvui::space(12);
-		trackbar("Spacing", 200, &MIN_SPACING, 1, 600, 1);
-		cvui::space(12);
-		trackbar("Canny low", 200, &LOW_CANNY_THRESH, 1, 200, 1);
-		cvui::space(12);
-		trackbar("Canny high", 200, &HIGH_CANNY_THRESH, 1, 100, 1);
-		cvui::space(12);
-		trackbar("Min size", 200, &MIN_SIZE, 0, 200, 1);
-		cvui::space(12);
-		trackbar("Max size", 200, &MAX_SIZE, 0, 700, 1);
-		cvui::endColumn();
-
-		cvui::update();
-		cvui::imshow(WINDOW, image);
+		cvgui::drawConfigEditor(WINDOW, image, config);
 	}
 
 	//Keyboard input
@@ -433,7 +250,7 @@ void processFrame(cv::Mat &image)
 			saveNextFrame = true;
 		}
 		
-		if(INPUT_SOURCE_A == FILE)
+		if(cameraConfig.input == CameraConfiguration::FILE)
 		{
 			if(key == KEY_LEFT)
 			{
@@ -446,20 +263,6 @@ void processFrame(cv::Mat &image)
 				std::cout << "Cork: Next image, " << fnumber << std::endl;
 			}
 		}
-	}
-}
-
-/**
- * List available properties helper function.
- */
-void listTcamProperties(TcamCamera &cam)
-{
-	//Get a list of all supported properties and print it out
-	auto properties = cam.get_camera_property_list();
-	std::cout << "Properties:" << std::endl;
-	for(auto &prop : properties)
-	{
-		std::cout << prop->to_string() << std::endl;
 	}
 }
 
@@ -503,7 +306,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 			//Create a cv::Mat, copy image data into that and save the image.
 			pdata->frame.data = info.data;
 
-			resize(pdata->frame, pdata->resized, Size(768, 480));//Size(1024, 640));
+			resize(pdata->frame, pdata->resized, Size(768, 480));
 			processFrame(pdata->resized);
 		}
 		else
@@ -527,7 +330,7 @@ GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
 
 void wait()
 {
-	this_thread::sleep_for(chrono::duration<int, ratio<1,1000>>(200));
+	std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(200));
 }
 
 int main(int argc, char** argv)
@@ -535,12 +338,12 @@ int main(int argc, char** argv)
 	gst_init(&argc, &argv);
 
 	VideoCapture cap;
-	TcamCamera cam(TCAM_CAMERA_SERIAL_A);
+	TcamCamera cam(cameraConfig.tcamSerial);
 
 	ImageStatus status;
 	status.counter = 0;
 
-	if(INPUT_SOURCE_A == TCAM_CAMERA)
+	if(cameraConfig.input == CameraConfiguration::TCAM)
 	{
 		int width = 1920;
 		int height = 1200;
@@ -551,26 +354,26 @@ int main(int argc, char** argv)
 		cam.set_new_frame_callback(getFrameTcamCallback, &status);
 		cam.start();
 		
-		shared_ptr<Property> exposureAuto = cam.get_property("Exposure Auto");
+		std::shared_ptr<Property> exposureAuto = cam.get_property("Exposure Auto");
 		exposureAuto->set(cam, 0);
 		
-		shared_ptr<Property> exposureValue = cam.get_property("Exposure");
+		std::shared_ptr<Property> exposureValue = cam.get_property("Exposure");
 		exposureValue->set(cam, 1e3);
 
-		shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
+		std::shared_ptr<Property> gainAuto = cam.get_property("Gain Auto");
 		gainAuto->set(cam, 0);
 		
-		shared_ptr<Property> gainValue = cam.get_property("Gain");
+		std::shared_ptr<Property> gainValue = cam.get_property("Gain");
 		gainValue->set(cam, 30);
 
-		shared_ptr<Property> brightness = cam.get_property("Brightness");
+		std::shared_ptr<Property> brightness = cam.get_property("Brightness");
 		brightness->set(cam, 50);
 
 		//listTcamProperties(cam);
 	}
-	else if(INPUT_SOURCE_A == USB_CAMERA)
+	else if(cameraConfig.input == CameraConfiguration::USB)
 	{
-		if(!cap.open(1))
+		if(!cap.open(cameraConfig.usbNumber))
 		{
 			std::cout << "Cork: Webcam not available." << std::endl;
 		}
@@ -583,9 +386,9 @@ int main(int argc, char** argv)
 			std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
 		}
 	}
-	else if(INPUT_SOURCE_A == IP_CAMERA)
+	else if(cameraConfig.input == CameraConfiguration::IP)
 	{
-		if(!cap.open(IP_CAMERA_ADDRESS))
+		if(!cap.open(cameraConfig.ipAddress))
 		{
 			std::cout << "Cork: IP Camera not available." << std::endl;
 		}
@@ -600,12 +403,12 @@ int main(int argc, char** argv)
 	while(true)
 	{
 		//Get image
-		if(INPUT_SOURCE_A == FILE)
+		if(cameraConfig.input == CameraConfiguration::FILE)
 		{
 			status.frame = readImageFile(fnumber);
 			processFrame(status.frame);
 		}
-		else if(INPUT_SOURCE_A == USB_CAMERA || INPUT_SOURCE_A == IP_CAMERA)
+		else if(cameraConfig.input == CameraConfiguration::USB || cameraConfig.input == CameraConfiguration::IP)
 		{
 			if(cap.isOpened())
 			{
@@ -613,13 +416,13 @@ int main(int argc, char** argv)
 				processFrame(status.frame);
 			}
 		}
-		else if(INPUT_SOURCE_A == TCAM_CAMERA)
+		else if(cameraConfig.input == CameraConfiguration::TCAM)
 		{
 			wait();
 		}
 	}
 
-	if(INPUT_SOURCE_A == TCAM_CAMERA)
+	if(cameraConfig.input == CameraConfiguration::TCAM)
 	{
 		cam.stop();
 	}

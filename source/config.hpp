@@ -36,9 +36,6 @@ public:
 	int histThreshColorFilter = 15;
 	double histThreshBalance = 0.5;
 
-	//Otso threhsold parameter
-	double otsuThreshRatio = 1.0;
-
 	//Color analysis
 	bool splitColorChannels = false;
 
