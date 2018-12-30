@@ -20,6 +20,7 @@
 
 #include "gui.hpp"
 
+//#include "input/camera_input.hpp"
 #include "input/camera_config.hpp"
 #include "input/image_status.hpp"
 

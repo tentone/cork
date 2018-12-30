@@ -39,7 +39,7 @@ public:
 
 	void start()
 	{
-		if(config.input == CameraConfiguration::TCAM_CAMERA)
+		if(config.input == CameraConfiguration::TCAM)
 		{
 			int width = 1920;
 			int height = 1200;
@@ -67,7 +67,7 @@ public:
 
 			//listTcamProperties(cam);
 		}
-		else if(config.input == CameraConfiguration::USB_CAMERA)
+		else if(config.input == CameraConfiguration::USB)
 		{
 			if(!cap.open(1))
 			{
@@ -82,9 +82,9 @@ public:
 				std::cout << "Cork: Unable to set usb webcam resolution." << std::endl;
 			}
 		}
-		else if(config.input == CameraConfiguration::IP_CAMERA)
+		else if(config.input == CameraConfiguration::IP)
 		{
-			if(!cap.open(IP_CAMERA_ADDRESS))
+			if(!cap.open(config.ipAddress))
 			{
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
@@ -98,7 +98,7 @@ public:
 			status.frame = readImageFile(fnumber);
 			processFrame(status.frame);
 		}
-		else if(config.input == CameraConfiguration::USB_CAMERA || config.input == CameraConfiguration::IP_CAMERA)
+		else if(config.input == CameraConfiguration::USB || config.input == CameraConfiguration::IP)
 		{
 			if(cap.isOpened())
 			{
@@ -106,7 +106,7 @@ public:
 				processFrame(status.frame);
 			}
 		}
-		else if(config.input == CameraConfiguration::TCAM_CAMERA)
+		else if(config.input == CameraConfiguration::TCAM)
 		{
 			wait();
 		}
@@ -114,7 +114,7 @@ public:
 
 	void stop()
 	{
-		if(config.input == CameraConfiguration::TCAM_CAMERA)
+		if(config.input == CameraConfiguration::TCAM)
 		{
 			wait();
 		}
@@ -122,9 +122,9 @@ public:
 
 	static void wait()
 	{
-		this_thread::sleep_for(chrono::duration<int, ratio<1,1000>>(200));
+		std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(200));
 	}
-	
+
 	/**
 	 * List available properties helper function.
 	 */

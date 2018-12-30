@@ -2,11 +2,21 @@
 project(cork)
 cmake_minimum_required(VERSION 2.8)
 
+#Macro to get the current username
+macro(whoami out)
+	execute_process(
+		COMMAND whoami
+		OUTPUT_VARIABLE ${out}
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+endmacro(whoami)
+
 find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 
+whoami(WHOAMI)
+
 set(CMAKE_CXX_STANDARD 11)
-set(TISCAMERA_DIR /home/cork/tiscamera)
+set(TISCAMERA_DIR /home/${WHOAMI}/tiscamera)
 
 #Check if tiscamera directory exists
 if(NOT IS_DIRECTORY "${TISCAMERA_DIR}/examples/cpp/common")
