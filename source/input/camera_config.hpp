@@ -57,7 +57,7 @@ public:
 		usbNumber = 0;
 		tcamSerial = "46810320";
 		ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
-		width = 640;
+		width = 768; //TCam uses 768
 		height = 480;
 	}
 };

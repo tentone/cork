@@ -25,15 +25,46 @@
 class CameraInput
 {
 public:
+	/**
+	 * Obligatory camera configuration object.
+	 */
 	CameraConfig cameraConfig;
+
+	/**
+	 * Last captured frame status.
+	 */
 	ImageStatus status;
 	
+	/**
+	 * OpenCV video capture object used to get image from USB or from IP camera.
+	 */
 	cv::VideoCapture cap;
-	gsttcam::TcamCamera cam = nullptr;
 
+	/**
+	 * Used to capture data from a TCam.
+	 *
+	 * E.g. the ImagingSource camera used.
+	 */
+	gsttcam::TcamCamera *cam = nullptr;
+
+	int fileNumber = 0;
+	std::string filePrefix = "";
+	int fileStart = 0;
+	int fileCount = 20;
+
+	/**
+	 * Callback function used to process captured frame.
+	 */
+	void (*frameCallback)(cv::Mat mat);
+
+	/**
+	 * Constructor from camera configuration object.
+	 */
 	CameraInput(CameraConfig _cameraConfig)
 	{
-		cameraConfig = _cameraConfig;
+		cameraConfig = _cameraConfig;-
+		
+		cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
 	}
 
 	/**
@@ -50,24 +81,24 @@ public:
 
 			status.frame.create(height, width, CV_8UC(4));
 
-			cam.set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
-			cam.set_new_frame_callback(getFrameTcamCallback, &status);
-			cam.start();
+			cam->set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
+			cam->set_new_frame_callback(getFrameTcamCallback, &status);
+			cam->start();
 			
-			std::shared_ptr<gsttcam::Property> exposureAuto = cam.get_property("Exposure Auto");
-			exposureAuto->set(cam, 0);
+			std::shared_ptr<gsttcam::Property> exposureAuto = cam->get_property("Exposure Auto");
+			exposureAuto->set(*cam, 0);
 			
-			std::shared_ptr<gsttcam::Property> exposureValue = cam.get_property("Exposure");
-			exposureValue->set(cam, 1e3);
+			std::shared_ptr<gsttcam::Property> exposureValue = cam->get_property("Exposure");
+			exposureValue->set(*cam, 1e3);
 
-			std::shared_ptr<gsttcam::Property> gainAuto = cam.get_property("Gain Auto");
-			gainAuto->set(cam, 0);
+			std::shared_ptr<gsttcam::Property> gainAuto = cam->get_property("Gain Auto");
+			gainAuto->set(*cam, 0);
 			
-			std::shared_ptr<gsttcam::Property> gainValue = cam.get_property("Gain");
-			gainValue->set(cam, 30);
+			std::shared_ptr<gsttcam::Property> gainValue = cam->get_property("Gain");
+			gainValue->set(*cam, 30);
 
-			std::shared_ptr<gsttcam::Property> brightness = cam.get_property("Brightness");
-			brightness->set(cam, 50);
+			std::shared_ptr<gsttcam::Property> brightness = cam->get_property("Brightness");
+			brightness->set(*cam, 50);
 		}
 		else if(cameraConfig.input == CameraConfig::USB)
 		{
@@ -76,13 +107,13 @@ public:
 				std::cout << "Cork: Webcam not available." << std::endl;
 			}
 
-			/*cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-			cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+			cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
+			cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
 
-			if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(cv::CAP_PROP_FRAME_WIDTH) != 1280)
+			if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap.get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
 			{
 				std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
-			}*/
+			}
 		}
 		else if(cameraConfig.input == CameraConfig::IP)
 		{
@@ -90,6 +121,10 @@ public:
 			{
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
+		}
+		else if(cameraConfig.input == CameraConfig::USB)
+		{
+			status.frame = readImageFile(fileNumber);
 		}
 	}
 
@@ -101,19 +136,14 @@ public:
 		//Get image
 		if(cameraConfig.input == CameraConfig::FILE)
 		{
-			status.frame = readImageFile(fnumber);
-
-			//TODO <PROCESSING CALLBACK>
-			//processFrame(status.frame);
+			frameCallback(status.frame);
 		}
 		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
 		{
 			if(cap.isOpened())
 			{
 				cap >> status.frame;
-
-				//TODO <PROCESSING CALLBACK>
-				//processFrame(status.frame);
+				frameCallback(status.frame);
 			}
 		}
 		else if(cameraConfig.input == CameraConfig::TCAM)
@@ -129,8 +159,57 @@ public:
 	{
 		if(cameraConfig.input == CameraConfig::TCAM)
 		{
-			cam.stop();
+			cam->stop();
 		}
+	}
+
+	/**
+	 * Read next image file.
+	 */
+	cv::Mat nextFile()
+	{
+		if(cameraConfig.input == CameraConfig::FILE)
+		{
+			status.frame = readImageFile(++fileNumber);
+			std::cout << "Cork: Next image, " << fileNumber << std::endl;
+		}
+	}
+
+	/**
+	 * Read previous image from file.
+	 */
+	cv::Mat previousFile()
+	{
+		if(cameraConfig.input == CameraConfig::FILE)
+		{
+			status.frame = readImageFile(--fileNumber);
+			std::cout << "Cork: Previous image, " << fileNumber << std::endl;
+		}
+	}
+
+	/**
+	 * Read image from file.
+	 */
+	cv::Mat readImageFile(int index)
+	{
+		fileNumber = index;
+
+		if(fileNumber > fileCount)
+		{
+			fileNumber = fileStart;
+		}
+		if(fileNumber < fileStart)
+		{
+			fileNumber = fileCount;
+		}
+
+		return cv::imread("data/" + std::to_string(fileNumber) + ".jpg", cv::IMREAD_COLOR);
+	}
+
+
+	void startTCam()
+	{
+
 	}
 
 	/**
@@ -175,8 +254,8 @@ public:
 
 				resize(pdata->frame, pdata->resized, cv::Size(768, 480));
 					
-				//TODO <ADD CODE HERE>
-				//processFrame(pdata->resized);
+				//Frame processing callback
+				//frameCallback(pdata->resized);
 			}
 			else
 			{
@@ -212,7 +291,9 @@ public:
 	{
 		//Get a list of all supported properties and print it out
 		auto properties = cam.get_camera_property_list();
+
 		std::cout << "Properties:" << std::endl;
+		
 		for(auto &prop : properties)
 		{
 			std::cout << prop->to_string() << std::endl;

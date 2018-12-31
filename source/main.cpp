@@ -24,10 +24,6 @@
 #include "input/camera_config.hpp"
 #include "input/image_status.hpp"
 
-#define DEBUG true
-
-#define WINDOW "Cork"
-
 #define KEY_ESC 27
 #define KEY_LEFT 81
 #define KEY_RIGHT 83
@@ -43,7 +39,6 @@
 #define IMAGES_COUNT 20
 
 //File number
-int fnumber = IMAGES_START;
 bool corkFound = false;
 double corkDefect = 0.0;
 
@@ -57,24 +52,10 @@ Configuration config;
  */
 CameraConfig cameraConfig;
 
-/**
- * Read image from file.
- */
-cv::Mat readImageFile(int index)
-{
-	fnumber = index;
 
-	if(fnumber > IMAGES_COUNT)
-	{
-		fnumber = IMAGES_START;
-	}
-	if(fnumber < IMAGES_START)
-	{
-		fnumber = IMAGES_COUNT;
-	}
+bool DEBUG = true;
+std::string WINDOW = "Cork";
 
-	return cv::imread("data/" + std::to_string(fnumber) + ".jpg", cv::IMREAD_COLOR);
-}
 
 bool saveNextFrame = false;
 int saveFrameCounter = 0;
@@ -252,13 +233,11 @@ void processFrame(cv::Mat &image)
 		{
 			if(key == KEY_LEFT)
 			{
-				readImageFile(--fnumber);
-				std::cout << "Cork: Previous image, " << fnumber << std::endl;
+				
 			}
 			else if(key == KEY_RIGHT)
 			{
-				readImageFile(++fnumber);
-				std::cout << "Cork: Next image, " << fnumber << std::endl;
+				
 			}
 		}
 	}
@@ -400,13 +379,7 @@ int main(int argc, char** argv)
 
 	while(true)
 	{
-		//Get image
-		if(cameraConfig.input == CameraConfig::FILE)
-		{
-			status.frame = readImageFile(fnumber);
-			processFrame(status.frame);
-		}
-		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+		if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
 		{
 			if(cap.isOpened())
 			{
