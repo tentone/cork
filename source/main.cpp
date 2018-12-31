@@ -47,16 +47,9 @@ double corkDefect = 0.0;
  */
 Configuration config;
 
-/**
- * Camera input configuration.
- */
-CameraConfig cameraConfig;
+bool drawDefects = true;
 
-
-bool DEBUG = true;
-std::string WINDOW = "Cork";
-
-
+bool DEBUG_GUI = true;
 bool saveNextFrame = false;
 int saveFrameCounter = 0;
 
@@ -189,7 +182,7 @@ void processFrame(cv::Mat &image)
 		//std::cout << "Defect: " << defect << "%" << std::endl;
 
 		//Draw debug information
-		if(DEBUG)
+		if(drawDefects)
 		{
 			int channels = image.channels();
 
@@ -208,6 +201,7 @@ void processFrame(cv::Mat &image)
 					}
 				}
 			}
+			
 			//Cicle position
 			cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
 			cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
@@ -215,188 +209,45 @@ void processFrame(cv::Mat &image)
 		}
 	}
 
-	if(DEBUG)
+	if(DEBUG_GUI)
 	{
-		cvgui::drawConfigEditor(WINDOW, image, config);
+		//cvgui::drawConfigEditor("CorkA", image, config);
 	}
-
-	//Keyboard input
-	int key = cv::waitKey(1);
-	if(key != -1)
-	{
-		if(key == KEY_ESC)
-		{
-			saveNextFrame = true;
-		}
-		
-		if(cameraConfig.input == CameraConfig::FILE)
-		{
-			if(key == KEY_LEFT)
-			{
-				
-			}
-			else if(key == KEY_RIGHT)
-			{
-				
-			}
-		}
-	}
-}
-
-/**
- * Callback called for new images by the internal appsink.
- *
- * Called from a TcamCamera object using the "set_new_frame_callback" method.
- */
-GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
-{
-	int64 init = cv::getTickCount();
-
-	int width, height;
-	const GstStructure *str;
-
-	//Cast gpointer to ImageStatus*
-	ImageStatus *pdata = (ImageStatus*)data;
-	pdata->counter++;
-
-	//The following lines demonstrate, how to acces the image data in the GstSample.
-	GstSample *sample = gst_app_sink_pull_sample(appsink);
-	GstBuffer *buffer = gst_sample_get_buffer(sample);
-	GstMapInfo info;
-
-	gst_buffer_map(buffer, &info, GST_MAP_READ);
-	
-	if(info.data != NULL) 
-	{
-		//info.data contains the image data as blob of unsigned char 
-		GstCaps *caps = gst_sample_get_caps(sample);
-
-		//Get a string containg the pixel format, width and height of the image        
-		str = gst_caps_get_structure(caps, 0);    
-
-		if(strcmp(gst_structure_get_string(str, "format"), "BGRx") == 0)  
-		{
-			//Now query the width and height of the image
-			gst_structure_get_int(str, "width", &width);
-			gst_structure_get_int(str, "height", &height);
-
-			//Create a cv::Mat, copy image data into that and save the image.
-			pdata->frame.data = info.data;
-
-			resize(pdata->frame, pdata->resized, cv::Size(768, 480));
-			processFrame(pdata->resized);
-		}
-		else
-		{
-			std::cout << "Cork: Not the expected pixel format." << std::endl;
-		}
-	}
-	
-	//Clean up, unref and unmap buffers (to prevent leaks).
-	gst_buffer_unmap(buffer, &info);
-	gst_sample_unref(sample);
-
-	int64 end = cv::getTickCount();
-	double secs = (end - init) / cv::getTickFrequency();
-
-	std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
-
-	//Set our flag of new image to true, so our main thread knows about a new image.
-	return GST_FLOW_OK;
-}
-
-void wait()
-{
-	std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(200));
 }
 
 int main(int argc, char** argv)
 {
 	gst_init(&argc, &argv);
 
-	cv::VideoCapture cap;
-	gsttcam::TcamCamera cam(cameraConfig.tcamSerial);
+	CameraConfig cameraConfig;
+	cameraConfig.input = CameraConfig::TCAM;
 
-	ImageStatus status;
-	status.counter = 0;
+	CameraInput *cameraInput = new CameraInput(cameraConfig);
+	cameraInput->frameCallback = processFrame;
 
-	if(cameraConfig.input == CameraConfig::TCAM)
+	if(DEBUG_GUI)
 	{
-		int width = 1920;
-		int height = 1200;
-
-		status.frame.create(height, width, CV_8UC(4));
-
-		cam.set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
-		cam.set_new_frame_callback(getFrameTcamCallback, &status);
-		cam.start();
-		
-		std::shared_ptr<gsttcam::Property> exposureAuto = cam.get_property("Exposure Auto");
-		exposureAuto->set(cam, 0);
-		
-		std::shared_ptr<gsttcam::Property> exposureValue = cam.get_property("Exposure");
-		exposureValue->set(cam, 1e3);
-
-		std::shared_ptr<gsttcam::Property> gainAuto = cam.get_property("Gain Auto");
-		gainAuto->set(cam, 0);
-		
-		std::shared_ptr<gsttcam::Property> gainValue = cam.get_property("Gain");
-		gainValue->set(cam, 30);
-
-		std::shared_ptr<gsttcam::Property> brightness = cam.get_property("Brightness");
-		brightness->set(cam, 50);
-
-		//listTcamProperties(cam);
-	}
-	else if(cameraConfig.input == CameraConfig::USB)
-	{
-		if(!cap.open(cameraConfig.usbNumber))
-		{
-			std::cout << "Cork: Webcam not available." << std::endl;
-		}
-
-		//cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-		//cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-
-		if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(cv::CAP_PROP_FRAME_WIDTH) != 1280)
-		{
-			std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
-		}
-	}
-	else if(cameraConfig.input == CameraConfig::IP)
-	{
-		if(!cap.open(cameraConfig.ipAddress))
-		{
-			std::cout << "Cork: IP Camera not available." << std::endl;
-		}
+		//cvui::init("CorkA");
 	}
 
-	//Prepare output window
-	if(DEBUG)
-	{
-		cvui::init(WINDOW);
-	}
+	cameraInput->start();
 
 	while(true)
 	{
-		if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+		cameraInput->update();
+
+		//Keyboard input
+		int key = cv::waitKey(1);
+		if(key != -1)
 		{
-			if(cap.isOpened())
+			if(key == KEY_ESC)
 			{
-				cap >> status.frame;
-				processFrame(status.frame);
+				saveNextFrame = true;
 			}
-		}
-		else if(cameraConfig.input == CameraConfig::TCAM)
-		{
-			wait();
 		}
 	}
 
-	if(cameraConfig.input == CameraConfig::TCAM)
-	{
-		cam.stop();
-	}
+	cameraInput->stop();
 
 	return 0;
 }

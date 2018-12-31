@@ -19,6 +19,8 @@
 #include "camera_config.hpp"
 #include "image_status.hpp"
 
+#define PERFORMANCE_PRINT false
+
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
  */
@@ -45,24 +47,24 @@ public:
 	 *
 	 * E.g. the ImagingSource camera used.
 	 */
-	gsttcam::TcamCamera *cam = nullptr;
+	gsttcam::TcamCamera *cam;
 
+	std::string filePrefix = "data/";
 	int fileNumber = 0;
-	std::string filePrefix = "";
 	int fileStart = 0;
 	int fileCount = 20;
 
 	/**
 	 * Callback function used to process captured frame.
 	 */
-	void (*frameCallback)(cv::Mat mat);
+	void (*frameCallback)(cv::Mat &mat);
 
 	/**
 	 * Constructor from camera configuration object.
 	 */
 	CameraInput(CameraConfig _cameraConfig)
 	{
-		cameraConfig = _cameraConfig;-
+		cameraConfig = _cameraConfig;
 		
 		cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
 	}
@@ -82,7 +84,72 @@ public:
 			status.frame.create(height, width, CV_8UC(4));
 
 			cam->set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
-			cam->set_new_frame_callback(getFrameTcamCallback, &status);
+
+			/*
+			 * Callback called for new images by the internal appsink.
+			 *
+			 * Called from a TcamCamera object using the "set_new_frame_callback" method.
+			 */
+			cam->set_new_frame_callback([=] (GstAppSink *appsink, gpointer data) -> GstFlowReturn
+			{	
+				//Init time measure
+				int64 init = cv::getTickCount();
+
+				int width, height;
+				const GstStructure *str;
+
+				//Cast gpointer to ImageStatus*
+				ImageStatus *pdata = (ImageStatus*)data;
+				pdata->counter++;
+
+				//The following lines demonstrate, how to acces the image data in the GstSample.
+				GstSample *sample = gst_app_sink_pull_sample(appsink);
+				GstBuffer *buffer = gst_sample_get_buffer(sample);
+				GstMapInfo info;
+
+				gst_buffer_map(buffer, &info, GST_MAP_READ);
+				
+				if(info.data != NULL) 
+				{
+					//info.data contains the image data as blob of unsigned char 
+					GstCaps *caps = gst_sample_get_caps(sample);
+
+					//Get a string containg the pixel format, width and height of the image        
+					str = gst_caps_get_structure(caps, 0);    
+
+					if(strcmp(gst_structure_get_string(str, "format"), "BGRx") == 0)  
+					{
+						//Now query the width and height of the image
+						gst_structure_get_int(str, "width", &width);
+						gst_structure_get_int(str, "height", &height);
+
+						//Create a cv::Mat, copy image data into that and save the image.
+						pdata->frame.data = info.data;
+
+						resize(pdata->frame, pdata->resized, cv::Size(768, 480));
+							
+						//Frame processing callback
+						frameCallback(pdata->resized);
+					}
+					else
+					{
+						std::cout << "Cork: Not the expected pixel format." << std::endl;
+					}
+				}
+				
+				//Clean up, unref and unmap buffers (to prevent leaks).
+				gst_buffer_unmap(buffer, &info);
+				gst_sample_unref(sample);
+
+				//End time measure
+				int64 end = cv::getTickCount();
+				double secs = (end - init) / cv::getTickFrequency();
+				std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+
+				//Set our flag of new image to true, so our main thread knows about a new image.
+				return GST_FLOW_OK;
+			}, &status);
+
 			cam->start();
 			
 			std::shared_ptr<gsttcam::Property> exposureAuto = cam->get_property("Exposure Auto");
@@ -112,7 +179,7 @@ public:
 
 			if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap.get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
 			{
-				std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
+				std::cout << "Cork: Unable to set webcam resolution." << std::endl;
 			}
 		}
 		else if(cameraConfig.input == CameraConfig::IP)
@@ -203,78 +270,9 @@ public:
 			fileNumber = fileCount;
 		}
 
-		return cv::imread("data/" + std::to_string(fileNumber) + ".jpg", cv::IMREAD_COLOR);
+		return cv::imread(filePrefix + std::to_string(fileNumber) + ".jpg", cv::IMREAD_COLOR);
 	}
 
-
-	void startTCam()
-	{
-
-	}
-
-	/**
-	 * Callback called for new images by the internal appsink.
-	 *
-	 * Called from a TcamCamera object using the "set_new_frame_callback" method.
-	 */
-	static GstFlowReturn getFrameTcamCallback(GstAppSink *appsink, gpointer data)
-	{
-		int64 init = cv::getTickCount();
-
-		int width, height;
-		const GstStructure *str;
-
-		//Cast gpointer to ImageStatus*
-		ImageStatus *pdata = (ImageStatus*)data;
-		pdata->counter++;
-
-		//The following lines demonstrate, how to acces the image data in the GstSample.
-		GstSample *sample = gst_app_sink_pull_sample(appsink);
-		GstBuffer *buffer = gst_sample_get_buffer(sample);
-		GstMapInfo info;
-
-		gst_buffer_map(buffer, &info, GST_MAP_READ);
-		
-		if(info.data != NULL) 
-		{
-			//info.data contains the image data as blob of unsigned char 
-			GstCaps *caps = gst_sample_get_caps(sample);
-
-			//Get a string containg the pixel format, width and height of the image        
-			str = gst_caps_get_structure(caps, 0);    
-
-			if(strcmp(gst_structure_get_string(str, "format"), "BGRx") == 0)  
-			{
-				//Now query the width and height of the image
-				gst_structure_get_int(str, "width", &width);
-				gst_structure_get_int(str, "height", &height);
-
-				//Create a cv::Mat, copy image data into that and save the image.
-				pdata->frame.data = info.data;
-
-				resize(pdata->frame, pdata->resized, cv::Size(768, 480));
-					
-				//Frame processing callback
-				//frameCallback(pdata->resized);
-			}
-			else
-			{
-				std::cout << "Cork: Not the expected pixel format." << std::endl;
-			}
-		}
-		
-		//Clean up, unref and unmap buffers (to prevent leaks).
-		gst_buffer_unmap(buffer, &info);
-		gst_sample_unref(sample);
-
-		int64 end = cv::getTickCount();
-		double secs = (end - init) / cv::getTickFrequency();
-
-		std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
-
-		//Set our flag of new image to true, so our main thread knows about a new image.
-		return GST_FLOW_OK;
-	}
 
 	/**
 	 * Put the calling thread to sleep for a bit. 
