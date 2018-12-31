@@ -17,7 +17,7 @@
 #include "threshold.hpp"
 #include "config.hpp"
 #include "cork_analyser.hpp"
-
+#include "cork.hpp"
 #include "gui.hpp"
 
 #include "input/camera_input.hpp"
@@ -45,8 +45,11 @@ bool DEBUG_CONFIG_GUI = false;
 
 /**
  * Process a frame captured from the camera.
+ *
+ * @param image Input imagem to be processed
+ * @
  */
-void processFrame(cv::Mat &image, std::string window)
+void processFrame(cv::Mat &image, double *defectOutput)
 {
 	//Deblur the image
 	if(config.blurGlobal)
@@ -111,13 +114,13 @@ void processFrame(cv::Mat &image, std::string window)
 			if(config.automaticUseOtsuThresh)
 			{
 				double thresh = Threshold::otsuMask(roi, mask);
-				std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
+				//std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
 				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 			else// if(config.automaticUseHistogramThresh)
 			{
 				double thresh = Threshold::histogram(roi, mask, config.histThreshMinDiff, config.histThreshNeighborhood, config.histThreshColorFilter, config.histThreshBalance);
-				std::cout << "Histogram automatic threshold: " << thresh << std::endl;
+				//std::cout << "Histogram automatic threshold: " << thresh << std::endl;
 				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 		}
@@ -125,8 +128,7 @@ void processFrame(cv::Mat &image, std::string window)
 		{
 			double thresh = Threshold::otsuMask(roi, mask);
 			thresh = (thresh * config.semiAutoThreshTolerance) + (config.thresholdValue * (1 - config.semiAutoThreshTolerance));
-
-			std::cout << "Semi Automatic threshold: " << thresh << std::endl;
+			//std::cout << "Semi Automatic threshold: " << thresh << std::endl;
 			cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 		}
 		else
@@ -189,28 +191,32 @@ void processFrame(cv::Mat &image, std::string window)
 			cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
 			cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
 		}
+
+		*defectOutput = defect;
+		return;
 	}
 
-	if(DEBUG_GUI)
-	{
-		if(DEBUG_CONFIG_GUI)
-		{
-			cvgui::drawConfigEditor(window, image, config);
-		}
-		else
-		{
-			cv::imshow(window, image);
-			cv::waitKey(1);
-		}
-	}
+	*defectOutput = -1.0;
 }
 
 bool saveNextFrame = false;
 int saveFrameCounter = 0;
 
+double defectA = -1.0;
+double defectB = -1.0;
+
 int main(int argc, char** argv)
 {
 	gst_init(&argc, &argv);
+
+	std::string windowA = "CorkA";
+	std::string windowB = "CorkB";
+
+	if(DEBUG_CONFIG_GUI)
+	{
+		cvui::init("CorkA");
+		cvui::init("CorkB");
+	}
 
 	CameraConfig cameraConfigA;
 	cameraConfigA.input = CameraConfig::TCAM;
@@ -225,7 +231,29 @@ int main(int argc, char** argv)
 			cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", mat);
 		}
 
-		processFrame(mat, "CorkA");
+		processFrame(mat, &defectA);
+
+		if(DEBUG_GUI)
+		{
+			if(DEBUG_CONFIG_GUI)
+			{
+				cvgui::drawConfigEditor("CorkA", mat, config);
+			}
+			else
+			{
+				cv::imshow("CorkA", mat);
+			}
+
+			int key = cv::waitKey(1);
+
+			if(key != -1)
+			{	
+				if(key == KEY_ESC)
+				{
+					saveNextFrame = true;
+				}
+			}
+		}
 	};
 
 	CameraConfig cameraConfigB;
@@ -235,15 +263,14 @@ int main(int argc, char** argv)
 	CameraInput *cameraInputB = new CameraInput(cameraConfigB);
 	cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
 	{
-		processFrame(mat, "CorkB");
+		processFrame(mat, &defectB);
+
+		if(DEBUG_GUI)
+		{
+			cv::imshow("CorkB", mat);
+			cv::waitKey(1);
+		}
 	};
-
-
-	if(DEBUG_CONFIG_GUI)
-	{
-		cvui::init("CorkA");
-		cvui::init("CorkB");
-	}
 
 	cameraInputA->start();
 	cameraInputB->start();
@@ -253,14 +280,20 @@ int main(int argc, char** argv)
 		cameraInputA->update();
 		cameraInputB->update();
 
-		//Keyboard input
-		int key = cv::waitKey(1);
-		if(key != -1)
+		if(defectA > 0 && defectB > 0)
 		{
-			if(key == KEY_ESC)
+			if(defectA > defectB)
 			{
-				saveNextFrame = true;
+				std::cout << "Select B" << std::endl;
 			}
+			else if(defectA < defectB)
+			{
+				std::cout << "Select A" << std::endl;
+			}
+		}
+		else
+		{
+			std::cout << "No cork" << std::endl;
 		}
 	}
 

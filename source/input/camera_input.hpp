@@ -19,7 +19,7 @@
 #include "camera_config.hpp"
 #include "image_status.hpp"
 
-#define PERFORMANCE_PRINT false
+#define MEASURE_PERFORMANCE false
 
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
@@ -91,9 +91,10 @@ public:
 			 * Called from a TcamCamera object using the "set_new_frame_callback" method.
 			 */
 			cam->set_new_frame_callback([=] (GstAppSink *appsink, gpointer data) -> GstFlowReturn
-			{	
-				//Init time measure
-				int64 init = cv::getTickCount();
+			{
+				#if MEASURE_PERFORMANCE
+					int64 init = cv::getTickCount();
+				#endif
 
 				int width, height;
 				const GstStructure *str;
@@ -141,10 +142,11 @@ public:
 				gst_buffer_unmap(buffer, &info);
 				gst_sample_unref(sample);
 
-				//End time measure
-				int64 end = cv::getTickCount();
-				double secs = (end - init) / cv::getTickFrequency();
-				std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+				#if MEASURE_PERFORMANCE
+					int64 end = cv::getTickCount();
+					double secs = (end - init) / cv::getTickFrequency();
+					std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+				#endif
 
 				//Set our flag of new image to true, so our main thread knows about a new image.
 				return GST_FLOW_OK;

@@ -9,5 +9,5 @@ class Cork
 {
 public:
 	int id;
-	cv::Circle circle;
+	double defect;
 };
