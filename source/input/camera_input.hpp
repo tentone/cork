@@ -40,14 +40,14 @@ public:
 	/**
 	 * OpenCV video capture object used to get image from USB or from IP camera.
 	 */
-	cv::VideoCapture cap;
+	cv::VideoCapture *cap = nullptr;
 
 	/**
 	 * Used to capture data from a TCam.
 	 *
 	 * E.g. the ImagingSource camera used.
 	 */
-	gsttcam::TcamCamera *cam;
+	gsttcam::TcamCamera *cam = nullptr;
 
 	/**
 	 * File path and name prefix.
@@ -74,8 +74,6 @@ public:
 	CameraInput(CameraConfig _cameraConfig)
 	{
 		cameraConfig = _cameraConfig;
-		
-		cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
 	}
 
 	/**
@@ -92,6 +90,7 @@ public:
 
 			status.frame.create(height, width, CV_8UC(4));
 
+			cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
 			cam->set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
 
 			/*
@@ -180,15 +179,17 @@ public:
 		}
 		else if(cameraConfig.input == CameraConfig::USB)
 		{
-			if(!cap.open(cameraConfig.usbNumber))
+			cap = new cv::VideoCapture();
+			
+			if(!cap->open(cameraConfig.usbNumber))
 			{
 				std::cout << "Cork: Webcam not available." << std::endl;
 			}
 
-			cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
-			cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
+			cap->set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
+			cap->set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
 
-			if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap.get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
+			if(cap->get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap->get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
 			{
 				std::cout << "Cork: Unable to set webcam resolution." << std::endl;
 			}
@@ -197,7 +198,9 @@ public:
 		}
 		else if(cameraConfig.input == CameraConfig::IP)
 		{
-			if(!cap.open(cameraConfig.ipAddress))
+			cap = new cv::VideoCapture();
+
+			if(!cap->open(cameraConfig.ipAddress))
 			{
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
@@ -221,9 +224,9 @@ public:
 		}
 		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
 		{
-			if(cap.isOpened())
+			if(cap->isOpened())
 			{
-				cap >> status.frame;
+				*cap >> status.frame;
 				frameCallback(status.frame);
 			}
 		}
@@ -304,7 +307,7 @@ public:
 		//Get a list of all supported properties and print it out
 		auto properties = cam.get_camera_property_list();
 
-		std::cout << "Properties:" << std::endl;
+		std::cout << "Cork: TCam properties:" << std::endl;
 		
 		for(auto &prop : properties)
 		{

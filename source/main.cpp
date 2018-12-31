@@ -219,7 +219,9 @@ int main(int argc, char** argv)
 	}
 
 	CameraConfig cameraConfigA;
-	cameraConfigA.input = CameraConfig::TCAM;
+	//cameraConfigA.input = CameraConfig::TCAM;
+	cameraConfigA.input = CameraConfig::USB;
+	cameraConfigA.usbNumber = 0;
 
 	CameraInput *cameraInputA = new CameraInput(cameraConfigA);
 	cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
@@ -256,6 +258,7 @@ int main(int argc, char** argv)
 		}
 	};
 
+	/*
 	CameraConfig cameraConfigB;
 	cameraConfigB.input = CameraConfig::USB;
 	cameraConfigB.usbNumber = 1;
@@ -271,34 +274,35 @@ int main(int argc, char** argv)
 			cv::waitKey(1);
 		}
 	};
+	*/
 
 	cameraInputA->start();
-	cameraInputB->start();
+	//cameraInputB->start();
 
 	while(true)
 	{
 		cameraInputA->update();
-		cameraInputB->update();
+		//cameraInputB->update();
 
 		if(defectA > 0 && defectB > 0)
 		{
 			if(defectA > defectB)
 			{
-				std::cout << "Select B" << std::endl;
+				std::cout << "Cork: Select B" << std::endl;
 			}
 			else if(defectA < defectB)
 			{
-				std::cout << "Select A" << std::endl;
+				std::cout << "Cork: Select A" << std::endl;
 			}
 		}
 		else
 		{
-			std::cout << "No cork" << std::endl;
+			//std::cout << "Cork: No cork" << std::endl;
 		}
 	}
 
 	cameraInputA->stop();
-	cameraInputB->stop();
+	//cameraInputB->stop();
 
 	return 0;
 }
