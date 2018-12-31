@@ -32,6 +32,9 @@
 #define KEY_W 119
 #define KEY_S 115
 
+#define PI 3.14159265359
+
+#define DEBUG_DEFECTS true
 #define DEBUG_GUI true
 #define DEBUG_CONFIG_GUI false
 
