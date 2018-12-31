@@ -193,6 +193,8 @@ public:
 		{
 			status.frame = readImageFile(fileNumber);
 		}
+
+		//TODO <LOOP USB AND IP ON A THREAD>
 	}
 
 	/**
@@ -200,7 +202,6 @@ public:
 	 */
 	void update()
 	{
-		//Get image
 		if(cameraConfig.input == CameraConfig::FILE)
 		{
 			frameCallback(status.frame);

@@ -34,38 +34,20 @@
 
 #define PI 3.14159265359
 
-//File range
-#define IMAGES_START 0
-#define IMAGES_COUNT 20
-
-//File number
-bool corkFound = false;
-double corkDefect = 0.0;
-
 /**
  * Cork detector configuration.
  */
 Configuration config;
 
-bool drawDefects = true;
-
+bool DEBUG_DEFECTS = true;
 bool DEBUG_GUI = true;
-bool saveNextFrame = false;
-int saveFrameCounter = 0;
+bool DEBUG_CONFIG_GUI = false;
 
 /**
  * Process a frame captured from the camera.
  */
-void processFrame(cv::Mat &image)
+void processFrame(cv::Mat &image, std::string window)
 {
-	if(saveNextFrame)
-	{
-		std::cout << "Save frame" << std::endl;
-
-		saveNextFrame = false;
-		cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", image);
-	}
-
 	//Deblur the image
 	if(config.blurGlobal)
 	{
@@ -182,7 +164,7 @@ void processFrame(cv::Mat &image)
 		//std::cout << "Defect: " << defect << "%" << std::endl;
 
 		//Draw debug information
-		if(drawDefects)
+		if(DEBUG_DEFECTS)
 		{
 			int channels = image.channels();
 
@@ -201,7 +183,7 @@ void processFrame(cv::Mat &image)
 					}
 				}
 			}
-			
+
 			//Cicle position
 			cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
 			cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
@@ -211,30 +193,65 @@ void processFrame(cv::Mat &image)
 
 	if(DEBUG_GUI)
 	{
-		//cvgui::drawConfigEditor("CorkA", image, config);
+		if(DEBUG_CONFIG_GUI)
+		{
+			cvgui::drawConfigEditor(window, image, config);
+		}
+		else
+		{
+			cv::imshow(window, image);
+			cv::waitKey(1);
+		}
 	}
 }
+
+bool saveNextFrame = false;
+int saveFrameCounter = 0;
 
 int main(int argc, char** argv)
 {
 	gst_init(&argc, &argv);
 
-	CameraConfig cameraConfig;
-	cameraConfig.input = CameraConfig::TCAM;
+	CameraConfig cameraConfigA;
+	cameraConfigA.input = CameraConfig::TCAM;
 
-	CameraInput *cameraInput = new CameraInput(cameraConfig);
-	cameraInput->frameCallback = processFrame;
-
-	if(DEBUG_GUI)
+	CameraInput *cameraInputA = new CameraInput(cameraConfigA);
+	cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
 	{
-		//cvui::init("CorkA");
+		if(saveNextFrame)
+		{
+			std::cout << "Save frame" << std::endl;
+			saveNextFrame = false;
+			cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", mat);
+		}
+
+		processFrame(mat, "CorkA");
+	};
+
+	CameraConfig cameraConfigB;
+	cameraConfigB.input = CameraConfig::USB;
+	cameraConfigB.usbNumber = 1;
+
+	CameraInput *cameraInputB = new CameraInput(cameraConfigB);
+	cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
+	{
+		processFrame(mat, "CorkB");
+	};
+
+
+	if(DEBUG_CONFIG_GUI)
+	{
+		cvui::init("CorkA");
+		cvui::init("CorkB");
 	}
 
-	cameraInput->start();
+	cameraInputA->start();
+	cameraInputB->start();
 
 	while(true)
 	{
-		cameraInput->update();
+		cameraInputA->update();
+		cameraInputB->update();
 
 		//Keyboard input
 		int key = cv::waitKey(1);
@@ -247,7 +264,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-	cameraInput->stop();
+	cameraInputA->stop();
+	cameraInputB->stop();
 
 	return 0;
 }
