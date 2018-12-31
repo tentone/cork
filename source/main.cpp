@@ -15,7 +15,7 @@
 #include "tcamcamera.h"
 
 #include "threshold.hpp"
-#include "config.hpp"
+#include "cork_config.hpp"
 #include "cork_analyser.hpp"
 #include "cork.hpp"
 #include "gui.hpp"
@@ -32,16 +32,13 @@
 #define KEY_W 119
 #define KEY_S 115
 
-#define PI 3.14159265359
+#define DEBUG_GUI true
+#define DEBUG_CONFIG_GUI false
 
 /**
  * Cork detector configuration.
  */
-Configuration config;
-
-bool DEBUG_DEFECTS = true;
-bool DEBUG_GUI = true;
-bool DEBUG_CONFIG_GUI = false;
+CorkConfig config;
 
 /**
  * Process a frame captured from the camera.

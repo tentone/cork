@@ -3,7 +3,7 @@
 /**
  * Stores the cork detection configuration.
  */
-class Configuration
+class CorkConfig
 {
 public:
 	//Blur parameters

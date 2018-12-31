@@ -49,7 +49,16 @@ public:
 	 */
 	gsttcam::TcamCamera *cam;
 
+	/**
+	 * File path and name prefix.
+	 *
+	 * File are expected to be named xxx/yyy/zzz/0.jpg
+	 */
 	std::string filePrefix = "data/";
+
+	/**
+	 * Current file number.
+	 */
 	int fileNumber = 0;
 	int fileStart = 0;
 	int fileCount = 20;
@@ -183,6 +192,8 @@ public:
 			{
 				std::cout << "Cork: Unable to set webcam resolution." << std::endl;
 			}
+
+			//TODO <LOOP USB AND IP ON A THREAD>
 		}
 		else if(cameraConfig.input == CameraConfig::IP)
 		{
@@ -190,13 +201,13 @@ public:
 			{
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
+
+			//TODO <LOOP USB AND IP ON A THREAD>
 		}
 		else if(cameraConfig.input == CameraConfig::USB)
 		{
 			status.frame = readImageFile(fileNumber);
 		}
-
-		//TODO <LOOP USB AND IP ON A THREAD>
 	}
 
 	/**

@@ -8,7 +8,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "config.hpp"
+#include "cork_config.hpp"
 
 /**
  * Represents a detected cork.
@@ -48,7 +48,7 @@ public:
 	/**
 	 * Draw the configuration editor to a mat.
 	 */
-	static void drawConfigEditor(std::string title, cv::Mat image, Configuration config)
+	static void drawConfigEditor(std::string title, cv::Mat image, CorkConfig config)
 	{
 		cvui::beginColumn(image, 10, 10);
 		cvui::beginRow();
