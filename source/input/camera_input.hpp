@@ -25,18 +25,15 @@
 class CameraInput
 {
 public:
-	CameraConfig config;
+	CameraConfig cameraConfig;
 	ImageStatus status;
 	
 	cv::VideoCapture cap;
-	gsttcam::TcamCamera *cam = nullptr;
+	gsttcam::TcamCamera cam = nullptr;
 
-	int width = 640;
-	int height = 480;
-
-	CameraInput(CameraConfig _config)
+	CameraInput(CameraConfig _cameraConfig)
 	{
-		config = _config;
+		cameraConfig = _cameraConfig;
 	}
 
 	/**
@@ -44,7 +41,56 @@ public:
 	 */
 	void start()
 	{
+		status.counter = 0;
 
+		if(cameraConfig.input == CameraConfig::TCAM)
+		{
+			int width = 1920;
+			int height = 1200;
+
+			status.frame.create(height, width, CV_8UC(4));
+
+			cam.set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
+			cam.set_new_frame_callback(getFrameTcamCallback, &status);
+			cam.start();
+			
+			std::shared_ptr<gsttcam::Property> exposureAuto = cam.get_property("Exposure Auto");
+			exposureAuto->set(cam, 0);
+			
+			std::shared_ptr<gsttcam::Property> exposureValue = cam.get_property("Exposure");
+			exposureValue->set(cam, 1e3);
+
+			std::shared_ptr<gsttcam::Property> gainAuto = cam.get_property("Gain Auto");
+			gainAuto->set(cam, 0);
+			
+			std::shared_ptr<gsttcam::Property> gainValue = cam.get_property("Gain");
+			gainValue->set(cam, 30);
+
+			std::shared_ptr<gsttcam::Property> brightness = cam.get_property("Brightness");
+			brightness->set(cam, 50);
+		}
+		else if(cameraConfig.input == CameraConfig::USB)
+		{
+			if(!cap.open(cameraConfig.usbNumber))
+			{
+				std::cout << "Cork: Webcam not available." << std::endl;
+			}
+
+			/*cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+			cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+
+			if(cap.get(cv::CAP_PROP_FRAME_HEIGHT) != 720 || cap.get(cv::CAP_PROP_FRAME_WIDTH) != 1280)
+			{
+				std::cout << "Cork: Unable to set webcam resolution to 1280x720." << std::endl;
+			}*/
+		}
+		else if(cameraConfig.input == CameraConfig::IP)
+		{
+			if(!cap.open(cameraConfig.ipAddress))
+			{
+				std::cout << "Cork: IP Camera not available." << std::endl;
+			}
+		}
 	}
 
 	/**
@@ -52,7 +98,28 @@ public:
 	 */
 	void update()
 	{
+		//Get image
+		if(cameraConfig.input == CameraConfig::FILE)
+		{
+			status.frame = readImageFile(fnumber);
 
+			//TODO <PROCESSING CALLBACK>
+			//processFrame(status.frame);
+		}
+		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+		{
+			if(cap.isOpened())
+			{
+				cap >> status.frame;
+
+				//TODO <PROCESSING CALLBACK>
+				//processFrame(status.frame);
+			}
+		}
+		else if(cameraConfig.input == CameraConfig::TCAM)
+		{
+			wait();
+		}
 	}
 
 	/**
@@ -60,7 +127,10 @@ public:
 	 */
 	void stop()
 	{
-
+		if(cameraConfig.input == CameraConfig::TCAM)
+		{
+			cam.stop();
+		}
 	}
 
 	/**
