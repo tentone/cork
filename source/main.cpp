@@ -36,12 +36,6 @@
 
 #define DEBUG_DEFECTS true
 #define DEBUG_GUI true
-#define DEBUG_CONFIG_GUI false
-
-/**
- * Cork detector configuration.
- */
-CorkConfig config;
 
 /**
  * Process a frame captured from the camera.
@@ -49,18 +43,18 @@ CorkConfig config;
  * @param image Input imagem to be processed
  * @
  */
-void processFrame(cv::Mat &image, double *defectOutput)
+void processFrame(cv::Mat &image, CorkConfig *config, double *defectOutput)
 {
 	//Deblur the image
-	if(config.blurGlobal)
+	if(config->blurGlobal)
 	{
-		cv::medianBlur(image, image, config.blurGlobalKSize);
+		cv::medianBlur(image, image, config->blurGlobalKSize);
 	}
 	
 	cv::Mat gray;
 
 	//Split color channels
-	if(config.splitColorChannels)
+	if(config->splitColorChannels)
 	{
 		cv::Mat bgr[3];
 		cv::split(image, bgr);
@@ -76,7 +70,7 @@ void processFrame(cv::Mat &image, double *defectOutput)
 
 	//Detect circles
 	std::vector<cv::Vec3f> circles;
-	cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config.minSpacing, config.lowCannyThresh, config.highCannyThresh, config.minSize, config.maxSize);
+	cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, config->minSize, config->maxSize);
 
 	bool found = circles.size() > 0;
 
@@ -99,41 +93,41 @@ void processFrame(cv::Mat &image, double *defectOutput)
 		
 		//Circle mask for the roi
 		cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), cv::Scalar(255, 255, 255));
-		cv::circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config.outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
+		cv::circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config->outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
 
 		//Binarize the roi
 		cv::Mat roi_bin;
 
-		if(config.blurMask)
+		if(config->blurMask)
 		{
-			cv::medianBlur(roi, roi, config.blurMaskKSize);
+			cv::medianBlur(roi, roi, config->blurMaskKSize);
 		}
 
-		if(config.automaticThresh)
+		if(config->automaticThresh)
 		{
-			if(config.automaticUseOtsuThresh)
+			if(config->automaticUseOtsuThresh)
 			{
 				double thresh = Threshold::otsuMask(roi, mask);
 				//std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
 				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
-			else// if(config.automaticUseHistogramThresh)
+			else// if(config->automaticUseHistogramThresh)
 			{
-				double thresh = Threshold::histogram(roi, mask, config.histThreshMinDiff, config.histThreshNeighborhood, config.histThreshColorFilter, config.histThreshBalance);
+				double thresh = Threshold::histogram(roi, mask, config->histThreshMinDiff, config->histThreshNeighborhood, config->histThreshColorFilter, config->histThreshBalance);
 				//std::cout << "Histogram automatic threshold: " << thresh << std::endl;
 				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 		}
-		else if(config.semiAutoThresh)
+		else if(config->semiAutoThresh)
 		{
 			double thresh = Threshold::otsuMask(roi, mask);
-			thresh = (thresh * config.semiAutoThreshTolerance) + (config.thresholdValue * (1 - config.semiAutoThreshTolerance));
+			thresh = (thresh * config->semiAutoThreshTolerance) + (config->thresholdValue * (1 - config->semiAutoThreshTolerance));
 			//std::cout << "Semi Automatic threshold: " << thresh << std::endl;
 			cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 		}
 		else
 		{
-			cv::threshold(roi, roi_bin, config.thresholdValue, 255, cv::THRESH_BINARY);
+			cv::threshold(roi, roi_bin, config->thresholdValue, 255, cv::THRESH_BINARY);
 		}
 
 		//Mask outside of the cork in roi bin
@@ -205,22 +199,31 @@ int saveFrameCounter = 0;
 double defectA = -1.0;
 double defectB = -1.0;
 
+bool debugConfigA = false;
+bool debugConfigB = true;
+
+std::string windowA = "CorkA";
+std::string windowB = "CorkB";
+
+CorkConfig configA;
+CorkConfig configB;
+
 int main(int argc, char** argv)
 {
 	gst_init(&argc, &argv);
 
-	std::string windowA = "CorkA";
-	std::string windowB = "CorkB";
-
-	if(DEBUG_CONFIG_GUI)
+	if(debugConfigA)
 	{
-		cvui::init("CorkA");
-		cvui::init("CorkB");
+		cvui::init(windowA);
+	}
+	
+	if(debugConfigB)
+	{
+		cvui::init(windowB);
 	}
 
 	CameraConfig cameraConfigA;
-	//cameraConfigA.input = CameraConfig::TCAM;
-	cameraConfigA.input = CameraConfig::USB;
+	cameraConfigA.input = CameraConfig::TCAM;
 	cameraConfigA.usbNumber = 0;
 
 	CameraInput *cameraInputA = new CameraInput(cameraConfigA);
@@ -233,17 +236,17 @@ int main(int argc, char** argv)
 			cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", mat);
 		}
 
-		processFrame(mat, &defectA);
+		processFrame(mat, &configA, &defectA);
 
 		if(DEBUG_GUI)
 		{
-			if(DEBUG_CONFIG_GUI)
+			if(debugConfigA)
 			{
-				cvgui::drawConfigEditor("CorkA", mat, config);
+				cvgui::drawConfigEditor(windowA, mat, &configA);
 			}
 			else
 			{
-				cv::imshow("CorkA", mat);
+				cv::imshow(windowA, mat);
 			}
 
 			int key = cv::waitKey(1);
@@ -258,7 +261,6 @@ int main(int argc, char** argv)
 		}
 	};
 
-	/*
 	CameraConfig cameraConfigB;
 	cameraConfigB.input = CameraConfig::USB;
 	cameraConfigB.usbNumber = 1;
@@ -266,23 +268,30 @@ int main(int argc, char** argv)
 	CameraInput *cameraInputB = new CameraInput(cameraConfigB);
 	cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
 	{
-		processFrame(mat, &defectB);
+		processFrame(mat, &configB, &defectB);
 
 		if(DEBUG_GUI)
 		{
-			cv::imshow("CorkB", mat);
+			if(debugConfigB)
+			{
+				cvgui::drawConfigEditor(windowB, mat, &configB);
+			}
+			else
+			{
+				cv::imshow(windowB, mat);
+			}
 			cv::waitKey(1);
 		}
 	};
-	*/
 
 	cameraInputA->start();
-	//cameraInputB->start();
+	cameraInputB->start();
+
 
 	while(true)
 	{
 		cameraInputA->update();
-		//cameraInputB->update();
+		cameraInputB->update();
 
 		if(defectA > 0 && defectB > 0)
 		{
@@ -302,7 +311,7 @@ int main(int argc, char** argv)
 	}
 
 	cameraInputA->stop();
-	//cameraInputB->stop();
+	cameraInputB->stop();
 
 	return 0;
 }

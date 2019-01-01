@@ -21,6 +21,8 @@
 
 #define MEASURE_PERFORMANCE false
 
+#define USE_THREAD false
+
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
  */
@@ -57,6 +59,13 @@ public:
 	std::string filePrefix = "data/";
 
 	/**
+	 * Indicated if the camera input is running or not.
+	 *
+	 * Used for the camera capture threads to know when to stop.
+	 */
+	bool running = false;
+
+	/**
 	 * Current file number.
 	 */
 	int fileNumber = 0;
@@ -81,6 +90,7 @@ public:
 	 */
 	void start()
 	{
+		running = true;
 		status.counter = 0;
 
 		if(cameraConfig.input == CameraConfig::TCAM)
@@ -135,8 +145,19 @@ public:
 						//Create a cv::Mat, copy image data into that and save the image.
 						pdata->frame.data = info.data;
 
+
 						resize(pdata->frame, pdata->resized, cv::Size(768, 480));
-							
+
+						/*
+						//Crop image to match aspect ratio
+						cv::Rect crop;
+						crop.x = (768 - 640) / 2;
+						crop.y = 0;
+						crop.width = 640;
+						crop.height = 480;
+						pdata->resized = pdata->resized(crop);
+						*/
+
 						//Frame processing callback
 						frameCallback(pdata->resized);
 					}
@@ -194,7 +215,24 @@ public:
 				std::cout << "Cork: Unable to set webcam resolution." << std::endl;
 			}
 
-			//TODO <LOOP USB AND IP ON A THREAD>
+			#if MEASURE_PERFORMANCE
+				std::thread thread([=]()
+				{
+					while(true)
+					{
+						if(cap->isOpened())
+						{
+							*cap >> status.frame;
+							frameCallback(status.frame);
+						}
+
+						if(!running)
+						{
+							break;
+						}
+					}
+				});
+			#endif
 		}
 		else if(cameraConfig.input == CameraConfig::IP)
 		{
@@ -205,11 +243,29 @@ public:
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
 
-			//TODO <LOOP USB AND IP ON A THREAD>
+			#if MEASURE_PERFORMANCE
+				std::thread thread([=]()
+				{
+					while(true)
+					{
+						if(cap->isOpened())
+						{
+							*cap >> status.frame;
+							frameCallback(status.frame);
+						}
+
+						if(!running)
+						{
+							break;
+						}
+					}
+				});
+			#endif
 		}
-		else if(cameraConfig.input == CameraConfig::USB)
+		else if(cameraConfig.input == CameraConfig::FILE)
 		{
 			status.frame = readImageFile(fileNumber);
+			frameCallback(status.frame);
 		}
 	}
 
@@ -218,22 +274,22 @@ public:
 	 */
 	void update()
 	{
-		if(cameraConfig.input == CameraConfig::FILE)
-		{
-			frameCallback(status.frame);
-		}
-		else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
-		{
-			if(cap->isOpened())
+		#if !MEASURE_PERFORMANCE
+			if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
 			{
-				*cap >> status.frame;
-				frameCallback(status.frame);
+				if(cap->isOpened())
+				{
+					*cap >> status.frame;
+					frameCallback(status.frame);
+				}
 			}
-		}
-		else if(cameraConfig.input == CameraConfig::TCAM)
-		{
-			wait();
-		}
+			else
+			{
+				//wait();
+			}
+		#else
+			//wait();
+		#endif
 	}
 
 	/**
@@ -241,6 +297,8 @@ public:
 	 */
 	void stop()
 	{
+		running = false;
+
 		if(cameraConfig.input == CameraConfig::TCAM)
 		{
 			cam->stop();
@@ -256,6 +314,7 @@ public:
 		{
 			status.frame = readImageFile(++fileNumber);
 			std::cout << "Cork: Next image, " << fileNumber << std::endl;
+			frameCallback(status.frame);
 		}
 	}
 
@@ -268,6 +327,7 @@ public:
 		{
 			status.frame = readImageFile(--fileNumber);
 			std::cout << "Cork: Previous image, " << fileNumber << std::endl;
+			frameCallback(status.frame);
 		}
 	}
 

@@ -12,6 +12,7 @@ endmacro(whoami)
 
 find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 
 whoami(WHOAMI)
 
@@ -34,4 +35,4 @@ add_definitions(${GSTREAMER_CFLAGS_OTHER})
 
 #Build main
 add_executable(cork ./source/main.cpp ${TISCAMERA_DIR}/examples/cpp/common/tcamcamera.cpp)
-target_link_libraries(cork ${OpenCV_LIBS} ${TCAMLIB_LIBRARIES} ${GSTREAMER_LIBRARIES})
+target_link_libraries(cork ${OpenCV_LIBS} ${TCAMLIB_LIBRARIES} ${GSTREAMER_LIBRARIES} Threads::Threads)
