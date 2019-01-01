@@ -215,7 +215,7 @@ public:
 				std::cout << "Cork: Unable to set webcam resolution." << std::endl;
 			}
 
-			#if MEASURE_PERFORMANCE
+			#if USE_THREAD
 				std::thread thread([=]()
 				{
 					while(true)
@@ -243,7 +243,7 @@ public:
 				std::cout << "Cork: IP Camera not available." << std::endl;
 			}
 
-			#if MEASURE_PERFORMANCE
+			#if USE_THREAD
 				std::thread thread([=]()
 				{
 					while(true)
