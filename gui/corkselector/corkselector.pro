@@ -50,7 +50,14 @@ SOURCES += \
         mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    cork.h \
+    cork_analyser.h \
+    cork_config.h \
+    threshold.h \
+    image_status.h \
+    camera_input.h \
+    camera_config.h
 
 FORMS += \
         mainwindow.ui
