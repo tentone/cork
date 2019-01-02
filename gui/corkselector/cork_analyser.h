@@ -1,4 +1,0 @@
-#ifndef CORK_ANALYSER_H
-#define CORK_ANALYSER_H
-
-#endif // CORK_ANALYSER_H

@@ -24,7 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
-INCLUDEPATH += /usr/local/include/opencv4
+INCLUDEPATH += /usr/local/include/opencv4 \
+    /home/cork/tiscamera/examples/cpp/common
 
 LIBS += -L/usr/local/lib \
     -lopencv_calib3d \
@@ -50,14 +51,16 @@ SOURCES += \
         mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h \
-    cork.h \
-    cork_analyser.h \
-    cork_config.h \
-    threshold.h \
-    image_status.h \
-    camera_input.h \
-    camera_config.h
+    camera_config.hpp \
+    camera_input.hpp \
+    cork.hpp \
+    cork_analyser.hpp \
+    cork_config.hpp \
+    mainwindow.hpp \
+    image_status.hpp \
+    threshold.hpp \
+    lib/cvui.h \
+    gui.hpp
 
 FORMS += \
         mainwindow.ui
