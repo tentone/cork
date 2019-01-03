@@ -13,28 +13,23 @@ class CorkAnalyser
 {
 public:
 	/**
-	 * Cork detector configuration.
-	 */
-	CorkConfig config;
-
-	/**
 	 * Process a frame captured from the camera.
 	 *
 	 * @param image Input imagem to be processed
 	 * @
 	 */
-	void processFrame(cv::Mat &image, double *defectOutput)
+	static void processFrame(cv::Mat &image, CorkConfig *config, double *defectOutput)
 	{
 		//Deblur the image
-		if(config.blurGlobal)
+		if(config->blurGlobal)
 		{
-			cv::medianBlur(image, image, config.blurGlobalKSize);
+			cv::medianBlur(image, image, config->blurGlobalKSize);
 		}
 		
 		cv::Mat gray;
 
 		//Split color channels
-		if(config.splitColorChannels)
+		if(config->splitColorChannels)
 		{
 			cv::Mat bgr[3];
 			cv::split(image, bgr);
@@ -50,7 +45,7 @@ public:
 
 		//Detect circles
 		std::vector<cv::Vec3f> circles;
-		cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config.minSpacing, config.lowCannyThresh, config.highCannyThresh, config.minSize, config.maxSize);
+		cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, config->minSize, config->maxSize);
 
 		bool found = circles.size() > 0;
 
@@ -73,41 +68,41 @@ public:
 			
 			//Circle mask for the roi
 			cv::Mat mask = cv::Mat(roi.rows, roi.cols, roi.type(), cv::Scalar(255, 255, 255));
-			cv::circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config.outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
+			cv::circle(mask, cv::Point(roi.rows / 2, roi.cols / 2), radius - config->outsizeSkirt, cv::Scalar(0, 0, 0), -1, 8, 0);
 
 			//Binarize the roi
 			cv::Mat roi_bin;
 
-			if(config.blurMask)
+			if(config->blurMask)
 			{
-				cv::medianBlur(roi, roi, config.blurMaskKSize);
+				cv::medianBlur(roi, roi, config->blurMaskKSize);
 			}
 
-			if(config.automaticThresh)
+			if(config->automaticThresh)
 			{
-				if(config.automaticUseOtsuThresh)
+				if(config->automaticUseOtsuThresh)
 				{
 					double thresh = Threshold::otsuMask(roi, mask);
 					//std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
 					cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 				}
-				else// if(config.automaticUseHistogramThresh)
+				else// if(config->automaticUseHistogramThresh)
 				{
-					double thresh = Threshold::histogram(roi, mask, config.histThreshMinDiff, config.histThreshNeighborhood, config.histThreshColorFilter, config.histThreshBalance);
+					double thresh = Threshold::histogram(roi, mask, config->histThreshMinDiff, config->histThreshNeighborhood, config->histThreshColorFilter, config->histThreshBalance);
 					//std::cout << "Histogram automatic threshold: " << thresh << std::endl;
 					cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 				}
 			}
-			else if(config.semiAutoThresh)
+			else if(config->semiAutoThresh)
 			{
 				double thresh = Threshold::otsuMask(roi, mask);
-				thresh = (thresh * config.semiAutoThreshTolerance) + (config.thresholdValue * (1 - config.semiAutoThreshTolerance));
+				thresh = (thresh * config->semiAutoThreshTolerance) + (config->thresholdValue * (1 - config->semiAutoThreshTolerance));
 				//std::cout << "Semi Automatic threshold: " << thresh << std::endl;
 				cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
 			}
 			else
 			{
-				cv::threshold(roi, roi_bin, config.thresholdValue, 255, cv::THRESH_BINARY);
+				cv::threshold(roi, roi_bin, config->thresholdValue, 255, cv::THRESH_BINARY);
 			}
 
 			//Mask outside of the cork in roi bin
@@ -172,7 +167,6 @@ public:
 
 		*defectOutput = -1.0;
 	}
-
 	/**
 	 * Check if a value is in the neighborhood of another one.
 	 *
