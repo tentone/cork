@@ -14,40 +14,66 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 QMAKE_CXXFLAGS += -pthread
 
+LIBS += -L/usr/local/lib \
+    -lopencv_calib3d \
+    -lopencv_core \
+    -lopencv_dnn \
+    -lopencv_features2d \
+    -lopencv_flann \
+    -lopencv_highgui \
+    -lopencv_imgcodecs \
+    -lopencv_imgproc \
+    -lopencv_ml \
+    -lopencv_objdetect \
+    -lopencv_photo \
+    -lopencv_shape \
+    -lopencv_stitching \
+    -lopencv_superres \
+    -lopencv_video \
+    -lopencv_videoio \
+    -lopencv_videostab \
+    -lgstreamer-1.0 \
+    -lgobject-2.0 \
+    -lglib-2.0 \
+    -ltcamprop \
+    -lgirepository-1.0 \
+    -lgstapp-1.0 \
+    -lgstbase-1.0 \
+    -lgstvideo-1.0
+
 INCLUDEPATH += \
     /usr/local/include/opencv4 \
     /usr/include/gstreamer-1.0 \
     /usr/include/glib-2.0 \
+    /usr/include/gobject-introspection-1.0 \
+    /usr/lib/x86_64-linux-gnu/glib-2.0/include \
+    /usr/include/orc-0.4 \
     /home/cork/tiscamera/examples/cpp/common
-#    /usr/lib/x86_64-linux-gnu/glib-2.0/include
-#    /usr/include/gobject-introspection-1.0 \
-
-#LIBS += \
-#    -pthread
-#    -L/usr/local/lib \
-#    -L/usr/lib/glib-2.0/include \
 
 #PkgConfig packages to be used
 #Use "pkg-config --list-all | grep -i {name}" to search packages.
-PKGCONFIG += \
-    opencv \
-    tcam \
-    gstreamer-1.0 \
-    gstreamer-app-1.0 \
-    gstreamer-video-1.0 \
-    gobject-2.0 \
-    gmodule-2.0 \
-    gthread-2.0 \
-    glib-2.0
+#Use "pkg-config --cflags opencv" to check include dirs
+#Use "pkg-config --cflags opencv" to check linker flags
+
+#PKGCONFIG += \
+#    tcam \
+#    gstreamer-1.0 \
+#    gstreamer-app-1.0 \
+#    gstreamer-video-1.0 \
+#    gobject-2.0 \
+#    gmodule-2.0 \
+#    gthread-2.0 \
+#    glib-2.0
 
 #Source files in the project
 SOURCES += \
+    /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp \
     main.cpp \
     mainwindow.cpp
-#    /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp
 
 #Header files of the project
 HEADERS += \
+    /home/cork/tiscamera/examples/cpp/common/tcamcamera.h \
     lib/cvui.h \
     camera_config.hpp \
     camera_input.hpp \
