@@ -39,14 +39,16 @@ LIBS += \
     -L/usr/lib/glib-2.0/include \
     -pthread
 
-
 #Use "pkg-config --list-all | grep -i {name}" to search packages.
 PKGCONFIG += \
     opencv \
     tcam \
     gstreamer-1.0 \
     gstreamer-app-1.0 \
-    gstreamer-video-1.0
+    gstreamer-video-1.0 \
+    gobject-2.0 \
+    gmodule-2.0 \
+    gthread-2.0
 
 SOURCES += \
     main.cpp \

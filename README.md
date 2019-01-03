@@ -20,6 +20,11 @@
 ## Build
  - Install Cmake 3.10+
  - Run the following commands
+ 
+## QMake
+ - Setup QT5 and compile OpenCV with QT support
+ - Install QT Creator IDE
+ - Change the "tiscamera" path under the corkselector.pro file
 
 ```
 cmake .
