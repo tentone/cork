@@ -1,9 +1,7 @@
 #-------------------------------------------------
-#
-# Project created by QtCreator 2019-01-01T16:22:59
-#
+# Cork Selector
+# Project created by QtCreator
 #-------------------------------------------------
-
 QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -11,34 +9,25 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = corkselector
 TEMPLATE = app
 
-# The following define makes your compiler emit warnings if you use
-# any feature of Qt which has been marked as deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
+# The following define makes your compiler emit warnings if you use any feature of Qt which has been marked as deprecated
 DEFINES += QT_DEPRECATED_WARNINGS
-
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
 CONFIG += c++11
-
-QMAKE_CXXFLAGS += -pthread #-std=c++0x
+QMAKE_CXXFLAGS += -pthread
 
 INCLUDEPATH += \
     /usr/local/include/opencv4 \
     /usr/include/gstreamer-1.0 \
-    /usr/include/gobject-introspection-1.0 \
     /usr/include/glib-2.0 \
-    /usr/lib/x86_64-linux-gnu/glib-2.0/include \
     /home/cork/tiscamera/examples/cpp/common
+#    /usr/lib/x86_64-linux-gnu/glib-2.0/include
+#    /usr/include/gobject-introspection-1.0 \
 
-LIBS += \
-    -L/usr/local/lib \
-    -L/usr/lib/glib-2.0/include \
-    -pthread
+#LIBS += \
+#    -pthread
+#    -L/usr/local/lib \
+#    -L/usr/lib/glib-2.0/include \
 
+#PkgConfig packages to be used
 #Use "pkg-config --list-all | grep -i {name}" to search packages.
 PKGCONFIG += \
     opencv \
@@ -48,14 +37,18 @@ PKGCONFIG += \
     gstreamer-video-1.0 \
     gobject-2.0 \
     gmodule-2.0 \
-    gthread-2.0
+    gthread-2.0 \
+    glib-2.0
 
+#Source files in the project
 SOURCES += \
     main.cpp \
     mainwindow.cpp
 #    /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp
 
+#Header files of the project
 HEADERS += \
+    lib/cvui.h \
     camera_config.hpp \
     camera_input.hpp \
     cork.hpp \
@@ -64,9 +57,9 @@ HEADERS += \
     mainwindow.hpp \
     image_status.hpp \
     threshold.hpp \
-    lib/cvui.h \
     cvgui.hpp
 
+#QT form files in the project
 FORMS += \
     mainwindow.ui
 

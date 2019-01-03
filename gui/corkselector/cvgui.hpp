@@ -2,11 +2,11 @@
 
 #include <string>
 
+#include <opencv2/core.hpp>
+
 #define CVUI_DISABLE_COMPILATION_NOTICES
 #define CVUI_IMPLEMENTATION
 #include "lib/cvui.h"
-
-#include <opencv2/core.hpp>
 
 #include "cork_config.hpp"
 

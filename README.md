@@ -25,6 +25,8 @@
  - Setup QT5 and compile OpenCV with QT support
  - Install QT Creator IDE
  - Change the "tiscamera" path under the corkselector.pro file
+ - If the glibconfig.h is missing try the following command
+ - sudo cp /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h /usr/include/glib-2.0/glibconfig.h
 
 ```
 cmake .

@@ -16,17 +16,16 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "tcamcamera.h"
-
 #include "threshold.hpp"
 #include "cork_config.hpp"
 #include "cork_analyser.hpp"
 #include "cork.hpp"
-#include "cvgui.hpp"
-
 #include "camera_input.hpp"
 #include "camera_config.hpp"
 #include "image_status.hpp"
+#include "cvgui.hpp"
+
+#include "tcamcamera.h"
 
 #define KEY_ESC 27
 #define KEY_LEFT 81
