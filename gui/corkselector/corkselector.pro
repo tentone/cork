@@ -24,31 +24,34 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
-INCLUDEPATH += /usr/local/include/opencv4 \
+QMAKE_CXXFLAGS += -pthread #-std=c++0x
+
+INCLUDEPATH += \
+    /usr/local/include/opencv4 \
+    /usr/include/gstreamer-1.0 \
+    /usr/include/gobject-introspection-1.0 \
+    /usr/include/glib-2.0 \
+    /usr/lib/x86_64-linux-gnu/glib-2.0/include \
     /home/cork/tiscamera/examples/cpp/common
 
-LIBS += -L/usr/local/lib \
-    -lopencv_calib3d \
-    -lopencv_core \
-    -lopencv_dnn \
-    -lopencv_features2d \
-    -lopencv_flann \
-    -lopencv_highgui \
-    -lopencv_imgcodecs \
-    -lopencv_imgproc \
-    -lopencv_ml \
-    -lopencv_objdetect \
-    -lopencv_photo \
-    -lopencv_shape \
-    -lopencv_stitching \
-    -lopencv_superres \
-    -lopencv_video \
-    -lopencv_videoio \
-    -lopencv_videostab
+LIBS += \
+    -L/usr/local/lib \
+    -L/usr/lib/glib-2.0/include \
+    -pthread
+
+
+#Use "pkg-config --list-all | grep -i {name}" to search packages.
+PKGCONFIG += \
+    opencv \
+    tcam \
+    gstreamer-1.0 \
+    gstreamer-app-1.0 \
+    gstreamer-video-1.0
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+    main.cpp \
+    mainwindow.cpp
+#    /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp
 
 HEADERS += \
     camera_config.hpp \
@@ -60,10 +63,10 @@ HEADERS += \
     image_status.hpp \
     threshold.hpp \
     lib/cvui.h \
-    gui.hpp
+    cvgui.hpp
 
 FORMS += \
-        mainwindow.ui
+    mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

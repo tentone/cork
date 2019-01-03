@@ -35,7 +35,7 @@
 #define PI 3.14159265359
 
 #define DEBUG_DEFECTS true
-#define DEBUG_GUI true
+#define DEBUG_GUI false
 
 /**
  * Process a frame captured from the camera.
@@ -286,7 +286,6 @@ int main(int argc, char** argv)
 
 	cameraInputA->start();
 	cameraInputB->start();
-
 
 	while(true)
 	{

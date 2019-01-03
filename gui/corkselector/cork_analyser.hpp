@@ -1,6 +1,13 @@
 #pragma once
 
 #include "cork_config.hpp"
+#include "threshold.hpp"
+
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #define PI 3.14159265359
 

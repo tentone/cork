@@ -22,7 +22,7 @@
 #include "cork_config.hpp"
 #include "cork_analyser.hpp"
 #include "cork.hpp"
-#include "gui.hpp"
+#include "cvgui.hpp"
 
 #include "camera_input.hpp"
 #include "camera_config.hpp"
