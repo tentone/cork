@@ -14,6 +14,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 QMAKE_CXXFLAGS += -pthread
 
+#PkgConfig packages to be used
+#Use "pkg-config --list-all | grep -i {name}" to search packages.
+#Use "pkg-config --cflags opencv" to check include dirs
+#Use "pkg-config --cflags opencv" to check linker flags
+
 LIBS += -L/usr/local/lib \
     -lopencv_calib3d \
     -lopencv_core \
@@ -50,21 +55,6 @@ INCLUDEPATH += \
     /usr/include/orc-0.4 \
     /home/cork/tiscamera/examples/cpp/common
 
-#PkgConfig packages to be used
-#Use "pkg-config --list-all | grep -i {name}" to search packages.
-#Use "pkg-config --cflags opencv" to check include dirs
-#Use "pkg-config --cflags opencv" to check linker flags
-
-#PKGCONFIG += \
-#    tcam \
-#    gstreamer-1.0 \
-#    gstreamer-app-1.0 \
-#    gstreamer-video-1.0 \
-#    gobject-2.0 \
-#    gmodule-2.0 \
-#    gthread-2.0 \
-#    glib-2.0
-
 #Source files in the project
 SOURCES += \
     /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp \
@@ -83,7 +73,8 @@ HEADERS += \
     mainwindow.hpp \
     image_status.hpp \
     threshold.hpp \
-    cvgui.hpp
+    cvgui.hpp \
+    qt_image.hpp
 
 #QT form files in the project
 FORMS += \

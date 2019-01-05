@@ -40,20 +40,20 @@
 #define DEBUG_DEFECTS true
 #define DEBUG_GUI true
 
-bool saveNextFrame = false;
-int saveFrameCounter = 0;
+static bool saveNextFrame = false;
+static int saveFrameCounter = 0;
 
-double defectA = -1.0;
-double defectB = -1.0;
+static double defectA = -1.0;
+static double defectB = -1.0;
 
-bool debugConfigA = false;
-bool debugConfigB = true;
+static bool debugConfigA = false;
+static bool debugConfigB = false;
 
-std::string windowA = "CorkA";
-std::string windowB = "CorkB";
+static std::string windowA = "CorkA";
+static std::string windowB = "CorkB";
 
-CorkConfig configA;
-CorkConfig configB;
+static CorkConfig configA;
+static CorkConfig configB;
 
 int main(int argc, char** argv)
 {
@@ -73,6 +73,7 @@ int main(int argc, char** argv)
     cameraConfigA.width = 768;
     cameraConfigA.height = 480;
     cameraConfigA.input = CameraConfig::TCAM;
+    cameraConfigA.tcamSerial = "46810320";
 
     CameraInput *cameraInputA = new CameraInput(cameraConfigA);
     cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
@@ -135,6 +136,7 @@ int main(int argc, char** argv)
         }
     };
 
+    /*
     cameraInputA->start();
     cameraInputB->start();
 
@@ -162,17 +164,7 @@ int main(int argc, char** argv)
 
     cameraInputA->stop();
     cameraInputB->stop();
-
-    cv::Mat inputImage = cv::imread("download.png");
-
-    if(!inputImage.empty())
-    {
-        cv::imshow("Display Image", inputImage);
-    }
-    else
-    {
-        std::cout << "Image not open" << std::endl;
-    }
+    */
 
     QApplication a(argc, argv);
     MainWindow w;

@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="button_stop">
     <property name="geometry">
      <rect>
       <x>630</x>
@@ -30,39 +30,33 @@
      </font>
     </property>
     <property name="text">
-     <string>Start</string>
+     <string>Parar</string>
     </property>
    </widget>
-   <widget class="QFrame" name="frame">
+   <widget class="QLabel" name="label_camera_b">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>20</y>
-      <width>601</width>
-      <height>321</height>
+      <y>340</y>
+      <width>391</width>
+      <height>17</height>
      </rect>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+    <property name="text">
+     <string>Camera B</string>
     </property>
    </widget>
-   <widget class="QFrame" name="frame_2">
+   <widget class="QLabel" name="label_camera_a">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>350</y>
-      <width>601</width>
+      <y>10</y>
+      <width>571</width>
       <height>321</height>
      </rect>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
