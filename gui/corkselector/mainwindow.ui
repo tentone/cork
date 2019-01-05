@@ -6,57 +6,89 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1154</width>
-    <height>684</height>
+    <width>971</width>
+    <height>651</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="button_stop">
+   <widget class="QGroupBox" name="group_a">
     <property name="geometry">
      <rect>
-      <x>630</x>
-      <y>580</y>
-      <width>511</width>
-      <height>91</height>
+      <x>10</x>
+      <y>20</y>
+      <width>451</width>
+      <height>301</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Camera A</string>
+    </property>
+    <widget class="QLabel" name="camera_a">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>451</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="group_b">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>330</y>
+      <width>451</width>
+      <height>301</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Camera B</string>
+    </property>
+    <widget class="QLabel" name="camera_b">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>451</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="button_stop_2">
+    <property name="geometry">
+     <rect>
+      <x>720</x>
+      <y>550</y>
+      <width>241</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>35</pointsize>
+      <pointsize>16</pointsize>
       <kerning>true</kerning>
      </font>
     </property>
     <property name="text">
      <string>Parar</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_camera_b">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>340</y>
-      <width>391</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Camera B</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_camera_a">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>571</width>
-      <height>321</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
     </property>
    </widget>
   </widget>

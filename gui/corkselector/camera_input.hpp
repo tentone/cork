@@ -16,6 +16,7 @@
 
 #include "tcamcamera.h"
 
+#include "mainwindow.hpp"
 #include "camera_config.hpp"
 #include "image_status.hpp"
 
@@ -75,7 +76,12 @@ public:
     /**
      * Callback function used to process captured frame.
      */
-    void (*frameCallback)(cv::Mat &mat);
+    void *frameCallback (cv::Mat &mat, MainWindow *context);
+
+    /**
+     * Framem callback context.
+     */
+    MainWindow *context;
 
     /**
      * Constructor from camera configuration object.
@@ -159,7 +165,7 @@ public:
                         */
 
                         //Frame processing callback
-                        frameCallback(pdata->resized);
+                        frameCallback(pdata->resized, context);
                     }
                     else
                     {
@@ -223,7 +229,7 @@ public:
                         if(cap->isOpened())
                         {
                             *cap >> status.frame;
-                            frameCallback(status.frame);
+                            frameCallback(status.frame, context);
                         }
 
                         if(!running)
@@ -251,7 +257,7 @@ public:
                         if(cap->isOpened())
                         {
                             *cap >> status.frame;
-                            frameCallback(status.frame);
+                            frameCallback(status.frame, context);
                         }
 
                         if(!running)
@@ -280,7 +286,7 @@ public:
                 if(cap->isOpened())
                 {
                     *cap >> status.frame;
-                    frameCallback(status.frame);
+                    frameCallback(status.frame, context);
                 }
             }
             else
