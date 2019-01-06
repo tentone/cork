@@ -10,6 +10,7 @@
 
 #include <QPixmap>
 #include <QImage>
+#include <QThread>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -30,11 +31,22 @@
 
 #define PI 3.14159265359
 
-#define DEBUG_GUI true
+static double defectA = -1.0;
+static double defectB = -1.0;
+
+static std::string windowA = "CorkA";
+static std::string windowB = "CorkB";
+
+static CorkConfig configA;
+static CorkConfig configB;
+
+static Ui::MainWindow *ui_static;
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    ui_static = ui;
 
     CameraConfig cameraConfigA;
     cameraConfigA.width = 768;
@@ -43,8 +55,27 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigA.tcamSerial = "46810320";
 
     CameraInput *cameraInputA = new CameraInput(cameraConfigA);
-    cameraInputA->context = this;
-    cameraInputA->side = 0;
+    cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
+    {
+        CorkAnalyser::processFrame(mat, &configA, &defectA);
+
+        if(!mat.empty())
+        {
+            ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGBA8888)));
+        }
+
+        if(defectA > 0 && defectB > 0)
+        {
+            if(defectA > defectB)
+            {
+                std::cout << "Cork: Select B" << std::endl;
+            }
+            else if(defectA < defectB)
+            {
+                std::cout << "Cork: Select A" << std::endl;
+            }
+        }
+    };
 
     CameraConfig cameraConfigB;
     cameraConfigB.width = 640;
@@ -53,17 +84,23 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigB.usbNumber = 1;
 
     CameraInput *cameraInputB = new CameraInput(cameraConfigB);
-    cameraInputA->context = this;
-    cameraInputB->side = 1;
+    cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
+    {
+        CorkAnalyser::processFrame(mat, &configB, &defectB);
+
+        if(!mat.empty())
+        {
+            ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+        }
+    };
 
     cameraInputA->start();
     cameraInputB->start();
 
     /*
-    //TODO <MOVE TO THREAD>
     while(true)
     {
-        cameraInputA->update();
+        //cameraInputA->update();
         cameraInputB->update();
 
         if(defectA > 0 && defectB > 0)
@@ -79,13 +116,14 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         }
         else
         {
-            //std::cout << "Cork: No cork" << std::endl;
+            std::cout << "Cork: No cork" << std::endl;
         }
-    }
 
-    cameraInputA->stop();
-    cameraInputB->stop();
-    */
+        CameraInput::wait();
+    }*/
+
+    //cameraInputA->stop();
+    //cameraInputB->stop();
 }
 
 MainWindow::~MainWindow()

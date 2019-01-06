@@ -31,11 +31,4 @@ public:
      * QT window object.
      */
     Ui::MainWindow *ui;
-
-
-    double defectA = -1.0;
-    double defectB = -1.0;
-
-    CorkConfig configA;
-    CorkConfig configB;
 };

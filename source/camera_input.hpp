@@ -73,14 +73,9 @@ public:
     int fileCount = 20;
 
     /**
-     * Cork view and camera to be processed, 0 is the A, 1 is the B side.
+     * Callback function used to process captured frame.
      */
-    int side = 0;
-
-    /**
-     * Frame callback context.
-     */
-    MainWindow *context;
+    void (*frameCallback)(cv::Mat &mat);
 
     /**
      * Constructor from camera configuration object.
@@ -88,31 +83,6 @@ public:
     CameraInput(CameraConfig _cameraConfig)
     {
         cameraConfig = _cameraConfig;
-    }
-
-    /**
-     * Process the frame captured.
-     */
-    void frameCallback(cv::Mat &mat, MainWindow *context)
-    {
-        if(side == 0)
-        {
-            CorkAnalyser::processFrame(mat, context.configA, context.defectA);
-
-            if(!mat.empty())
-            {
-                context->ui->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
-            }
-        }
-        else if(side == 1)
-        {
-            CorkAnalyser::processFrame(mat, context.configB, context.defectB);
-
-            if(!mat.empty())
-            {
-                context->ui->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
-            }
-        }
     }
 
     /**
@@ -138,7 +108,7 @@ public:
              *
              * Called from a TcamCamera object using the "set_new_frame_callback" method.
              */
-            cam->set_new_frame_callback([=] (GstAppSink *appsink, gpointer data) -> GstFlowReturn
+            cam->set_new_frame_callback([&] (GstAppSink *appsink, gpointer data) -> GstFlowReturn
             {
                 #if MEASURE_PERFORMANCE
                     int64 init = cv::getTickCount();
@@ -158,7 +128,7 @@ public:
 
                 gst_buffer_map(buffer, &info, GST_MAP_READ);
 
-                if(info.data != NULL)
+                if(info.data != nullptr)
                 {
                     //info.data contains the image data as blob of unsigned char
                     GstCaps *caps = gst_sample_get_caps(sample);
@@ -175,7 +145,6 @@ public:
                         //Create a cv::Mat, copy image data into that and save the image.
                         pdata->frame.data = info.data;
 
-
                         resize(pdata->frame, pdata->resized, cv::Size(768, 480));
 
                         /*
@@ -189,7 +158,7 @@ public:
                         */
 
                         //Frame processing callback
-                        frameCallback(pdata->resized, context);
+                        frameCallback(pdata->resized);
                     }
                     else
                     {
@@ -253,7 +222,7 @@ public:
                         if(cap->isOpened())
                         {
                             *cap >> status.frame;
-                            frameCallback(status.frame, context);
+                            frameCallback(status.frame);
                         }
 
                         if(!running)
@@ -281,7 +250,7 @@ public:
                         if(cap->isOpened())
                         {
                             *cap >> status.frame;
-                            frameCallback(status.frame, context);
+                            frameCallback(status.frame);
                         }
 
                         if(!running)
@@ -295,7 +264,7 @@ public:
         else if(cameraConfig.input == CameraConfig::FILE)
         {
             status.frame = readImageFile(fileNumber);
-            frameCallback(status.frame, context);
+            frameCallback(status.frame);
         }
     }
 
@@ -310,9 +279,15 @@ public:
                 if(cap->isOpened())
                 {
                     *cap >> status.frame;
-                    frameCallback(status.frame, context);
+                    frameCallback(status.frame);
                 }
             }
+            else
+            {
+                wait();
+            }
+        #else
+            wait();
         #endif
     }
 
@@ -338,7 +313,7 @@ public:
         {
             status.frame = readImageFile(++fileNumber);
             std::cout << "Cork: Next image, " << fileNumber << std::endl;
-            frameCallback(status.frame, context);
+            frameCallback(status.frame);
         }
     }
 
@@ -351,7 +326,7 @@ public:
         {
             status.frame = readImageFile(--fileNumber);
             std::cout << "Cork: Previous image, " << fileNumber << std::endl;
-            frameCallback(status.frame, context);
+            frameCallback(status.frame);
         }
     }
 
