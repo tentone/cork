@@ -21,21 +21,8 @@
 
 #include "mainwindow.hpp"
 
-#define KEY_ESC 27
-#define KEY_LEFT 81
-#define KEY_RIGHT 83
-#define KEY_UP 82
-#define KEY_DOWN 84
-#define KEY_W 119
-#define KEY_S 115
-
-#define PI 3.14159265359
-
 static double defectA = -1.0;
 static double defectB = -1.0;
-
-static std::string windowA = "CorkA";
-static std::string windowB = "CorkB";
 
 static CorkConfig configA;
 static CorkConfig configB;
