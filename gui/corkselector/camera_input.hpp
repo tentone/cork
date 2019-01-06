@@ -76,7 +76,8 @@ public:
     /**
      * Callback function used to process captured frame.
      */
-    void *frameCallback (cv::Mat &mat, MainWindow *context);
+    //void *frameCallback (cv::Mat &mat, MainWindow *context);
+    int frameCallback;
 
     /**
      * Framem callback context.
@@ -271,7 +272,7 @@ public:
         else if(cameraConfig.input == CameraConfig::FILE)
         {
             status.frame = readImageFile(fileNumber);
-            frameCallback(status.frame);
+            frameCallback(status.frame, context);
         }
     }
 
@@ -314,26 +315,26 @@ public:
     /**
      * Read next image file.
      */
-    cv::Mat nextFile()
+    void nextFile()
     {
         if(cameraConfig.input == CameraConfig::FILE)
         {
             status.frame = readImageFile(++fileNumber);
             std::cout << "Cork: Next image, " << fileNumber << std::endl;
-            frameCallback(status.frame);
+            frameCallback(status.frame, context);
         }
     }
 
     /**
      * Read previous image from file.
      */
-    cv::Mat previousFile()
+    void previousFile()
     {
         if(cameraConfig.input == CameraConfig::FILE)
         {
             status.frame = readImageFile(--fileNumber);
             std::cout << "Cork: Previous image, " << fileNumber << std::endl;
-            frameCallback(status.frame);
+            frameCallback(status.frame, context);
         }
     }
 

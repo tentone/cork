@@ -55,6 +55,42 @@ static std::string windowB = "CorkB";
 static CorkConfig configA;
 static CorkConfig configB;
 
+static auto callbackA = [] (cv::Mat &mat, MainWindow *context) -> void
+{
+    if(saveNextFrame)
+    {
+        std::cout << "Save frame" << std::endl;
+        saveNextFrame = false;
+        cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", mat);
+    }
+
+    CorkAnalyser::processFrame(mat, &configA, &defectA);
+
+    if(!mat.empty())
+    {
+        context->ui->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+    }
+
+    /*
+    if(cv::waitKey(1) == KEY_ESC)
+    {
+        saveNextFrame = true;
+    }
+    */
+};
+
+static auto callbackB = [] (cv::Mat &mat, MainWindow *context) -> void
+{
+    CorkAnalyser::processFrame(mat, &configB, &defectB);
+
+    if(!mat.empty())
+    {
+        context->ui->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+    }
+
+    cv::waitKey(1);
+};
+
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -67,30 +103,9 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     CameraInput *cameraInputA = new CameraInput(cameraConfigA);
     cameraInputA->context = this;
-    cameraInputA->frameCallback = [] (cv::Mat &mat, MainWindow *context) -> void
-    {
-        if(saveNextFrame)
-        {
-            std::cout << "Save frame" << std::endl;
-            saveNextFrame = false;
-            cv::imwrite("./" + std::to_string(saveFrameCounter++) + ".png", mat);
-        }
+    cameraInputA->frameCallback = 0;
 
-        CorkAnalyser::processFrame(mat, &configA, &defectA);
-
-        if(!mat.empty())
-        {
-            context->ui->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
-        }
-
-        /*
-        if(cv::waitKey(1) == KEY_ESC)
-        {
-            saveNextFrame = true;
-        }
-        */
-    };
-
+    //TODO <MOVE TO THREAD>
     CameraConfig cameraConfigB;
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
@@ -99,17 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     CameraInput *cameraInputB = new CameraInput(cameraConfigB);
     cameraInputA->context = this;
-    cameraInputB->frameCallback = [] (cv::Mat &mat, MainWindow *context) -> void
-    {
-        CorkAnalyser::processFrame(mat, &configB, &defectB);
-
-        if(!mat.empty())
-        {
-            context->ui->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
-        }
-
-        cv::waitKey(1);
-    };
+    cameraInputB->frameCallback = 1;
 
     cameraInputA->start();
     cameraInputB->start();
