@@ -14,14 +14,13 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include "tcamcamera.h"
+#include "lib/tcamcamera.h"
 
 #include "mainwindow.hpp"
 #include "camera_config.hpp"
 #include "image_status.hpp"
 
 #define MEASURE_PERFORMANCE false
-
 #define USE_THREAD false
 
 /**
@@ -74,13 +73,12 @@ public:
     int fileCount = 20;
 
     /**
-     * Callback function used to process captured frame.
+     * Cork view and camera to be processed, 0 is the A, 1 is the B side.
      */
-    //void *frameCallback (cv::Mat &mat, MainWindow *context);
-    int frameCallback;
+    int side = 0;
 
     /**
-     * Framem callback context.
+     * Frame callback context.
      */
     MainWindow *context;
 
@@ -90,6 +88,31 @@ public:
     CameraInput(CameraConfig _cameraConfig)
     {
         cameraConfig = _cameraConfig;
+    }
+
+    /**
+     * Process the frame captured.
+     */
+    void frameCallback(cv::Mat &mat, MainWindow *context)
+    {
+        if(side == 0)
+        {
+            CorkAnalyser::processFrame(mat, context.configA, context.defectA);
+
+            if(!mat.empty())
+            {
+                context->ui->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+            }
+        }
+        else if(side == 1)
+        {
+            CorkAnalyser::processFrame(mat, context.configB, context.defectB);
+
+            if(!mat.empty())
+            {
+                context->ui->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+            }
+        }
     }
 
     /**
@@ -281,7 +304,7 @@ public:
      */
     void update()
     {
-        #if !MEASURE_PERFORMANCE
+        #if !USE_THREAD
             if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
             {
                 if(cap->isOpened())
@@ -290,12 +313,6 @@ public:
                     frameCallback(status.frame, context);
                 }
             }
-            else
-            {
-                //wait();
-            }
-        #else
-            //wait();
         #endif
     }
 

@@ -53,18 +53,16 @@ INCLUDEPATH += \
     /usr/include/gobject-introspection-1.0 \
     /usr/lib/x86_64-linux-gnu/glib-2.0/include \
     /usr/include/orc-0.4 \
-    /home/cork/tiscamera/examples/cpp/common
+#    /home/cork/tiscamera/examples/cpp/common
 
 #Source files in the project
 SOURCES += \
-    #/home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp \
     main.cpp \
     mainwindow.cpp \
     lib/tcamcamera.cpp
 
 #Header files of the project
 HEADERS += \
-    #/home/cork/tiscamera/examples/cpp/common/tcamcamera.h \
     lib/cvui.h \
     camera_config.hpp \
     camera_input.hpp \
