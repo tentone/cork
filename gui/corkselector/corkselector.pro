@@ -57,13 +57,14 @@ INCLUDEPATH += \
 
 #Source files in the project
 SOURCES += \
-    /home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp \
+    #/home/cork/tiscamera/examples/cpp/common/tcamcamera.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    lib/tcamcamera.cpp
 
 #Header files of the project
 HEADERS += \
-    /home/cork/tiscamera/examples/cpp/common/tcamcamera.h \
+    #/home/cork/tiscamera/examples/cpp/common/tcamcamera.h \
     lib/cvui.h \
     camera_config.hpp \
     camera_input.hpp \
@@ -74,7 +75,8 @@ HEADERS += \
     image_status.hpp \
     threshold.hpp \
     cvgui.hpp \
-    qt_image.hpp
+    qt_image.hpp \
+    lib/tcamcamera.h
 
 #QT form files in the project
 FORMS += \
