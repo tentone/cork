@@ -21,7 +21,7 @@
 #include "image_status.hpp"
 
 #define MEASURE_PERFORMANCE false
-#define USE_THREAD false
+#define USE_THREAD true
 
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
@@ -215,7 +215,8 @@ public:
             }
 
             #if USE_THREAD
-                std::thread thread([=]()
+                //TODO <CRASHING EVERYTHING>
+                /*std::thread thread([=]()
                 {
                     while(true)
                     {
@@ -223,6 +224,7 @@ public:
                         {
                             *cap >> status.frame;
                             frameCallback(status.frame);
+                            wait();
                         }
 
                         if(!running)
@@ -230,7 +232,7 @@ public:
                             break;
                         }
                     }
-                });
+                });*/
             #endif
         }
         else if(cameraConfig.input == CameraConfig::IP)
@@ -251,6 +253,7 @@ public:
                         {
                             *cap >> status.frame;
                             frameCallback(status.frame);
+                            wait();
                         }
 
                         if(!running)
@@ -282,12 +285,6 @@ public:
                     frameCallback(status.frame);
                 }
             }
-            else
-            {
-                wait();
-            }
-        #else
-            wait();
         #endif
     }
 

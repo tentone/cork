@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
     cameraConfigB.input = CameraConfig::USB;
-    cameraConfigB.usbNumber = 1;
+    cameraConfigB.usbNumber = 0;
 
     CameraInput *cameraInputB = new CameraInput(cameraConfigB);
     cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
@@ -79,16 +79,6 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         {
             ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
         }
-    };
-
-    cameraInputA->start();
-    cameraInputB->start();
-
-    /*
-    while(true)
-    {
-        //cameraInputA->update();
-        cameraInputB->update();
 
         if(defectA > 0 && defectB > 0)
         {
@@ -101,13 +91,10 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
                 std::cout << "Cork: Select A" << std::endl;
             }
         }
-        else
-        {
-            std::cout << "Cork: No cork" << std::endl;
-        }
+    };
 
-        CameraInput::wait();
-    }*/
+    cameraInputA->start();
+    cameraInputB->start();
 
     //cameraInputA->stop();
     //cameraInputB->stop();
