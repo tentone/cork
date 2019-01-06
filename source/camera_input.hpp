@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <thread>
 
+#include <QThread>
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -64,6 +66,13 @@ public:
      * Used for the camera capture threads to know when to stop.
      */
     bool running = false;
+
+    /**
+     * Thread object used to colled and process camera input.
+     *
+     * Is used for USB and IP camera modes.
+     */
+    QThread *thread;
 
     /**
      * Current file number.
@@ -197,55 +206,36 @@ public:
             std::shared_ptr<gsttcam::Property> brightness = cam->get_property("Brightness");
             brightness->set(*cam, 50);
         }
-        else if(cameraConfig.input == CameraConfig::USB)
+        else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
         {
             cap = new cv::VideoCapture();
 
-            if(!cap->open(cameraConfig.usbNumber))
+            if(cameraConfig.input == CameraConfig::USB)
             {
-                std::cout << "Cork: Webcam not available." << std::endl;
-            }
-
-            cap->set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
-            cap->set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
-
-            if(cap->get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap->get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
-            {
-                std::cout << "Cork: Unable to set webcam resolution." << std::endl;
-            }
-
-            #if USE_THREAD
-                //TODO <CRASHING EVERYTHING>
-                /*std::thread thread([=]()
+                if(!cap->open(cameraConfig.usbNumber))
                 {
-                    while(true)
-                    {
-                        if(cap->isOpened())
-                        {
-                            *cap >> status.frame;
-                            frameCallback(status.frame);
-                            wait();
-                        }
+                    std::cout << "Cork: Webcam not available." << std::endl;
+                    return;
+                }
 
-                        if(!running)
-                        {
-                            break;
-                        }
-                    }
-                });*/
-            #endif
-        }
-        else if(cameraConfig.input == CameraConfig::IP)
-        {
-            cap = new cv::VideoCapture();
+                cap->set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
+                cap->set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
 
-            if(!cap->open(cameraConfig.ipAddress))
+                if(cap->get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap->get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
+                {
+                    std::cout << "Cork: Unable to set webcam resolution." << std::endl;
+                }
+            }
+            else if(cameraConfig.input == CameraConfig::IP)
             {
-                std::cout << "Cork: IP Camera not available." << std::endl;
+                if(!cap->open(cameraConfig.ipAddress))
+                {
+                    std::cout << "Cork: IP Camera not available." << std::endl;
+                }
             }
 
             #if USE_THREAD
-                std::thread thread([=]()
+                thread = QThread::create([=]()
                 {
                     while(true)
                     {
@@ -262,6 +252,7 @@ public:
                         }
                     }
                 });
+                thread->start();
             #endif
         }
         else if(cameraConfig.input == CameraConfig::FILE)

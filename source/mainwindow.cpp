@@ -48,7 +48,10 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
         if(!mat.empty())
         {
-            ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGBA8888)));
+            cv::Mat resized;
+            cv::cvtColor(mat, mat, cv::COLOR_BGRA2RGB);
+            cv::resize(mat, resized, cv::Size(ui_static->camera_a->width(), ui_static->camera_a->height()), 0, 0, cv::INTER_CUBIC);
+            ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
         if(defectA > 0 && defectB > 0)
@@ -67,8 +70,9 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     CameraConfig cameraConfigB;
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
-    cameraConfigB.input = CameraConfig::USB;
-    cameraConfigB.usbNumber = 0;
+    cameraConfigB.input = CameraConfig::IP;
+    cameraConfigB.usbNumber = 1;
+    cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
 
     CameraInput *cameraInputB = new CameraInput(cameraConfigB);
     cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
@@ -77,7 +81,9 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
         if(!mat.empty())
         {
-            ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGB888)));
+            cv::Mat resized;
+            cv::resize(mat, resized, cv::Size(ui_static->camera_b->width(), ui_static->camera_b->height()), 0, 0, cv::INTER_CUBIC);
+            ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
         if(defectA > 0 && defectB > 0)
