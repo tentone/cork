@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     CameraConfig cameraConfigB;
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
-    cameraConfigB.input = CameraConfig::IP;
+    cameraConfigB.input = CameraConfig::USB;
     cameraConfigB.usbNumber = 1;
     cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
 
