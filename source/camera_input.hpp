@@ -104,13 +104,10 @@ public:
 
         if(cameraConfig.input == CameraConfig::TCAM)
         {
-            int width = 1920;
-            int height = 1200;
-
-            status.frame.create(height, width, CV_8UC(4));
+            status.frame.create(cameraConfig.originalHeight, cameraConfig.originalWidth, CV_8UC(4));
 
             cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
-            cam->set_capture_format("BGRx", gsttcam::FrameSize{width, height}, gsttcam::FrameRate{50, 1});
+            cam->set_capture_format("BGRx", gsttcam::FrameSize{cameraConfig.originalWidth, cameraConfig.originalHeight}, gsttcam::FrameRate{50, 1});
 
             /*
              * Callback called for new images by the internal appsink.
@@ -154,15 +151,16 @@ public:
                         //Create a cv::Mat, copy image data into that and save the image.
                         pdata->frame.data = info.data;
 
-                        resize(pdata->frame, pdata->resized, cv::Size(768, 480));
+                        resize(pdata->frame, pdata->resized, cv::Size(cameraConfig.width, cameraConfig.height));
 
                         /*
                         //Crop image to match aspect ratio
+                        int targetWidth = 640;
                         cv::Rect crop;
-                        crop.x = (768 - 640) / 2;
+                        crop.x = (cameraConfig.width - targetWidth) / 2;
                         crop.y = 0;
-                        crop.width = 640;
-                        crop.height = 480;
+                        crop.width = targetWidth;
+                        crop.height = cameraConfig.height;
                         pdata->resized = pdata->resized(crop);
                         */
 
@@ -212,7 +210,7 @@ public:
 
             if(cameraConfig.input == CameraConfig::USB)
             {
-                if(!cap->open(cameraConfig.usbNumber))
+                if(!cap->open(cameraConfig.usbNumber, cameraConfig.videoBackend))
                 {
                     std::cout << "Cork: Webcam not available." << std::endl;
                     return;

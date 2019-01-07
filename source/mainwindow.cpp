@@ -11,6 +11,7 @@
 #include <QPixmap>
 #include <QImage>
 #include <QThread>
+#include <QTimer>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -31,11 +32,15 @@ static Ui::MainWindow *ui_static;
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    //QTimer::singleShot(1000, this, SLOT(showFullScreen()));
+
     ui->setupUi(this);
 
     ui_static = ui;
 
     CameraConfig cameraConfigA;
+    cameraConfigA.originalWidth = 1920;
+    cameraConfigA.originalHeight = 1200;
     cameraConfigA.width = 768;
     cameraConfigA.height = 480;
     cameraConfigA.input = CameraConfig::TCAM;
@@ -70,9 +75,10 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     CameraConfig cameraConfigB;
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
-    cameraConfigB.input = CameraConfig::USB;
+    cameraConfigB.input = CameraConfig::IP;
     cameraConfigB.usbNumber = 1;
     cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
+    cameraConfigB.videoBackend = cv::CAP_ANY;
 
     CameraInput *cameraInputB = new CameraInput(cameraConfigB);
     cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
