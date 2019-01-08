@@ -15,3 +15,5 @@ lib/
 build/
 
 save_image
+
+build-corkselector*
