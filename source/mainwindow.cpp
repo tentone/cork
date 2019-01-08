@@ -25,13 +25,12 @@
 static double defectA = -1.0;
 static double defectB = -1.0;
 
-static bool hasCorkA = false;
-static bool hasCorkB = false;
-
 static CorkConfig configA;
 static CorkConfig configB;
 
 static double sumDefect = 0.0;
+
+static bool running = false;
 
 static int corkCounter = 0;
 static int corkRotated = 0;
@@ -45,6 +44,7 @@ static Ui::MainWindow *ui_static;
 
 static void updateGUI()
 {
+    //Check cork presence
     if(defectA > 0 && defectB > 0)
     {
         if(defectA > defectB)
@@ -60,37 +60,59 @@ static void updateGUI()
         if(defectA < minimumDefect)
         {
             minimumDefect = defectA;
-            //ui_static->quality_minimum->setValue(int(minimumDefect));
+            ui_static->quality_minimum->setText(QString::number(minimumDefect) + "%");
         }
         if(defectB < minimumDefect)
         {
             minimumDefect = defectB;
-            //ui_static->quality_minimum->setValue(int(minimumDefect));
+            ui_static->quality_minimum->setText(QString::number(minimumDefect) + "%");
         }
 
         //Maximum defect
         if(defectA > maximumDefect)
         {
             maximumDefect = defectA;
-            //ui_static->quality_maximum->setValue(int(maximumDefect));
+            ui_static->quality_maximum->setText(QString::number(maximumDefect) + "%");
         }
         if(defectB > maximumDefect)
         {
             maximumDefect = defectB;
-            //ui_static->quality_maximum->setValue(int(maximumDefect));
+            ui_static->quality_maximum->setText(QString::number(maximumDefect) + "%");
         }
 
         //Average defect
         //TODO <PREVENT OVERFLOW>
-        //sumDefect += defectA + defectB;
-        //corkCounter += 2;
-        //averageDefect = sumDefect / corkCounter;
-        //ui_static->quality_average->setValue(int(averageDefect));
+        sumDefect += defectA + defectB;
+        corkCounter += 2;
+        averageDefect = sumDefect / corkCounter;
+        ui_static->quality_average->setText(QString::number(averageDefect) + "%");
     }
+    //No cork
     else
     {
         ui_static->label_selected->setText("Sem Rollha");
     }
+
+    //Defect A
+    if(defectA > 0.0)
+    {
+        ui_static->text_defect_a->setText(QString::number(defectA) + "%");
+    }
+    else
+    {
+        ui_static->text_defect_a->setText("-");
+    }
+
+    //Defect B
+    if(defectB > 0.0)
+    {
+        ui_static->text_defect_b->setText(QString::number(defectB) + "%");
+    }
+    else
+    {
+        ui_static->text_defect_b->setText("-");
+    }
+
 }
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
@@ -98,9 +120,15 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     //Fullscreen
     //QTimer::singleShot(1000, this, SLOT(showFullScreen()));
 
+    //Store GUI
     ui->setupUi(this);
-
     ui_static = ui;
+
+    //Stop and start buttons
+    connect(ui->button_stop_start, &QPushButton::clicked, []()
+    {
+        ui_static->button_settings->hide();
+    });
 
     //Camera A configuration
     cameraConfigA.originalWidth = 1920;
@@ -136,12 +164,16 @@ void MainWindow::startCapture()
 {
     cameraInputA->start();
     cameraInputB->start();
+
+    running = true;
 }
 
 void MainWindow::stopCapture()
 {
     cameraInputA->stop();
     cameraInputB->stop();
+
+    running = true;
 }
 
 
@@ -178,16 +210,7 @@ void MainWindow::createCaptureHandlers()
             ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
-        if(defectA > 0.0)
-        {
-            ui_static->text_defect_a->setText(QString::number(defectA) + "%");
-        }
-        else
-        {
-            ui_static->text_defect_a->setText("-");
-        }
-
-        updateGUI();
+        //updateGUI();
     };
 
     cameraInputB = new CameraInput(cameraConfigB);
@@ -201,15 +224,6 @@ void MainWindow::createCaptureHandlers()
             cv::cvtColor(mat, color, cv::COLOR_BGR2RGB);
             cv::resize(color, resized, cv::Size(ui_static->camera_b->width(), ui_static->camera_b->height()), 0, 0, cv::INTER_CUBIC);
             ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
-        }
-
-        if(defectB > 0.0)
-        {
-            ui_static->text_defect_b->setText(QString::number(defectB) + "%");
-        }
-        else
-        {
-            ui_static->text_defect_b->setText("-");
         }
 
         updateGUI();

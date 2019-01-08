@@ -75,8 +75,8 @@
    <widget class="QPushButton" name="button_stop_start">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>520</y>
+      <x>410</x>
+      <y>510</y>
       <width>361</width>
       <height>61</height>
      </rect>
@@ -151,12 +151,12 @@
       <x>410</x>
       <y>60</y>
       <width>101</width>
-      <height>17</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>15</pointsize>
+      <pointsize>16</pointsize>
      </font>
     </property>
     <property name="text">
@@ -169,12 +169,12 @@
       <x>410</x>
       <y>210</y>
       <width>101</width>
-      <height>17</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>15</pointsize>
+      <pointsize>16</pointsize>
      </font>
     </property>
     <property name="text">
@@ -289,24 +289,6 @@
      <string>Maxima</string>
     </property>
    </widget>
-   <widget class="QProgressBar" name="quality_average">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>240</y>
-      <width>118</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="value">
-     <number>75</number>
-    </property>
-   </widget>
    <widget class="QToolButton" name="button_settings">
     <property name="geometry">
      <rect>
@@ -318,42 +300,6 @@
     </property>
     <property name="text">
      <string>...</string>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="quality_minimum">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>270</y>
-      <width>118</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="value">
-     <number>50</number>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="quality_maximum">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>300</y>
-      <width>118</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="value">
-     <number>90</number>
     </property>
    </widget>
    <widget class="Line" name="separator">
@@ -375,13 +321,13 @@
       <x>420</x>
       <y>460</y>
       <width>351</width>
-      <height>31</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>20</pointsize>
-      <underline>true</underline>
+      <underline>false</underline>
       <strikeout>false</strikeout>
      </font>
     </property>
@@ -398,12 +344,12 @@
       <x>410</x>
       <y>350</y>
       <width>101</width>
-      <height>17</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>15</pointsize>
+      <pointsize>16</pointsize>
      </font>
     </property>
     <property name="text">
@@ -493,6 +439,73 @@
     </property>
     <property name="text">
      <string>Rolha B:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="quality_average">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>240</y>
+      <width>101</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="quality_maximum">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>300</y>
+      <width>101</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="quality_minimum">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>270</y>
+      <width>101</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="Line" name="separator_3">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>440</y>
+      <width>351</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
     </property>
    </widget>
   </widget>
