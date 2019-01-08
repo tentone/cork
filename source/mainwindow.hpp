@@ -25,7 +25,54 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
+    /**
+     * Camera A configuration object.
+     */
+    CameraConfig cameraConfigA;
+
+    /**
+     * Camera B configuration object.
+     */
+    CameraConfig cameraConfigB;
+
+    /**
+     * Input object for the camera A.
+     */
+    CameraInput *cameraInputA = nullptr;
+
+    /**
+     * Input object for the camera B.
+     */
+    CameraInput *cameraInputB = nullptr;
+
+    /**
+     * Explicit window destructor.
+     */
     ~MainWindow();
+
+    /**
+     * Start the cameras capture.
+     *
+     * The cameras have to be initialized first.
+     */
+    void startCapture();
+
+    /**
+     * Stop the cameras capture.
+     *
+     * The cameras have to be initialized and running.
+     */
+    void stopCapture();
+
+    /**
+     * Create the camera capture handlers.
+     */
+    void createCaptureHandlers();
+
+    /**
+     * Delete the camera capture handlers objects.
+     */
+    void deleteCaptureHandlers();
 
     /**
      * QT window object.

@@ -77,7 +77,8 @@ HEADERS += \
 
 #QT form files in the project
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    settings.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

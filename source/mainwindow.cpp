@@ -30,6 +30,25 @@ static CorkConfig configB;
 
 static Ui::MainWindow *ui_static;
 
+static void updateGUI()
+{
+    if(defectA > 0 && defectB > 0)
+    {
+        if(defectA > defectB)
+        {
+            ui_static->label_selected->setText("Rollha B");
+        }
+        else if(defectA < defectB)
+        {
+            ui_static->label_selected->setText("Rollha A");
+        }
+    }
+    else
+    {
+        ui_static->label_selected->setText("Sem Rollha");
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
 {
     //QTimer::singleShot(1000, this, SLOT(showFullScreen()));
@@ -38,15 +57,65 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     ui_static = ui;
 
-    CameraConfig cameraConfigA;
-    cameraConfigA.originalWidth = 1920;
+    /*cameraConfigA.originalWidth = 1920;
     cameraConfigA.originalHeight = 1200;
     cameraConfigA.width = 768;
     cameraConfigA.height = 480;
     cameraConfigA.input = CameraConfig::TCAM;
-    cameraConfigA.tcamSerial = "46810320";
+    cameraConfigA.tcamSerial = "46810320";*/
 
-    CameraInput *cameraInputA = new CameraInput(cameraConfigA);
+    cameraConfigA.width = 640;
+    cameraConfigA.height = 480;
+    cameraConfigA.input = CameraConfig::USB;
+    cameraConfigA.videoBackend = cv::CAP_ANY;
+    cameraConfigA.usbNumber = 0;
+
+    cameraConfigB.width = 640;
+    cameraConfigB.height = 480;
+    cameraConfigB.input = CameraConfig::USB;
+    cameraConfigB.videoBackend = cv::CAP_ANY;
+    cameraConfigB.usbNumber = 1;
+    //cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
+
+    createCaptureHandlers();
+    startCapture();
+}
+
+
+void MainWindow::startCapture()
+{
+    cameraInputA->start();
+    cameraInputB->start();
+}
+
+void MainWindow::stopCapture()
+{
+    cameraInputA->stop();
+    cameraInputB->stop();
+}
+
+
+void MainWindow::deleteCaptureHandlers()
+{
+    if(cameraInputA != nullptr)
+    {
+        cameraInputA->stop();
+        delete cameraInputA;
+        cameraInputA = nullptr;
+    }
+
+    if(cameraInputB != nullptr)
+    {
+        cameraInputB->stop();
+        delete cameraInputB;
+        cameraInputB = nullptr;
+    }
+}
+
+
+void MainWindow::createCaptureHandlers()
+{
+    cameraInputA = new CameraInput(cameraConfigA);
     cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
     {
         CorkAnalyser::processFrame(mat, &configA, &defectA);
@@ -59,28 +128,10 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
             ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
-        if(defectA > 0 && defectB > 0)
-        {
-            if(defectA > defectB)
-            {
-                std::cout << "Cork: Select B" << std::endl;
-            }
-            else if(defectA < defectB)
-            {
-                std::cout << "Cork: Select A" << std::endl;
-            }
-        }
+        updateGUI();
     };
 
-    CameraConfig cameraConfigB;
-    cameraConfigB.width = 640;
-    cameraConfigB.height = 480;
-    cameraConfigB.input = CameraConfig::IP;
-    cameraConfigB.usbNumber = 1;
-    cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
-    cameraConfigB.videoBackend = cv::CAP_ANY;
-
-    CameraInput *cameraInputB = new CameraInput(cameraConfigB);
+    cameraInputB = new CameraInput(cameraConfigB);
     cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
     {
         CorkAnalyser::processFrame(mat, &configB, &defectB);
@@ -88,31 +139,18 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         if(!mat.empty())
         {
             cv::Mat resized;
+            cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
             cv::resize(mat, resized, cv::Size(ui_static->camera_b->width(), ui_static->camera_b->height()), 0, 0, cv::INTER_CUBIC);
             ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
-        if(defectA > 0 && defectB > 0)
-        {
-            if(defectA > defectB)
-            {
-                std::cout << "Cork: Select B" << std::endl;
-            }
-            else if(defectA < defectB)
-            {
-                std::cout << "Cork: Select A" << std::endl;
-            }
-        }
+        updateGUI();
     };
-
-    cameraInputA->start();
-    cameraInputB->start();
-
-    //cameraInputA->stop();
-    //cameraInputB->stop();
 }
 
 MainWindow::~MainWindow()
 {
+    deleteCaptureHandlers();
+
     delete ui;
 }
