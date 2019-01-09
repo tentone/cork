@@ -22,6 +22,8 @@
 
 #include "mainwindow.hpp"
 
+static bool hasCork = false;
+
 static double defectA = -1.0;
 static double defectB = -1.0;
 
@@ -47,6 +49,14 @@ static void updateGUI()
     //Check cork presence
     if(defectA > 0 && defectB > 0)
     {
+        if(!hasCork)
+        {
+            corkCounter++;
+            ui_static->text_processed->setText(QString::number(corkCounter));
+        }
+
+        hasCork = true;
+
         if(defectA > defectB)
         {
             ui_static->label_selected->setText("Rollha B");
@@ -90,6 +100,7 @@ static void updateGUI()
     //No cork
     else
     {
+        hasCork = false;
         ui_static->label_selected->setText("Sem Rollha");
     }
 
@@ -122,7 +133,24 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Store GUI
     ui->setupUi(this);
+    ui->tab_main->hide();
+
+
+
     ui_static = ui;
+
+    //Settings Button
+    connect(ui->button_settings, &QPushButton::clicked, []()
+    {
+        if(ui_static->tab_main->isHidden())
+        {
+            ui_static->tab_main->show();
+        }
+        else
+        {
+            ui_static->tab_main->hide();
+        }
+    });
 
     //Stop and start buttons
     connect(ui->button_stop_start, &QPushButton::clicked, []()
