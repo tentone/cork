@@ -528,20 +528,20 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>30</y>
+        <y>40</y>
         <width>121</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Input Type:</string>
+       <string>Entrada</string>
       </property>
      </widget>
      <widget class="QComboBox" name="tab_a_input">
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>30</y>
+        <y>40</y>
         <width>161</width>
         <height>25</height>
        </rect>
@@ -580,7 +580,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>USB Port:</string>
+       <string>Porta USB</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="tab_a_usb">
@@ -597,7 +597,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>110</y>
+        <y>100</y>
         <width>121</width>
         <height>21</height>
        </rect>
@@ -610,8 +610,8 @@
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>110</y>
-        <width>351</width>
+        <y>100</y>
+        <width>101</width>
         <height>25</height>
        </rect>
       </property>
@@ -623,7 +623,7 @@
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>150</y>
+        <y>130</y>
         <width>351</width>
         <height>25</height>
        </rect>
@@ -636,7 +636,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>150</y>
+        <y>130</y>
         <width>121</width>
         <height>21</height>
        </rect>
@@ -649,20 +649,20 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>190</y>
+        <y>160</y>
         <width>121</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Width</string>
+       <string>Largura (W)</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="tab_a_width">
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>190</y>
+        <y>160</y>
         <width>81</width>
         <height>26</height>
        </rect>
@@ -672,36 +672,278 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>230</y>
+        <y>190</y>
         <width>121</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Height</string>
+       <string>Altura (H)</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="tab_a_height">
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>230</y>
+        <y>190</y>
         <width>81</width>
         <height>26</height>
        </rect>
       </property>
      </widget>
-     <widget class="Line" name="line">
+     <widget class="Line" name="tab_a_separator">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>270</y>
+        <y>220</y>
         <width>731</width>
         <height>16</height>
        </rect>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_size">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>270</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Tamanho</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_size_min">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>270</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_size_max">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>270</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_size_to">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>270</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>até</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_canny_high">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>300</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Canny High</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_canny_high">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>300</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_title_camera">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Camera</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_title_detector">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>240</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Detetor Rolhas</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_canny_low">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>330</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_canny_low">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>330</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Canny low</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_width_original">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>160</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>original</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_heigh_original">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>190</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>original</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_threshold">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>360</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Threshold</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_threshold">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>360</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_threshold_tolerance">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>360</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>+/-</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="tab_a_threshold_tolerance">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>360</y>
+        <width>69</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tab_a_label_threshold_tolerance_percentage">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>360</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>%</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_width_original">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>160</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="tab_a_height_original">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>190</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="tab_a_shadow">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>390</y>
+        <width>261</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="text">
+       <string>Analise de Sombra c/ RGB</string>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>

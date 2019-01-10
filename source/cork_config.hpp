@@ -6,11 +6,12 @@
 class CorkConfig
 {
 public:
-    //Blur parameters
-    bool blurGlobal = false;
-    int blurGlobalKSize = 3;
-    bool blurMask = false;
-    int blurMaskKSize = 3;
+    //Outside skirt size in pixels
+    int outsizeSkirt = 7;
+
+    //Pixels per inch
+    //TODO <USE PPI ON CALCULATIONS>
+    int ppi = 100;
 
     //Hough parameters
     int lowCannyThresh = 120;
@@ -19,26 +20,31 @@ public:
     int maxSize = 190;
     int minSpacing = 500;
 
-    //Automatic threshold
-    bool automaticThresh = false;
-    bool automaticUseOtsuThresh = false;
-    bool automaticUseHistogramThresh = false;
-
+    //Semi auto threshold
     bool semiAutoThresh = true;
     double semiAutoThreshTolerance = 0.4;
 
     //Threshold value
     int thresholdValue = 60;
 
+    //Color analysis
+    //TODO <ACTUALLY USE THIS>
+    bool splitColorChannels = false;
+
+    //Blur parameters
+    bool blurGlobal = false;
+    int blurGlobalKSize = 3;
+    bool blurMask = false;
+    int blurMaskKSize = 3;
+
+    //Automatic threshold
+    bool automaticThresh = false;
+    bool automaticUseOtsuThresh = false;
+    bool automaticUseHistogramThresh = false;
+
     //Tentone threshold parameters
     int histThreshMinDiff = 15;
     int histThreshNeighborhood = 15;
     int histThreshColorFilter = 15;
     double histThreshBalance = 0.5;
-
-    //Color analysis
-    bool splitColorChannels = false;
-
-    //Outside skirt size in pixels
-    int outsizeSkirt = 7;
 };
