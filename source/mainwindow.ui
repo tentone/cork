@@ -524,7 +524,7 @@
      <attribute name="title">
       <string>Camera A</string>
      </attribute>
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="tab_a_label_input">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -537,7 +537,7 @@
        <string>Input Type:</string>
       </property>
      </widget>
-     <widget class="QComboBox" name="comboBox">
+     <widget class="QComboBox" name="tab_a_input">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -570,7 +570,7 @@
        </property>
       </item>
      </widget>
-     <widget class="QLabel" name="label_2">
+     <widget class="QLabel" name="tab_a_label_usb">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -583,7 +583,7 @@
        <string>USB Port:</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox">
+     <widget class="QSpinBox" name="tab_a_usb">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -593,7 +593,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_3">
+     <widget class="QLabel" name="tab_a_label_tcam_serial">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -606,7 +606,7 @@
        <string>TCam Serial</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="tab_a_tcam_serial">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -619,7 +619,7 @@
        <string>46810320</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_2">
+     <widget class="QLineEdit" name="tab_a_ip">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -632,7 +632,7 @@
        <string/>
       </property>
      </widget>
-     <widget class="QLabel" name="label_4">
+     <widget class="QLabel" name="tab_a_label_ip">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -645,7 +645,7 @@
        <string>IP Address</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="tab_a_label_width">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -658,7 +658,7 @@
        <string>Width</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox_2">
+     <widget class="QSpinBox" name="tab_a_width">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -668,7 +668,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="tab_a_label_height">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -681,7 +681,7 @@
        <string>Height</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox_3">
+     <widget class="QSpinBox" name="tab_a_height">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -691,12 +691,25 @@
        </rect>
       </property>
      </widget>
+     <widget class="Line" name="line">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>270</y>
+        <width>731</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_camera_b">
      <attribute name="title">
       <string>Camera B</string>
      </attribute>
-     <widget class="QLineEdit" name="lineEdit_3">
+     <widget class="QLineEdit" name="tab_b_label_tcam_serial">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -709,7 +722,7 @@
        <string/>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox_4">
+     <widget class="QSpinBox" name="tab_b_height">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -719,7 +732,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_7">
+     <widget class="QLabel" name="tab_b_label_width">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -732,7 +745,7 @@
        <string>Width</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_8">
+     <widget class="QLabel" name="tab_b_label_ip">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -745,7 +758,7 @@
        <string>IP Address</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_9">
+     <widget class="QLabel" name="tab_b_label_input">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -758,7 +771,7 @@
        <string>Input Type:</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="spinBox_5">
+     <widget class="QSpinBox" name="tab_b_usb">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -771,7 +784,7 @@
        <number>1</number>
       </property>
      </widget>
-     <widget class="QLabel" name="label_10">
+     <widget class="QLabel" name="tab_b_label_tcam_serial_2">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -784,7 +797,7 @@
        <string>TCam Serial</string>
       </property>
      </widget>
-     <widget class="QComboBox" name="comboBox_2">
+     <widget class="QComboBox" name="tab_b_input">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -820,7 +833,7 @@
        </property>
       </item>
      </widget>
-     <widget class="QSpinBox" name="spinBox_6">
+     <widget class="QSpinBox" name="tab_b_width">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -830,7 +843,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_11">
+     <widget class="QLabel" name="tab_b_label_height">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -843,7 +856,7 @@
        <string>Height</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_12">
+     <widget class="QLabel" name="tab_b_label_usb">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -856,7 +869,7 @@
        <string>USB Port:</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_4">
+     <widget class="QLineEdit" name="tab_b_ip">
       <property name="geometry">
        <rect>
         <x>140</x>
