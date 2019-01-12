@@ -22,21 +22,26 @@
 
 #include "mainwindow.hpp"
 
-static bool hasCork = false;
+static int SCREEN_MAIN = 100;
+static int SCREEN_SETTINGS = 101;
 
+//Wich screen is currently being shown
+static int screen;
+
+//Indicates if the camera capture is running
+static bool running = false;
+
+static bool hasCork = false;
 static double defectA = -1.0;
 static double defectB = -1.0;
-
 static CorkConfig configA;
 static CorkConfig configB;
-
-static double sumDefect = 0.0;
-
-static bool running = false;
 
 static int corkCounter = 0;
 static int corkRotated = 0;
 static int corkDiscarded = 0;
+
+static double sumDefect = 0.0;
 
 static double averageDefect = 0.0;
 static double minimumDefect = 100.0;
@@ -126,6 +131,27 @@ static void updateGUI()
 
 }
 
+void setScreen(int s)
+{
+    screen = s;
+
+    if(screen == SCREEN_MAIN)
+    {
+        ui_static->group_home->show();
+        ui_static->group_settings->hide();
+    }
+    else if(screen == SCREEN_SETTINGS)
+    {
+        ui_static->group_settings->show();
+        ui_static->group_home->hide();
+    }
+}
+
+void fillSettingsUI()
+{
+    //TODO <ADD CODE HERE>
+}
+
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
 {
     //Fullscreen
@@ -133,29 +159,26 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Store GUI
     ui->setupUi(this);
-    ui->tab_main->hide();
-
-
 
     ui_static = ui;
 
     //Settings Button
     connect(ui->button_settings, &QPushButton::clicked, []()
     {
-        if(ui_static->tab_main->isHidden())
-        {
-            ui_static->tab_main->show();
-        }
-        else
-        {
-            ui_static->tab_main->hide();
-        }
+        setScreen(screen == SCREEN_MAIN ? SCREEN_SETTINGS : SCREEN_MAIN);
     });
 
     //Stop and start buttons
-    connect(ui->button_stop_start, &QPushButton::clicked, []()
+    connect(ui->button_stop_start, &QPushButton::clicked, [=]()
     {
-        ui_static->button_settings->hide();
+        if(running)
+        {
+            stopCapture();
+        }
+        else
+        {
+            stopCapture();
+        }
     });
 
     //Camera A configuration
@@ -182,9 +205,12 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigB.usbNumber = 1;
     //cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
 
+    //Set main screen
+    setScreen(SCREEN_MAIN);
+
     //Start camera capture
     createCaptureHandlers();
-    startCapture();
+    //startCapture();
 }
 
 
@@ -192,7 +218,7 @@ void MainWindow::startCapture()
 {
     cameraInputA->start();
     cameraInputB->start();
-
+    ui_static->button_stop_start->setText("Parar");
     running = true;
 }
 
@@ -200,8 +226,8 @@ void MainWindow::stopCapture()
 {
     cameraInputA->stop();
     cameraInputB->stop();
-
-    running = true;
+    ui_static->button_stop_start->setText("Iniciar");
+    running = false;
 }
 
 

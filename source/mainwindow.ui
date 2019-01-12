@@ -14,281 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QGroupBox" name="group_a">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>360</width>
-      <height>280</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Camera A</string>
-    </property>
-    <widget class="QLabel" name="camera_a">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>20</y>
-       <width>360</width>
-       <height>260</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="group_b">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>300</y>
-      <width>360</width>
-      <height>280</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Camera B</string>
-    </property>
-    <widget class="QLabel" name="camera_b">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>20</y>
-       <width>360</width>
-       <height>260</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QPushButton" name="button_stop_start">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>510</y>
-      <width>361</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-      <kerning>true</kerning>
-     </font>
-    </property>
-    <property name="text">
-     <string>Parar</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_processed">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>90</y>
-      <width>111</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Processadas:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_tuned">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>120</y>
-      <width>111</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Viradas:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_discarded">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>150</y>
-      <width>111</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Descartadas:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_cork">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>60</y>
-      <width>101</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Rolhas</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_quality">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>210</y>
-      <width>101</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Qualidade</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_average">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>240</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Media:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="text_processed">
-    <property name="geometry">
-     <rect>
-      <x>540</x>
-      <y>90</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="text_turned">
-    <property name="geometry">
-     <rect>
-      <x>540</x>
-      <y>120</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="text_discarded">
-    <property name="geometry">
-     <rect>
-      <x>540</x>
-      <y>150</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_minimum">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>270</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Minima:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_maximum">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>300</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Maxima</string>
-    </property>
-   </widget>
    <widget class="QToolButton" name="button_settings">
     <property name="geometry">
      <rect>
@@ -302,862 +27,1156 @@
      <string>...</string>
     </property>
    </widget>
-   <widget class="Line" name="separator">
+   <widget class="QWidget" name="group_settings" native="true">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>180</y>
-      <width>351</width>
-      <height>16</height>
+      <x>0</x>
+      <y>0</y>
+      <width>801</width>
+      <height>601</height>
      </rect>
     </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_selected">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>460</y>
-      <width>351</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>20</pointsize>
-      <underline>false</underline>
-      <strikeout>false</strikeout>
-     </font>
-    </property>
-    <property name="text">
-     <string>Rolha A</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_defect">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>350</y>
-      <width>101</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Defeito</string>
-    </property>
-   </widget>
-   <widget class="Line" name="separator_2">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>330</y>
-      <width>351</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_defect_a">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>380</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Rolha A:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="text_defect_a">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>380</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="text_defect_b">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>410</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_defect_b">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>410</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Rolha B:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="quality_average">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>240</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="quality_maximum">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>300</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="quality_minimum">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>270</y>
-      <width>101</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>13</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="Line" name="separator_3">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>440</y>
-      <width>351</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QTabWidget" name="tab_main">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>781</width>
-      <height>581</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="tab_camera_a">
-     <attribute name="title">
-      <string>Camera A</string>
-     </attribute>
-     <widget class="QLabel" name="tab_a_label_input">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>40</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Entrada</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="tab_a_input">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>40</y>
-        <width>161</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="currentIndex">
-       <number>3</number>
-      </property>
-      <item>
-       <property name="text">
-        <string>File</string>
+    <widget class="QTabWidget" name="tab_main">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>781</width>
+       <height>581</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>false</bool>
+     </property>
+     <property name="documentMode">
+      <bool>false</bool>
+     </property>
+     <property name="tabsClosable">
+      <bool>false</bool>
+     </property>
+     <property name="movable">
+      <bool>false</bool>
+     </property>
+     <property name="tabBarAutoHide">
+      <bool>false</bool>
+     </property>
+     <widget class="QWidget" name="tab_camera_a">
+      <attribute name="title">
+       <string>Camera A</string>
+      </attribute>
+      <widget class="QLabel" name="tab_a_label_input">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>40</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
        </property>
-      </item>
-      <item>
        <property name="text">
-        <string>USB</string>
+        <string>Entrada</string>
        </property>
-      </item>
-      <item>
+      </widget>
+      <widget class="QComboBox" name="tab_a_input">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>40</y>
+         <width>161</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="currentIndex">
+        <number>3</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>File</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>USB</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>IP</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TCam</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_usb">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>70</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
        <property name="text">
-        <string>IP</string>
+        <string>Porta USB</string>
        </property>
-      </item>
-      <item>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_usb">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>70</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_tcam_serial">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>100</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
        <property name="text">
-        <string>TCam</string>
+        <string>TCam Serial</string>
        </property>
-      </item>
+      </widget>
+      <widget class="QLineEdit" name="tab_a_tcam_serial">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>100</y>
+         <width>101</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>46810320</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="tab_a_ip">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>130</y>
+         <width>351</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_ip">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>130</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>IP Address</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_width">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>160</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Largura (W)</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_width">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>160</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_height">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>190</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Altura (H)</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_height">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>190</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="Line" name="tab_a_separator">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>220</y>
+         <width>731</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_size">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>270</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Tamanho</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_size_min">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>270</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_size_max">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>270</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_size_to">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>270</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>até</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_canny_high">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>300</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Canny High</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_canny_high">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>300</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_title_camera">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Camera</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_title_detector">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>240</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Detetor Rolhas</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_canny_low">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>330</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_canny_low">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>330</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Canny low</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_width_original">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>160</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>original</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_heigh_original">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>190</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>original</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_threshold">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>360</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Threshold</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_threshold">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>360</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_threshold_tolerance">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>360</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>+/-</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="tab_a_threshold_tolerance">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>360</y>
+         <width>69</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_a_label_threshold_tolerance_percentage">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>360</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>%</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_width_original">
+       <property name="geometry">
+        <rect>
+         <x>290</x>
+         <y>160</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_a_height_original">
+       <property name="geometry">
+        <rect>
+         <x>290</x>
+         <y>190</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="tab_a_shadow">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>390</y>
+         <width>261</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>Analise de Sombra c/ RGB</string>
+       </property>
+       <property name="tristate">
+        <bool>false</bool>
+       </property>
+      </widget>
      </widget>
-     <widget class="QLabel" name="tab_a_label_usb">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>70</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Porta USB</string>
-      </property>
+     <widget class="QWidget" name="tab_camera_b">
+      <attribute name="title">
+       <string>Camera B</string>
+      </attribute>
+      <widget class="QLineEdit" name="tab_b_label_tcam_serial">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>110</y>
+         <width>351</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_b_height">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>230</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_width">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>190</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Width</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_ip">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>150</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>IP Address</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_input">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>30</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Input Type:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="tab_b_usb">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>70</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_tcam_serial_2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>110</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>TCam Serial</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="tab_b_input">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>30</y>
+         <width>161</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>File</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>USB</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>IP</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TCam</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QSpinBox" name="tab_b_width">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>190</y>
+         <width>81</width>
+         <height>26</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_height">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>230</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Height</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tab_b_label_usb">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>70</y>
+         <width>121</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>USB Port:</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="tab_b_ip">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>150</y>
+         <width>351</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </widget>
-     <widget class="QSpinBox" name="tab_a_usb">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>70</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_tcam_serial">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>TCam Serial</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="tab_a_tcam_serial">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>100</y>
-        <width>101</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>46810320</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="tab_a_ip">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>130</y>
-        <width>351</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_ip">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>130</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>IP Address</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_width">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>160</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Largura (W)</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_width">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>160</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_height">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>190</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Altura (H)</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_height">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>190</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="Line" name="tab_a_separator">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>220</y>
-        <width>731</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_size">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>270</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Tamanho</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_size_min">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>270</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_size_max">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>270</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_size_to">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>270</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>até</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_canny_high">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>300</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Canny High</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_canny_high">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>300</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_title_camera">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>10</y>
-        <width>141</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Camera</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_title_detector">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>240</y>
-        <width>141</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Detetor Rolhas</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_canny_low">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>330</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_canny_low">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>330</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Canny low</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_width_original">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>160</y>
-        <width>51</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>original</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_heigh_original">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>190</y>
-        <width>51</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>original</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_threshold">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>360</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Threshold</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_threshold">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>360</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_threshold_tolerance">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>360</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>+/-</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="tab_a_threshold_tolerance">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>360</y>
-        <width>69</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_a_label_threshold_tolerance_percentage">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>360</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>%</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_width_original">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>160</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_a_height_original">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>190</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="tab_a_shadow">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>390</y>
-        <width>261</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
-      </property>
-      <property name="text">
-       <string>Analise de Sombra c/ RGB</string>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
+     <widget class="QWidget" name="tab_general">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_camera_b">
-     <attribute name="title">
+   </widget>
+   <widget class="QWidget" name="group_home" native="true">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>0</y>
+      <width>800</width>
+      <height>601</height>
+     </rect>
+    </property>
+    <property name="baseSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <widget class="QLabel" name="text_turned">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>110</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_defect_b">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>400</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Rolha B:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_selected">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>450</y>
+       <width>351</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+       <underline>false</underline>
+       <strikeout>false</strikeout>
+      </font>
+     </property>
+     <property name="text">
+      <string>Rolha A</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_discarded">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>140</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Descartadas:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_cork">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>50</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Rolhas</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_minimum">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>260</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Minima:</string>
+     </property>
+    </widget>
+    <widget class="Line" name="separator">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>170</y>
+       <width>351</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="text_defect_a">
+     <property name="geometry">
+      <rect>
+       <x>510</x>
+       <y>370</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_processed">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>80</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Processadas:</string>
+     </property>
+    </widget>
+    <widget class="Line" name="separator_2">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>320</y>
+       <width>351</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_average">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>230</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Media:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_tuned">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>110</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Viradas:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="text_defect_b">
+     <property name="geometry">
+      <rect>
+       <x>510</x>
+       <y>400</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="text_discarded">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>140</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="quality_average">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>230</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_quality">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>200</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Qualidade</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_maximum">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>290</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Maxima</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="text_processed">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>80</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="Line" name="separator_3">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>430</y>
+       <width>351</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="quality_maximum">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>290</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="quality_minimum">
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>260</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_defect">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>340</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Defeito</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_defect_a">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>370</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Rolha A:</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="group_b">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>310</y>
+       <width>360</width>
+       <height>280</height>
+      </rect>
+     </property>
+     <property name="title">
       <string>Camera B</string>
-     </attribute>
-     <widget class="QLineEdit" name="tab_b_label_tcam_serial">
+     </property>
+     <widget class="QLabel" name="camera_b">
       <property name="geometry">
        <rect>
-        <x>140</x>
-        <y>110</y>
-        <width>351</width>
-        <height>25</height>
+        <x>0</x>
+        <y>20</y>
+        <width>360</width>
+        <height>260</height>
        </rect>
       </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_b_height">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>230</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_width">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>190</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Width</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_ip">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>150</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>IP Address</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_input">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Input Type:</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="tab_b_usb">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>70</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-      <property name="value">
-       <number>1</number>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_tcam_serial_2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>110</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>TCam Serial</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="tab_b_input">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>30</y>
-        <width>161</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="editable">
-       <bool>false</bool>
-      </property>
-      <property name="currentIndex">
-       <number>1</number>
-      </property>
-      <item>
-       <property name="text">
-        <string>File</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>USB</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>IP</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>TCam</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QSpinBox" name="tab_b_width">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>190</y>
-        <width>81</width>
-        <height>26</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_height">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>230</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Height</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="tab_b_label_usb">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>70</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>USB Port:</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="tab_b_ip">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>150</y>
-        <width>351</width>
-        <height>25</height>
-       </rect>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="text">
        <string/>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_general">
-     <attribute name="title">
-      <string>General</string>
-     </attribute>
+    <widget class="QGroupBox" name="group_a">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>360</width>
+       <height>280</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Camera A</string>
+     </property>
+     <widget class="QLabel" name="camera_a">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>360</width>
+        <height>260</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="button_stop_start">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>510</y>
+       <width>361</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+       <kerning>true</kerning>
+      </font>
+     </property>
+     <property name="text">
+      <string>Parar</string>
+     </property>
     </widget>
    </widget>
-   <zorder>group_a</zorder>
-   <zorder>group_b</zorder>
-   <zorder>button_stop_start</zorder>
-   <zorder>label_processed</zorder>
-   <zorder>label_tuned</zorder>
-   <zorder>label_discarded</zorder>
-   <zorder>label_cork</zorder>
-   <zorder>label_quality</zorder>
-   <zorder>label_average</zorder>
-   <zorder>text_processed</zorder>
-   <zorder>text_turned</zorder>
-   <zorder>text_discarded</zorder>
-   <zorder>label_minimum</zorder>
-   <zorder>label_maximum</zorder>
-   <zorder>separator</zorder>
-   <zorder>label_selected</zorder>
-   <zorder>label_defect</zorder>
-   <zorder>separator_2</zorder>
-   <zorder>label_defect_a</zorder>
-   <zorder>text_defect_a</zorder>
-   <zorder>text_defect_b</zorder>
-   <zorder>label_defect_b</zorder>
-   <zorder>quality_average</zorder>
-   <zorder>quality_maximum</zorder>
-   <zorder>quality_minimum</zorder>
-   <zorder>separator_3</zorder>
-   <zorder>tab_main</zorder>
+   <zorder>group_settings</zorder>
+   <zorder>group_home</zorder>
    <zorder>button_settings</zorder>
   </widget>
  </widget>

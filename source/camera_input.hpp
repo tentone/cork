@@ -99,6 +99,11 @@ public:
      */
     void start()
     {
+        if(running == true)
+        {
+            return;
+        }
+
         running = true;
         status.counter = 0;
 
@@ -282,6 +287,11 @@ public:
      */
     void stop()
     {
+        if(running == false)
+        {
+            return;
+        }
+
         running = false;
 
         if(cameraConfig.input == CameraConfig::TCAM)
