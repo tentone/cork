@@ -297,6 +297,12 @@ public:
         if(cameraConfig.input == CameraConfig::TCAM)
         {
             cam->stop();
+            delete cam;
+        }
+        else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+        {
+            cap->release();
+            delete cap;
         }
     }
 

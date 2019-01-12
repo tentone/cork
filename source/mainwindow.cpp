@@ -226,8 +226,11 @@ void MainWindow::stopCapture()
 {
     cameraInputA->stop();
     cameraInputB->stop();
-    ui_static->button_stop_start->setText("Iniciar");
     running = false;
+
+    ui_static->button_stop_start->setText("Iniciar");
+    ui_static->camera_a->clear();
+    ui_static->camera_b->clear();
 }
 
 
