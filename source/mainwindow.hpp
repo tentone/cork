@@ -26,16 +26,6 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
     /**
-     * Camera A configuration object.
-     */
-    CameraConfig cameraConfigA;
-
-    /**
-     * Camera B configuration object.
-     */
-    CameraConfig cameraConfigB;
-
-    /**
      * Input object for the camera A.
      */
     CameraInput *cameraInputA = nullptr;

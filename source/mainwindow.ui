@@ -93,28 +93,8 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>-1</number>
        </property>
-       <item>
-        <property name="text">
-         <string>File</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>USB</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>IP</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>TCam</string>
-        </property>
-       </item>
       </widget>
       <widget class="QLabel" name="tab_a_label_usb">
        <property name="geometry">
@@ -162,7 +142,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>46810320</string>
+        <string/>
        </property>
       </widget>
       <widget class="QLineEdit" name="tab_a_ip">
@@ -241,7 +221,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>220</y>
+         <y>290</y>
          <width>731</width>
          <height>16</height>
         </rect>
@@ -254,7 +234,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>270</y>
+         <y>340</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -267,7 +247,7 @@
        <property name="geometry">
         <rect>
          <x>140</x>
-         <y>270</y>
+         <y>340</y>
          <width>81</width>
          <height>26</height>
         </rect>
@@ -277,7 +257,7 @@
        <property name="geometry">
         <rect>
          <x>260</x>
-         <y>270</y>
+         <y>340</y>
          <width>81</width>
          <height>26</height>
         </rect>
@@ -287,7 +267,7 @@
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>270</y>
+         <y>340</y>
          <width>21</width>
          <height>21</height>
         </rect>
@@ -300,7 +280,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>300</y>
+         <y>370</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -313,7 +293,7 @@
        <property name="geometry">
         <rect>
          <x>140</x>
-         <y>300</y>
+         <y>370</y>
          <width>81</width>
          <height>26</height>
         </rect>
@@ -336,7 +316,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>240</y>
+         <y>310</y>
          <width>141</width>
          <height>21</height>
         </rect>
@@ -349,7 +329,7 @@
        <property name="geometry">
         <rect>
          <x>140</x>
-         <y>330</y>
+         <y>400</y>
          <width>81</width>
          <height>26</height>
         </rect>
@@ -359,7 +339,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>330</y>
+         <y>400</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -398,7 +378,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>360</y>
+         <y>430</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -411,7 +391,7 @@
        <property name="geometry">
         <rect>
          <x>140</x>
-         <y>360</y>
+         <y>430</y>
          <width>81</width>
          <height>26</height>
         </rect>
@@ -421,7 +401,7 @@
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>360</y>
+         <y>430</y>
          <width>21</width>
          <height>21</height>
         </rect>
@@ -434,7 +414,7 @@
        <property name="geometry">
         <rect>
          <x>260</x>
-         <y>360</y>
+         <y>430</y>
          <width>69</width>
          <height>26</height>
         </rect>
@@ -444,7 +424,7 @@
        <property name="geometry">
         <rect>
          <x>340</x>
-         <y>360</y>
+         <y>430</y>
          <width>21</width>
          <height>21</height>
         </rect>
@@ -477,7 +457,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>390</y>
+         <y>460</y>
          <width>261</width>
          <height>23</height>
         </rect>
@@ -492,17 +472,30 @@
         <bool>false</bool>
        </property>
       </widget>
-      <widget class="Line" name="tab_a_separator_2">
+      <widget class="QLabel" name="tab_a_label_video_backend">
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>420</y>
-         <width>731</width>
-         <height>16</height>
+         <y>220</y>
+         <width>121</width>
+         <height>21</height>
         </rect>
        </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+       <property name="text">
+        <string>Backend</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="tab_a_video_backend">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>220</y>
+         <width>161</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="currentIndex">
+        <number>-1</number>
        </property>
       </widget>
      </widget>
@@ -611,28 +604,8 @@
         <bool>false</bool>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>-1</number>
        </property>
-       <item>
-        <property name="text">
-         <string>File</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>USB</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>IP</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>TCam</string>
-        </property>
-       </item>
       </widget>
       <widget class="QSpinBox" name="tab_b_width">
        <property name="geometry">

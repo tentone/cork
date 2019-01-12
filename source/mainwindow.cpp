@@ -34,6 +34,18 @@ static bool running = false;
 static bool hasCork = false;
 static double defectA = -1.0;
 static double defectB = -1.0;
+
+/**
+ * Camera A configuration object.
+ */
+CameraConfig cameraConfigA;
+
+/**
+ * Camera B configuration object.
+ */
+CameraConfig cameraConfigB;
+
+
 static CorkConfig configA;
 static CorkConfig configB;
 
@@ -147,8 +159,53 @@ void setScreen(int s)
     }
 }
 
+void initializeGUI()
+{
+    //Tab A input
+    ui_static->tab_a_input->addItem("Ficheiro", CameraConfig::FILE);
+    ui_static->tab_a_input->addItem("USB", CameraConfig::USB);
+    ui_static->tab_a_input->addItem("TCam", CameraConfig::TCAM);
+    ui_static->tab_a_input->addItem("IP", CameraConfig::IP);
+
+    //Tab A video backend
+    ui_static->tab_a_video_backend->addItem("Any", cv::CAP_ANY);
+    ui_static->tab_a_video_backend->addItem("V4L", cv::CAP_V4L);
+    ui_static->tab_a_video_backend->addItem("FFMPEG", cv::CAP_FFMPEG);
+    ui_static->tab_a_video_backend->addItem("GStreamer", cv::CAP_GSTREAMER);
+    //ui_static->tab_a_video_backend->addItem("Direct Show", cv::CAP_DSHOW);
+    //ui_static->tab_a_video_backend->addItem("Microsoft Media Foundation", cv::CAP_MSMF);
+
+    //Tab B input
+    ui_static->tab_b_input->addItem("Ficheiro", CameraConfig::FILE);
+    ui_static->tab_b_input->addItem("USB", CameraConfig::USB);
+    ui_static->tab_b_input->addItem("TCam", CameraConfig::TCAM);
+    ui_static->tab_b_input->addItem("IP", CameraConfig::IP);
+}
+
 void fillSettingsUI()
 {
+    //Camera A configuration
+    int tabAInputIndex = ui_static->tab_a_input->findData(cameraConfigA.input);
+    if(tabAInputIndex != -1)
+    {
+       ui_static->tab_a_input->setCurrentIndex(tabAInputIndex);
+    }
+
+    ui_static->tab_a_ip->setText(QString::fromStdString(cameraConfigA.ipAddress));
+    ui_static->tab_a_tcam_serial->setText(QString::fromStdString(cameraConfigA.tcamSerial));
+    ui_static->tab_a_usb->setValue(cameraConfigA.usbNumber);
+    ui_static->tab_a_width->setValue(cameraConfigA.width);
+    ui_static->tab_a_height->setValue(cameraConfigA.height);
+    ui_static->tab_a_width_original->setValue(cameraConfigA.originalWidth);
+    ui_static->tab_a_height_original->setValue(cameraConfigA.originalHeight);
+
+    int tabAVideoIndex = ui_static->tab_a_input->findData(cameraConfigA.videoBackend);
+    if(tabAVideoIndex != -1)
+    {
+       ui_static->tab_a_input->setCurrentIndex(tabAVideoIndex);
+    }
+
+    //Detector A configuration
     //TODO <ADD CODE HERE>
 }
 
@@ -161,6 +218,8 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     ui->setupUi(this);
 
     ui_static = ui;
+
+    fillSettingsUI();
 
     //Settings Button
     connect(ui->button_settings, &QPushButton::clicked, []()
@@ -210,7 +269,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Start camera capture
     createCaptureHandlers();
-    //startCapture();
+    startCapture();
 }
 
 
@@ -232,7 +291,6 @@ void MainWindow::stopCapture()
     ui_static->camera_a->clear();
     ui_static->camera_b->clear();
 }
-
 
 void MainWindow::deleteCaptureHandlers()
 {
