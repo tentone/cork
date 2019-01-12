@@ -219,6 +219,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     ui_static = ui;
 
+    initializeGUI();
     fillSettingsUI();
 
     //Settings Button
