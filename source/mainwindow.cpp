@@ -177,7 +177,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         }
         else
         {
-            stopCapture();
+            startCapture();
         }
     });
 

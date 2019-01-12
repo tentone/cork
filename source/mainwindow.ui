@@ -371,27 +371,27 @@
       <widget class="QLabel" name="tab_a_label_width_original">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>260</x>
          <y>160</y>
-         <width>51</width>
+         <width>121</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>original</string>
+        <string>Largura Original</string>
        </property>
       </widget>
       <widget class="QLabel" name="tab_a_label_heigh_original">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>260</x>
          <y>190</y>
-         <width>51</width>
+         <width>121</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>original</string>
+        <string>Altura Original</string>
        </property>
       </widget>
       <widget class="QLabel" name="tab_a_label_threshold">
@@ -456,7 +456,7 @@
       <widget class="QSpinBox" name="tab_a_width_original">
        <property name="geometry">
         <rect>
-         <x>290</x>
+         <x>390</x>
          <y>160</y>
          <width>81</width>
          <height>26</height>
@@ -466,7 +466,7 @@
       <widget class="QSpinBox" name="tab_a_height_original">
        <property name="geometry">
         <rect>
-         <x>290</x>
+         <x>390</x>
          <y>190</y>
          <width>81</width>
          <height>26</height>
@@ -490,6 +490,19 @@
        </property>
        <property name="tristate">
         <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="Line" name="tab_a_separator_2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>420</y>
+         <width>731</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </widget>
@@ -670,11 +683,6 @@
         <string/>
        </property>
       </widget>
-     </widget>
-     <widget class="QWidget" name="tab_general">
-      <attribute name="title">
-       <string>General</string>
-      </attribute>
      </widget>
     </widget>
    </widget>
@@ -1171,12 +1179,12 @@
       </font>
      </property>
      <property name="text">
-      <string>Parar</string>
+      <string>-</string>
      </property>
     </widget>
    </widget>
-   <zorder>group_settings</zorder>
    <zorder>group_home</zorder>
+   <zorder>group_settings</zorder>
    <zorder>button_settings</zorder>
   </widget>
  </widget>
