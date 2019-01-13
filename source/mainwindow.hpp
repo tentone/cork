@@ -13,7 +13,6 @@
 #include "camera_input.hpp"
 #include "camera_config.hpp"
 
-
 namespace Ui
 {
     class MainWindow;
@@ -63,6 +62,11 @@ public:
      * Delete the camera capture handlers objects.
      */
     void deleteCaptureHandlers();
+
+    /**
+     * Initilize the GUI element and fill values to be selected.
+     */
+    void initializeGUI();
 
     /**
      * QT window object.

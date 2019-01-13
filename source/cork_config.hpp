@@ -13,6 +13,10 @@ public:
     //TODO <USE PPI ON CALCULATIONS>
     int ppi = 100;
 
+    //Color analysis
+    //TODO <ACTUALLY USE THIS>
+    bool rgb_shadow = false;
+
     //Hough parameters
     int lowCannyThresh = 120;
     int highCannyThresh = 30; //The smaller it is, the more false circles may be detected.
@@ -26,10 +30,6 @@ public:
 
     //Threshold value
     int thresholdValue = 60;
-
-    //Color analysis
-    //TODO <ACTUALLY USE THIS>
-    bool splitColorChannels = false;
 
     //Blur parameters
     bool blurGlobal = false;

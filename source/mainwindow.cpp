@@ -38,15 +38,21 @@ static double defectB = -1.0;
 /**
  * Camera A configuration object.
  */
-CameraConfig cameraConfigA;
+static CameraConfig cameraConfigA;
 
 /**
  * Camera B configuration object.
  */
-CameraConfig cameraConfigB;
+static CameraConfig cameraConfigB;
 
-
+/**
+ * Camera A cork detection configuration.
+ */
 static CorkConfig configA;
+
+/**
+ * Camera B cork detection configuration.
+ */
 static CorkConfig configB;
 
 static int corkCounter = 0;
@@ -143,45 +149,6 @@ static void updateGUI()
 
 }
 
-void setScreen(int s)
-{
-    screen = s;
-
-    if(screen == SCREEN_MAIN)
-    {
-        ui_static->group_home->show();
-        ui_static->group_settings->hide();
-    }
-    else if(screen == SCREEN_SETTINGS)
-    {
-        ui_static->group_settings->show();
-        ui_static->group_home->hide();
-    }
-}
-
-void initializeGUI()
-{
-    //Tab A input
-    ui_static->tab_a_input->addItem("Ficheiro", CameraConfig::FILE);
-    ui_static->tab_a_input->addItem("USB", CameraConfig::USB);
-    ui_static->tab_a_input->addItem("TCam", CameraConfig::TCAM);
-    ui_static->tab_a_input->addItem("IP", CameraConfig::IP);
-
-    //Tab A video backend
-    ui_static->tab_a_video_backend->addItem("Any", cv::CAP_ANY);
-    ui_static->tab_a_video_backend->addItem("V4L", cv::CAP_V4L);
-    ui_static->tab_a_video_backend->addItem("FFMPEG", cv::CAP_FFMPEG);
-    ui_static->tab_a_video_backend->addItem("GStreamer", cv::CAP_GSTREAMER);
-    //ui_static->tab_a_video_backend->addItem("Direct Show", cv::CAP_DSHOW);
-    //ui_static->tab_a_video_backend->addItem("Microsoft Media Foundation", cv::CAP_MSMF);
-
-    //Tab B input
-    ui_static->tab_b_input->addItem("Ficheiro", CameraConfig::FILE);
-    ui_static->tab_b_input->addItem("USB", CameraConfig::USB);
-    ui_static->tab_b_input->addItem("TCam", CameraConfig::TCAM);
-    ui_static->tab_b_input->addItem("IP", CameraConfig::IP);
-}
-
 void fillSettingsUI()
 {
     //Camera A configuration
@@ -206,7 +173,85 @@ void fillSettingsUI()
     }
 
     //Detector A configuration
-    //TODO <ADD CODE HERE>
+    ui_static->tab_a_ppi->setValue(configA.ppi);
+    ui_static->tab_a_size_min->setValue(configA.minSize);
+    ui_static->tab_a_size_max->setValue(configA.maxSize);
+    ui_static->tab_a_threshold->setValue(configA.thresholdValue);
+    ui_static->tab_a_canny_high->setValue(configA.highCannyThresh);
+    ui_static->tab_a_canny_low->setValue(configA.lowCannyThresh);
+    ui_static->tab_a_threshold_tolerance->setValue(configA.semiAutoThreshTolerance);
+    ui_static->tab_a_outside_skirt->setValue(configA.outsizeSkirt);
+    ui_static->tab_a_shadow->setChecked(configA.rgb_shadow);
+}
+
+void setScreen(int s)
+{
+    screen = s;
+
+    if(screen == SCREEN_MAIN)
+    {
+        ui_static->group_home->show();
+        ui_static->group_settings->hide();
+    }
+    else if(screen == SCREEN_SETTINGS)
+    {
+        fillSettingsUI();
+        ui_static->group_settings->show();
+        ui_static->group_home->hide();
+    }
+}
+
+void MainWindow::initializeGUI()
+{
+    //Tab A camera input options
+    ui->tab_a_input->clear();
+    ui->tab_a_input->addItem("Ficheiro", CameraConfig::FILE);
+    ui->tab_a_input->addItem("USB", CameraConfig::USB);
+    ui->tab_a_input->addItem("TCam", CameraConfig::TCAM);
+    ui->tab_a_input->addItem("IP", CameraConfig::IP);
+
+    //Tab A camera video backend options
+    ui->tab_a_video_backend->clear();
+    ui->tab_a_video_backend->addItem("Any", cv::CAP_ANY);
+    ui->tab_a_video_backend->addItem("V4L", cv::CAP_V4L);
+    ui->tab_a_video_backend->addItem("FFMPEG", cv::CAP_FFMPEG);
+    ui->tab_a_video_backend->addItem("GStreamer", cv::CAP_GSTREAMER);
+    ui->tab_a_video_backend->addItem("XINE Engine", cv::CAP_XINE);
+    ui->tab_a_video_backend->addItem("Aravis", cv::CAP_ARAVIS);
+    ui->tab_a_video_backend->addItem("OpenNI", cv::CAP_OPENNI);
+    ui->tab_a_video_backend->addItem("OpenNI 2", cv::CAP_OPENNI2);
+    ui->tab_a_video_backend->addItem("Firewire", cv::CAP_FIREWIRE);
+
+    //Tab A camera callbacks
+    /*connect(ui->tab_a_input, SIGNAL(currentIndexChanged(const QString &)), this, SLOT([](const QString &)
+    {
+        cameraConfigA.input = ui_static->tab_a_input.comboBoxSheetSize->itemData(index).toInt();
+        std::cout << cameraConfigA.input << std::endl;
+    }()));*/
+
+    QObject::connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &)
+    {
+        cameraConfigA.ipAddress = ui->tab_a_ip->text().toStdString();
+    });
+    QObject::connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &)
+    {
+        cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
+    });
+
+
+    /*
+    QObject::connect(&QSpinBox::valueChanged, this, [](int &)
+    {
+        //cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
+    });
+    */
+
+    //Tab B camera input options
+    ui->tab_b_input->clear();
+    ui->tab_b_input->addItem("Ficheiro", CameraConfig::FILE);
+    ui->tab_b_input->addItem("USB", CameraConfig::USB);
+    ui->tab_b_input->addItem("TCam", CameraConfig::TCAM);
+    ui->tab_b_input->addItem("IP", CameraConfig::IP);
 }
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
@@ -216,20 +261,19 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Store GUI
     ui->setupUi(this);
-
     ui_static = ui;
 
+    //Initialize GUI
     initializeGUI();
-    fillSettingsUI();
 
     //Settings Button
-    connect(ui->button_settings, &QPushButton::clicked, []()
+    QObject::connect(ui->button_settings, &QPushButton::clicked, []()
     {
         setScreen(screen == SCREEN_MAIN ? SCREEN_SETTINGS : SCREEN_MAIN);
     });
 
     //Stop and start buttons
-    connect(ui->button_stop_start, &QPushButton::clicked, [=]()
+    QObject::connect(ui->button_stop_start, &QPushButton::clicked, [=]()
     {
         if(running)
         {

@@ -36,7 +36,7 @@ public:
         cv::Mat gray;
 
         //Split color channels
-        if(config->splitColorChannels)
+        if(config->rgb_shadow)
         {
             cv::Mat bgr[3];
             cv::split(image, bgr);
