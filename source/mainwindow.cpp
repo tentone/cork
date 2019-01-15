@@ -182,6 +182,38 @@ void MainWindow::fillSettingsUI()
     ui->tab_a_threshold_tolerance->setValue(configA->tresholdTolerance);
     ui->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
     ui->tab_a_shadow->setChecked(configA->rgb_shadow);
+
+    //Camera B configuration
+    int tabBInputIndex = ui->tab_b_input->findData(cameraConfigB->input);
+    if(tabBInputIndex != -1)
+    {
+       ui->tab_b_input->setCurrentIndex(tabBInputIndex);
+    }
+
+    ui->tab_b_ip->setText(QString::fromStdString(cameraConfigB->ipAddress));
+    ui->tab_b_tcam_serial->setText(QString::fromStdString(cameraConfigB->tcamSerial));
+    ui->tab_b_usb->setValue(cameraConfigB->usbNumber);
+    ui->tab_b_width->setValue(cameraConfigB->width);
+    ui->tab_b_height->setValue(cameraConfigB->height);
+    ui->tab_b_width_original->setValue(cameraConfigB->originalWidth);
+    ui->tab_b_height_original->setValue(cameraConfigB->originalHeight);
+
+    int tabBVideoIndex = ui->tab_b_input->findData(cameraConfigB->videoBackend);
+    if(tabBVideoIndex != -1)
+    {
+       ui->tab_b_input->setCurrentIndex(tabBVideoIndex);
+    }
+
+    //Detector B configuration
+    ui->tab_b_ppmm->setValue(configB->ppmm);
+    ui->tab_b_size_min->setValue(configB->minSize);
+    ui->tab_b_size_max->setValue(configB->maxSize);
+    ui->tab_b_threshold->setValue(configB->thresholdValue);
+    ui->tab_b_canny_high->setValue(configB->highCannyThresh);
+    ui->tab_b_canny_low->setValue(configB->lowCannyThresh);
+    ui->tab_b_threshold_tolerance->setValue(configB->tresholdTolerance);
+    ui->tab_b_outside_skirt->setValue(configB->outsizeSkirt);
+    ui->tab_b_shadow->setChecked(configB->rgb_shadow);
 }
 
 void MainWindow::setScreen(int _screen)
@@ -404,6 +436,61 @@ void MainWindow::initializeGUI()
     {
         cameraConfigB->ipAddress = text.toStdString();
         std::cout << "Cork: B IP Address, " << cameraConfigB->ipAddress << std::endl;
+    });
+
+    //Tab B cork configuration
+    connect(ui->tab_b_ppmm, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->ppmm = value;
+        std::cout << "Cork: B PPI, " << configB->ppmm << std::endl;
+    });
+
+    connect(ui->tab_b_size_min, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->minSize = value;
+        std::cout << "Cork: B Min size, " << configB->minSize << std::endl;
+    });
+
+    connect(ui->tab_b_size_max, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->maxSize = value;
+        std::cout << "Cork: B Max size, " << configB->maxSize << std::endl;
+    });
+
+    connect(ui->tab_b_canny_high, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->highCannyThresh = value;
+        std::cout << "Cork: B Canny high, " << configB->highCannyThresh << std::endl;
+    });
+
+    connect(ui->tab_b_canny_low, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->lowCannyThresh = value;
+        std::cout << "Cork: B Canny low, " << configB->lowCannyThresh << std::endl;
+    });
+
+    connect(ui->tab_b_threshold, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->thresholdValue = value;
+        std::cout << "Cork: B threshold, " << configB->thresholdValue << std::endl;
+    });
+
+    connect(ui->tab_b_threshold_tolerance, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [=](const double &value)
+    {
+        configB->tresholdTolerance = value;
+        std::cout << "Cork: B threshold tolerance, " << configB->tresholdTolerance << std::endl;
+    });
+
+    connect(ui->tab_b_outside_skirt, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configB->outsizeSkirt = value;
+        std::cout << "Cork: B outside skirt, " << configB->outsizeSkirt << std::endl;
+    });
+
+    connect(ui->tab_b_shadow, static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled), [=](const bool &value)
+    {
+        configB->rgb_shadow = value;
+        std::cout << "Cork: B RGB shadow, " << configB->rgb_shadow << std::endl;
     });
 }
 
