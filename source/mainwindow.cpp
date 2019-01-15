@@ -149,55 +149,55 @@ static void updateGUI()
 
 }
 
-void fillSettingsUI()
+void MainWindow::fillSettingsUI()
 {
     //Camera A configuration
-    int tabAInputIndex = ui_static->tab_a_input->findData(cameraConfigA->input);
+    int tabAInputIndex = ui->tab_a_input->findData(cameraConfigA->input);
     if(tabAInputIndex != -1)
     {
-       ui_static->tab_a_input->setCurrentIndex(tabAInputIndex);
+       ui->tab_a_input->setCurrentIndex(tabAInputIndex);
     }
 
-    ui_static->tab_a_ip->setText(QString::fromStdString(cameraConfigA->ipAddress));
-    ui_static->tab_a_tcam_serial->setText(QString::fromStdString(cameraConfigA->tcamSerial));
-    ui_static->tab_a_usb->setValue(cameraConfigA->usbNumber);
-    ui_static->tab_a_width->setValue(cameraConfigA->width);
-    ui_static->tab_a_height->setValue(cameraConfigA->height);
-    ui_static->tab_a_width_original->setValue(cameraConfigA->originalWidth);
-    ui_static->tab_a_height_original->setValue(cameraConfigA->originalHeight);
+    ui->tab_a_ip->setText(QString::fromStdString(cameraConfigA->ipAddress));
+    ui->tab_a_tcam_serial->setText(QString::fromStdString(cameraConfigA->tcamSerial));
+    ui->tab_a_usb->setValue(cameraConfigA->usbNumber);
+    ui->tab_a_width->setValue(cameraConfigA->width);
+    ui->tab_a_height->setValue(cameraConfigA->height);
+    ui->tab_a_width_original->setValue(cameraConfigA->originalWidth);
+    ui->tab_a_height_original->setValue(cameraConfigA->originalHeight);
 
-    int tabAVideoIndex = ui_static->tab_a_input->findData(cameraConfigA->videoBackend);
+    int tabAVideoIndex = ui->tab_a_input->findData(cameraConfigA->videoBackend);
     if(tabAVideoIndex != -1)
     {
-       ui_static->tab_a_input->setCurrentIndex(tabAVideoIndex);
+       ui->tab_a_input->setCurrentIndex(tabAVideoIndex);
     }
 
     //Detector A configuration
-    ui_static->tab_a_ppi->setValue(configA->ppi);
-    ui_static->tab_a_size_min->setValue(configA->minSize);
-    ui_static->tab_a_size_max->setValue(configA->maxSize);
-    ui_static->tab_a_threshold->setValue(configA->thresholdValue);
-    ui_static->tab_a_canny_high->setValue(configA->highCannyThresh);
-    ui_static->tab_a_canny_low->setValue(configA->lowCannyThresh);
-    ui_static->tab_a_threshold_tolerance->setValue(configA->semiAutoThreshTolerance);
-    ui_static->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
-    ui_static->tab_a_shadow->setChecked(configA->rgb_shadow);
+    ui->tab_a_ppi->setValue(configA->ppi);
+    ui->tab_a_size_min->setValue(configA->minSize);
+    ui->tab_a_size_max->setValue(configA->maxSize);
+    ui->tab_a_threshold->setValue(configA->thresholdValue);
+    ui->tab_a_canny_high->setValue(configA->highCannyThresh);
+    ui->tab_a_canny_low->setValue(configA->lowCannyThresh);
+    ui->tab_a_threshold_tolerance->setValue(configA->semiAutoThreshTolerance);
+    ui->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
+    ui->tab_a_shadow->setChecked(configA->rgb_shadow);
 }
 
-void setScreen(int s)
+void MainWindow::setScreen(int _screen)
 {
-    screen = s;
+    screen = _screen;
 
     if(screen == SCREEN_MAIN)
     {
-        ui_static->group_home->show();
-        ui_static->group_settings->hide();
+        ui->group_home->show();
+        ui->group_settings->hide();
     }
     else if(screen == SCREEN_SETTINGS)
     {
         fillSettingsUI();
-        ui_static->group_settings->show();
-        ui_static->group_home->hide();
+        ui->group_settings->show();
+        ui->group_home->hide();
     }
 }
 
@@ -223,28 +223,16 @@ void MainWindow::initializeGUI()
     ui->tab_a_video_backend->addItem("Firewire", cv::CAP_FIREWIRE);
 
     //Tab A camera callbacks
-    /*connect(ui->tab_a_input, SIGNAL(currentIndexChanged(const QString &)), this, SLOT([](const QString &)
+    connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &text)
     {
-        cameraConfigA->input = ui_static->tab_a_input.comboBoxSheetSize->itemData(index).toInt();
-        std::cout << cameraConfigA->input << std::endl;
-    }()));*/
-
-
-    /*
-    QObject::connect(&QSpinBox::valueChanged, this, [](int &)
-    {
-        //cameraConfigA->tcamSerial = ui->tab_a_ip->text().toStdString();
-    });
-    */
-
-    QObject::connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &)
-    {
-        cameraConfigA->tcamSerial = ui->tab_a_ip->text().toStdString();
+        cameraConfigA->tcamSerial = text.toStdString();
+        std::cout << "Cork: A Tcam Serial, " << cameraConfigA->tcamSerial << std::endl;
     });
 
-    QObject::connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &)
+    connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &text)
     {
-        cameraConfigA->ipAddress = ui->tab_a_ip->text().toStdString();
+        cameraConfigA->ipAddress = text.toStdString();
+        std::cout << "Cork: A IP Address, " << cameraConfigA->ipAddress << std::endl;
     });
 
     //Tab B camera input options
@@ -253,6 +241,18 @@ void MainWindow::initializeGUI()
     ui->tab_b_input->addItem("USB", CameraConfig::USB);
     ui->tab_b_input->addItem("TCam", CameraConfig::TCAM);
     ui->tab_b_input->addItem("IP", CameraConfig::IP);
+
+    //Tab A camera video backend options
+    ui->tab_b_video_backend->clear();
+    ui->tab_b_video_backend->addItem("Any", cv::CAP_ANY);
+    ui->tab_b_video_backend->addItem("V4L", cv::CAP_V4L);
+    ui->tab_b_video_backend->addItem("FFMPEG", cv::CAP_FFMPEG);
+    ui->tab_b_video_backend->addItem("GStreamer", cv::CAP_GSTREAMER);
+    ui->tab_b_video_backend->addItem("XINE Engine", cv::CAP_XINE);
+    ui->tab_b_video_backend->addItem("Aravis", cv::CAP_ARAVIS);
+    ui->tab_b_video_backend->addItem("OpenNI", cv::CAP_OPENNI);
+    ui->tab_b_video_backend->addItem("OpenNI 2", cv::CAP_OPENNI2);
+    ui->tab_b_video_backend->addItem("Firewire", cv::CAP_FIREWIRE);
 }
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)
@@ -268,7 +268,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     initializeGUI();
 
     //Settings Button
-    QObject::connect(ui->button_settings, &QPushButton::clicked, []()
+    QObject::connect(ui->button_settings, &QPushButton::clicked, [=]()
     {
         setScreen(screen == SCREEN_MAIN ? SCREEN_SETTINGS : SCREEN_MAIN);
     });
@@ -320,22 +320,37 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
 void MainWindow::startCapture()
 {
-    cameraInputA->start();
-    cameraInputB->start();
-    running = true;
+    try
+    {
+        cameraInputA->start();
+        cameraInputB->start();
+        running = true;
 
-    ui_static->button_stop_start->setText("Parar");
+        ui->button_stop_start->setText("Parar");
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Cork: Error starting the camera capture" << std::endl;
+    }
+
 }
 
 void MainWindow::stopCapture()
 {
-    cameraInputA->stop();
-    cameraInputB->stop();
-    running = false;
+    try
+    {
+        cameraInputA->stop();
+        cameraInputB->stop();
+        running = false;
 
-    ui_static->button_stop_start->setText("Iniciar");
-    ui_static->camera_a->clear();
-    ui_static->camera_b->clear();
+        ui->button_stop_start->setText("Iniciar");
+        ui->camera_a->clear();
+        ui->camera_b->clear();
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Cork: Error stoping the camera capture" << std::endl;
+    }
 }
 
 void MainWindow::deleteCaptureHandlers()
@@ -363,6 +378,7 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configA, &defectA);
 
+        //TODO <MAYBE MOVE TO ANOTHER THREAD>
         if(!mat.empty())
         {
             cv::Mat resized, color;
@@ -370,8 +386,6 @@ void MainWindow::createCaptureHandlers()
             cv::resize(color, resized, cv::Size(ui_static->camera_a->width(), ui_static->camera_a->height()), 0, 0, cv::INTER_CUBIC);
             ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
-
-        //updateGUI();
     };
 
     cameraInputB = new CameraInput(cameraConfigB);
@@ -379,6 +393,7 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configB, &defectB);
 
+        //TODO <MAYBE MOVE TO ANOTHER THREAD>
         if(!mat.empty())
         {
             cv::Mat resized, color;
@@ -387,6 +402,7 @@ void MainWindow::createCaptureHandlers()
             ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
 
+        //TODO <MAYBE MOVE TO ANOTHER THREAD>
         updateGUI();
     };
 }

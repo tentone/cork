@@ -162,9 +162,9 @@ public:
                 }
 
                 //Cicle position
-                cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
+                //cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
                 cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
-                cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
+                //cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
             #endif
 
             *defectOutput = defect;

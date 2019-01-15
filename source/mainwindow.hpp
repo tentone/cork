@@ -68,6 +68,10 @@ public:
      */
     void initializeGUI();
 
+    void fillSettingsUI();
+
+    void setScreen(int s);
+
     /**
      * QT window object.
      */
