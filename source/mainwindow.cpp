@@ -223,13 +223,55 @@ void MainWindow::initializeGUI()
     ui->tab_a_video_backend->addItem("Firewire", cv::CAP_FIREWIRE);
 
     //Tab A camera callbacks
-    connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &text)
+    connect(ui->tab_a_input, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
+    {
+        cameraConfigA->input = ui->tab_a_input->itemData(value).toInt();
+        std::cout << "Cork: A USB, " << cameraConfigA->input << std::endl;
+    });
+
+    connect(ui->tab_a_video_backend, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
+    {
+        cameraConfigA->videoBackend = ui->tab_a_video_backend->itemData(value).toInt();
+        std::cout << "Cork: A backend, " << cameraConfigA->videoBackend << std::endl;
+    });
+
+    connect(ui->tab_a_usb, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigA->usbNumber = value;
+        std::cout << "Cork: A USB, " << cameraConfigA->usbNumber << std::endl;
+    });
+
+    connect(ui->tab_a_width, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigA->width = value;
+        std::cout << "Cork: A Width, " << cameraConfigA->width << std::endl;
+    });
+
+    connect(ui->tab_a_height, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigA->height = value;
+        std::cout << "Cork: A Height, " << cameraConfigA->height << std::endl;
+    });
+
+    connect(ui->tab_a_width_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigA->originalWidth = value;
+        std::cout << "Cork: A Original Width, " << cameraConfigA->originalWidth << std::endl;
+    });
+
+    connect(ui->tab_a_height_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigA->originalHeight = value;
+        std::cout << "Cork: A Original Height, " << cameraConfigA->originalHeight << std::endl;
+    });
+
+    connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigA->tcamSerial = text.toStdString();
         std::cout << "Cork: A Tcam Serial, " << cameraConfigA->tcamSerial << std::endl;
     });
 
-    connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &text)
+    connect(ui->tab_a_ip, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigA->ipAddress = text.toStdString();
         std::cout << "Cork: A IP Address, " << cameraConfigA->ipAddress << std::endl;
