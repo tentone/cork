@@ -562,16 +562,24 @@ void MainWindow::startCapture()
     try
     {
         cameraInputA->start();
-        cameraInputB->start();
-        running = true;
-
-        ui->button_stop_start->setText("Parar");
     }
-    catch (const std::exception& e)
+    catch (const std::exception&)
     {
-        std::cout << "Cork: Error starting the camera capture" << std::endl;
+        std::cout << "Cork: Error starting the camera A capture" << std::endl;
     }
 
+    try
+    {
+        cameraInputB->start();
+    }
+    catch (const std::exception&)
+    {
+        std::cout << "Cork: Error starting the camera B capture" << std::endl;
+    }
+
+    running = true;
+
+    ui->button_stop_start->setText("Parar");
 }
 
 void MainWindow::stopCapture()
@@ -579,17 +587,30 @@ void MainWindow::stopCapture()
     try
     {
         cameraInputA->stop();
-        cameraInputB->stop();
-        running = false;
+    }
+    catch (const std::exception&)
+    {
+        std::cout << "Cork: Error stoping the camera A capture" << std::endl;
+    }
 
-        ui->button_stop_start->setText("Iniciar");
+    try
+    {
+        cameraInputB->stop();
+    }
+    catch (const std::exception&)
+    {
+        std::cout << "Cork: Error stoping the camera B capture" << std::endl;
+    }
+
+    running = false;
+
+    ui->button_stop_start->setText("Iniciar");
+
+    QTimer::singleShot(100, this, [=]()
+    {
         ui->camera_a->clear();
         ui->camera_b->clear();
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << "Cork: Error stoping the camera capture" << std::endl;
-    }
+    });
 }
 
 void MainWindow::deleteCaptureHandlers()

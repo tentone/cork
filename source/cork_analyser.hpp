@@ -41,8 +41,8 @@ public:
             cv::Mat bgra[4];
             cv::split(image, bgra);
 
-            //Mix green and red channel
-            cv::addWeighted(bgra[1], 0.5, bgra[2], 0.5, 0.0, gray);
+            //Mix green 60% and red 40% channels
+            cv::addWeighted(bgra[1], 0.6, bgra[2], 0.4, 0.0, gray);
         }
         //Convert image to grayscale
         else
