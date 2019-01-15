@@ -22,8 +22,14 @@
 #include "camera_config.hpp"
 #include "image_status.hpp"
 
+//If true print performance measurements into the terminal
 #define MEASURE_PERFORMANCE false
+
+//If set true uses self created processing threads for camera input
 #define USE_THREAD true
+
+//If set true it skips the next frames until the actual frame is processed
+#define USE_FRAME_SKIP true
 
 /**
  * Handles camera input, uses a configuration object to select the right camera configuration.
@@ -81,6 +87,13 @@ public:
     int fileStart = 0;
     int fileCount = 20;
 
+#if USE_FRAME_SKIP
+    /**
+     * Indicates if a frame is being processed.
+     */
+    bool processingFrame = false;
+#endif
+
     /**
      * Callback function used to process captured frame.
      */
@@ -121,6 +134,14 @@ public:
              */
             cam->set_new_frame_callback([&] (GstAppSink *appsink, gpointer data) -> GstFlowReturn
             {
+                #if USE_FRAME_SKIP
+                    if(processingFrame)
+                    {
+                        return GST_FLOW_OK;
+                    }
+                    processingFrame = true;
+                #endif
+
                 #if MEASURE_PERFORMANCE
                     int64 init = cv::getTickCount();
                 #endif
@@ -186,6 +207,10 @@ public:
                     int64 end = cv::getTickCount();
                     double secs = (end - init) / cv::getTickFrequency();
                     std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+                #endif
+
+                #if USE_FRAME_SKIP
+                    processingFrame = false;
                 #endif
 
                 //Set our flag of new image to true, so our main thread knows about a new image.

@@ -94,9 +94,9 @@ public:
     {
         input = CameraConfig::TCAM;
         usbNumber = 0;
-        tcamSerial = "46810320";
-        ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
-        width = 768; //TCam uses 768
+        tcamSerial = "";
+        ipAddress = "";
+        width = 640;
         height = 480;
         originalWidth = 1920;
         originalHeight = 1200;

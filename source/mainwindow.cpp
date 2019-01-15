@@ -229,15 +229,6 @@ void MainWindow::initializeGUI()
         std::cout << cameraConfigA.input << std::endl;
     }()));*/
 
-    QObject::connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &)
-    {
-        cameraConfigA.ipAddress = ui->tab_a_ip->text().toStdString();
-    });
-    QObject::connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &)
-    {
-        cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
-    });
-
 
     /*
     QObject::connect(&QSpinBox::valueChanged, this, [](int &)
@@ -245,6 +236,16 @@ void MainWindow::initializeGUI()
         //cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
     });
     */
+
+    QObject::connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &)
+    {
+        cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
+    });
+
+    QObject::connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &)
+    {
+        cameraConfigA.ipAddress = ui->tab_a_ip->text().toStdString();
+    });
 
     //Tab B camera input options
     ui->tab_b_input->clear();
@@ -293,21 +294,12 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigA.input = CameraConfig::TCAM;
     cameraConfigA.tcamSerial = "46810320";
 
-    /*
-    cameraConfigA.width = 640;
-    cameraConfigA.height = 480;
-    cameraConfigA.input = CameraConfig::USB;
-    cameraConfigA.videoBackend = cv::CAP_ANY;
-    cameraConfigA.usbNumber = 0;
-    */
-
     //Camera B configuration
     cameraConfigB.width = 640;
     cameraConfigB.height = 480;
     cameraConfigB.input = CameraConfig::USB;
     cameraConfigB.videoBackend = cv::CAP_ANY;
-    cameraConfigB.usbNumber = 1;
-    //cameraConfigB.ipAddress = "rtsp://admin:123456@192.168.0.10:554/live/ch0";
+    cameraConfigB.usbNumber = 0;
 
     //Set main screen
     setScreen(SCREEN_MAIN);

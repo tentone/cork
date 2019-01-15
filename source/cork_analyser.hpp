@@ -142,8 +142,7 @@ public:
             //std::cout << "Defect: " << defect << "%" << std::endl;
 
             //Draw debug information
-            if(DEBUG_DEFECTS)
-            {
+            #if DEBUG_DEFECTS
                 int channels = image.channels();
 
                 //Draw defect
@@ -166,7 +165,7 @@ public:
                 cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
                 cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
                 cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
-            }
+            #endif
 
             *defectOutput = defect;
             return;
