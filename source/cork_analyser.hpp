@@ -35,13 +35,14 @@ public:
 
         cv::Mat gray;
 
+        //TODO <IMPROVE THIS SOLUTION>
         //Split color channels
         if(config->rgb_shadow)
         {
             cv::Mat bgr[3];
             cv::split(image, bgr);
 
-            //Use the gree channel
+            //Use the green channel
             gray = bgr[1];
         }
         //Convert image to grayscale
@@ -85,6 +86,7 @@ public:
                 cv::medianBlur(roi, roi, config->blurMaskKSize);
             }
 
+            /*
             if(config->automaticThresh)
             {
                 if(config->automaticUseOtsuThresh)
@@ -100,10 +102,12 @@ public:
                     cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
                 }
             }
-            else if(config->semiAutoThresh)
+            */
+
+            if(config->semiAutoThresh)
             {
                 double thresh = Threshold::otsuMask(roi, mask);
-                thresh = (thresh * config->semiAutoThreshTolerance) + (config->thresholdValue * (1 - config->semiAutoThreshTolerance));
+                thresh = (thresh * config->tresholdTolerance) + (config->thresholdValue * (1 - config->tresholdTolerance));
                 //std::cout << "Semi Automatic threshold: " << thresh << std::endl;
                 cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
             }

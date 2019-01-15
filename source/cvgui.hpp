@@ -109,7 +109,7 @@ public:
         if(config->semiAutoThresh)
         {
             cvui::space(12);
-            cvgui::trackbar("Tolerance", 200, &config->semiAutoThreshTolerance, 0.0, 1.0, 0.01);
+            cvgui::trackbar("Tolerance", 200, &config->tresholdTolerance, 0.0, 1.0, 0.01);
         }
 
         if(config->automaticThresh && config->automaticUseHistogramThresh)

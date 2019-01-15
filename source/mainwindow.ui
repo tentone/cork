@@ -536,7 +536,7 @@
         <number>-1</number>
        </property>
       </widget>
-      <widget class="QLabel" name="tab_a_label_ppi">
+      <widget class="QLabel" name="tab_a_label_ppmm">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -546,10 +546,10 @@
         </rect>
        </property>
        <property name="text">
-        <string>PPI</string>
+        <string>PP mm</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="tab_a_ppi">
+      <widget class="QSpinBox" name="tab_a_ppmm">
        <property name="geometry">
         <rect>
          <x>140</x>

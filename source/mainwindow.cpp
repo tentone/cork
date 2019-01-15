@@ -173,13 +173,13 @@ void MainWindow::fillSettingsUI()
     }
 
     //Detector A configuration
-    ui->tab_a_ppi->setValue(configA->ppi);
+    ui->tab_a_ppmm->setValue(configA->ppmm);
     ui->tab_a_size_min->setValue(configA->minSize);
     ui->tab_a_size_max->setValue(configA->maxSize);
     ui->tab_a_threshold->setValue(configA->thresholdValue);
     ui->tab_a_canny_high->setValue(configA->highCannyThresh);
     ui->tab_a_canny_low->setValue(configA->lowCannyThresh);
-    ui->tab_a_threshold_tolerance->setValue(configA->semiAutoThreshTolerance);
+    ui->tab_a_threshold_tolerance->setValue(configA->tresholdTolerance);
     ui->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
     ui->tab_a_shadow->setChecked(configA->rgb_shadow);
 }
@@ -277,6 +277,61 @@ void MainWindow::initializeGUI()
         std::cout << "Cork: A IP Address, " << cameraConfigA->ipAddress << std::endl;
     });
 
+    //Tab A cork configuration
+    connect(ui->tab_a_ppmm, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->ppmm = value;
+        std::cout << "Cork: A PPI, " << configA->ppmm << std::endl;
+    });
+
+    connect(ui->tab_a_size_min, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->minSize = value;
+        std::cout << "Cork: A Min size, " << configA->minSize << std::endl;
+    });
+
+    connect(ui->tab_a_size_max, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->maxSize = value;
+        std::cout << "Cork: A Max size, " << configA->maxSize << std::endl;
+    });
+
+    connect(ui->tab_a_canny_high, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->highCannyThresh = value;
+        std::cout << "Cork: A Canny high, " << configA->highCannyThresh << std::endl;
+    });
+
+    connect(ui->tab_a_canny_low, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->lowCannyThresh = value;
+        std::cout << "Cork: A Canny low, " << configA->lowCannyThresh << std::endl;
+    });
+
+    connect(ui->tab_a_threshold, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->thresholdValue = value;
+        std::cout << "Cork: A threshold, " << configA->thresholdValue << std::endl;
+    });
+
+    connect(ui->tab_a_threshold_tolerance, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [=](const double &value)
+    {
+        configA->tresholdTolerance = value;
+        std::cout << "Cork: A threshold tolerance, " << configA->tresholdTolerance << std::endl;
+    });
+
+    connect(ui->tab_a_outside_skirt, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        configA->outsizeSkirt = value;
+        std::cout << "Cork: A outside skirt, " << configA->outsizeSkirt << std::endl;
+    });
+
+    connect(ui->tab_a_shadow, static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled), [=](const bool &value)
+    {
+        configA->rgb_shadow = value;
+        std::cout << "Cork: A RGB shadow, " << configA->rgb_shadow << std::endl;
+    });
+
     //Tab B camera input options
     ui->tab_b_input->clear();
     ui->tab_b_input->addItem("Ficheiro", CameraConfig::FILE);
@@ -295,6 +350,61 @@ void MainWindow::initializeGUI()
     ui->tab_b_video_backend->addItem("OpenNI", cv::CAP_OPENNI);
     ui->tab_b_video_backend->addItem("OpenNI 2", cv::CAP_OPENNI2);
     ui->tab_b_video_backend->addItem("Firewire", cv::CAP_FIREWIRE);
+
+    //Tab B camera callbacks
+    connect(ui->tab_b_input, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
+    {
+        cameraConfigB->input = ui->tab_b_input->itemData(value).toInt();
+        std::cout << "Cork: B USB, " << cameraConfigB->input << std::endl;
+    });
+
+    connect(ui->tab_b_video_backend, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
+    {
+        cameraConfigB->videoBackend = ui->tab_b_video_backend->itemData(value).toInt();
+        std::cout << "Cork: B backend, " << cameraConfigB->videoBackend << std::endl;
+    });
+
+    connect(ui->tab_b_usb, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigB->usbNumber = value;
+        std::cout << "Cork: B USB, " << cameraConfigB->usbNumber << std::endl;
+    });
+
+    connect(ui->tab_b_width, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigB->width = value;
+        std::cout << "Cork: B Width, " << cameraConfigB->width << std::endl;
+    });
+
+    connect(ui->tab_b_height, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigB->height = value;
+        std::cout << "Cork: B Height, " << cameraConfigB->height << std::endl;
+    });
+
+    connect(ui->tab_b_width_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigB->originalWidth = value;
+        std::cout << "Cork: B Original Width, " << cameraConfigB->originalWidth << std::endl;
+    });
+
+    connect(ui->tab_b_height_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
+    {
+        cameraConfigB->originalHeight = value;
+        std::cout << "Cork: B Original Height, " << cameraConfigB->originalHeight << std::endl;
+    });
+
+    connect(ui->tab_b_tcam_serial, &QLineEdit::textChanged, [=](const QString &text)
+    {
+        cameraConfigB->tcamSerial = text.toStdString();
+        std::cout << "Cork: B Tcam Serial, " << cameraConfigB->tcamSerial << std::endl;
+    });
+
+    connect(ui->tab_b_ip, &QLineEdit::textChanged, [=](const QString &text)
+    {
+        cameraConfigB->ipAddress = text.toStdString();
+        std::cout << "Cork: B IP Address, " << cameraConfigB->ipAddress << std::endl;
+    });
 }
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWindow)

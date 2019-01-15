@@ -11,7 +11,7 @@ public:
 
     //Pixels per inch
     //TODO <USE PPI ON CALCULATIONS>
-    int ppi = 100;
+    int ppmm = 100;
 
     //Color analysis
     //TODO <ACTUALLY USE THIS>
@@ -26,7 +26,7 @@ public:
 
     //Semi auto threshold
     bool semiAutoThresh = true;
-    double semiAutoThreshTolerance = 0.4;
+    double tresholdTolerance = 0.4;
 
     //Threshold value
     int thresholdValue = 60;
@@ -36,15 +36,4 @@ public:
     int blurGlobalKSize = 3;
     bool blurMask = false;
     int blurMaskKSize = 3;
-
-    //Automatic threshold
-    bool automaticThresh = false;
-    bool automaticUseOtsuThresh = false;
-    bool automaticUseHistogramThresh = false;
-
-    //Tentone threshold parameters
-    int histThreshMinDiff = 15;
-    int histThreshNeighborhood = 15;
-    int histThreshColorFilter = 15;
-    double histThreshBalance = 0.5;
 };
