@@ -222,14 +222,14 @@ void MainWindow::setScreen(int _screen)
 
     if(screen == SCREEN_MAIN)
     {
-        ui->group_home->show();
+        //ui->group_home->show();
         ui->group_settings->hide();
     }
     else if(screen == SCREEN_SETTINGS)
     {
         fillSettingsUI();
         ui->group_settings->show();
-        ui->group_home->hide();
+        //ui->group_home->hide();
     }
 }
 

@@ -35,15 +35,14 @@ public:
 
         cv::Mat gray;
 
-        //TODO <IMPROVE THIS SOLUTION>
         //Split color channels
         if(config->rgb_shadow)
         {
-            cv::Mat bgr[3];
-            cv::split(image, bgr);
+            cv::Mat bgra[4];
+            cv::split(image, bgra);
 
-            //Use the green channel
-            gray = bgr[1];
+            //Mix green and red channel
+            cv::addWeighted(bgra[1], 0.5, bgra[2], 0.5, 0.0, gray);
         }
         //Convert image to grayscale
         else

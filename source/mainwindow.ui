@@ -42,9 +42,9 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>390</x>
        <y>10</y>
-       <width>781</width>
+       <width>401</width>
        <height>581</height>
       </rect>
      </property>
@@ -86,7 +86,7 @@
       <widget class="QComboBox" name="tab_a_input">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>40</y>
          <width>161</width>
          <height>25</height>
@@ -112,7 +112,7 @@
       <widget class="QSpinBox" name="tab_a_usb">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>70</y>
          <width>81</width>
          <height>26</height>
@@ -135,7 +135,7 @@
       <widget class="QLineEdit" name="tab_a_tcam_serial">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>100</y>
          <width>101</width>
          <height>25</height>
@@ -148,9 +148,9 @@
       <widget class="QLineEdit" name="tab_a_ip">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>130</y>
-         <width>351</width>
+         <width>261</width>
          <height>25</height>
         </rect>
        </property>
@@ -187,7 +187,7 @@
       <widget class="QSpinBox" name="tab_a_width">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>160</y>
          <width>81</width>
          <height>26</height>
@@ -216,7 +216,7 @@
       <widget class="QSpinBox" name="tab_a_height">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>190</y>
          <width>81</width>
          <height>26</height>
@@ -234,7 +234,7 @@
         <rect>
          <x>20</x>
          <y>290</y>
-         <width>731</width>
+         <width>361</width>
          <height>16</height>
         </rect>
        </property>
@@ -375,27 +375,27 @@
       <widget class="QLabel" name="tab_a_label_width_original">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>210</x>
          <y>160</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Largura Original</string>
+        <string>L. Original</string>
        </property>
       </widget>
       <widget class="QLabel" name="tab_a_label_heigh_original">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>210</x>
          <y>190</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Altura Original</string>
+        <string>A. Original</string>
        </property>
       </widget>
       <widget class="QLabel" name="tab_a_label_threshold">
@@ -459,7 +459,7 @@
       <widget class="QSpinBox" name="tab_a_width_original">
        <property name="geometry">
         <rect>
-         <x>390</x>
+         <x>300</x>
          <y>160</y>
          <width>81</width>
          <height>26</height>
@@ -478,7 +478,7 @@
       <widget class="QSpinBox" name="tab_a_height_original">
        <property name="geometry">
         <rect>
-         <x>390</x>
+         <x>300</x>
          <y>190</y>
          <width>81</width>
          <height>26</height>
@@ -494,8 +494,8 @@
       <widget class="QCheckBox" name="tab_a_shadow">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>340</y>
+         <x>20</x>
+         <y>520</y>
          <width>261</width>
          <height>23</height>
         </rect>
@@ -526,7 +526,7 @@
       <widget class="QComboBox" name="tab_a_video_backend">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>220</y>
          <width>161</width>
          <height>25</height>
@@ -585,7 +585,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Ignorar Exterior</string>
+        <string>Igno. Exterior</string>
        </property>
       </widget>
      </widget>
@@ -622,7 +622,7 @@
       <widget class="QSpinBox" name="tab_b_usb">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>70</y>
          <width>81</width>
          <height>26</height>
@@ -632,9 +632,9 @@
       <widget class="QLineEdit" name="tab_b_ip">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>130</y>
-         <width>351</width>
+         <width>261</width>
          <height>25</height>
         </rect>
        </property>
@@ -645,7 +645,7 @@
       <widget class="QSpinBox" name="tab_b_width_original">
        <property name="geometry">
         <rect>
-         <x>390</x>
+         <x>300</x>
          <y>160</y>
          <width>81</width>
          <height>26</height>
@@ -677,20 +677,20 @@
       <widget class="QLabel" name="tab_b_label_heigh_original">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>210</x>
          <y>190</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Altura Original</string>
+        <string>A. Original</string>
        </property>
       </widget>
       <widget class="QSpinBox" name="tab_b_height">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>190</y>
          <width>81</width>
          <height>26</height>
@@ -719,7 +719,7 @@
       <widget class="QComboBox" name="tab_b_input">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>40</y>
          <width>161</width>
          <height>25</height>
@@ -732,7 +732,7 @@
       <widget class="QSpinBox" name="tab_b_height_original">
        <property name="geometry">
         <rect>
-         <x>390</x>
+         <x>300</x>
          <y>190</y>
          <width>81</width>
          <height>26</height>
@@ -748,14 +748,14 @@
       <widget class="QLabel" name="tab_b_label_width_original">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>210</x>
          <y>160</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Largura Original</string>
+        <string>L. Original</string>
        </property>
       </widget>
       <widget class="QLabel" name="tab_b_label_width">
@@ -787,7 +787,7 @@
       <widget class="QLineEdit" name="tab_b_tcam_serial">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>100</y>
          <width>101</width>
          <height>25</height>
@@ -813,7 +813,7 @@
       <widget class="QComboBox" name="tab_b_video_backend">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>220</y>
          <width>161</width>
          <height>25</height>
@@ -839,7 +839,7 @@
       <widget class="QSpinBox" name="tab_b_width">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>120</x>
          <y>160</y>
          <width>81</width>
          <height>26</height>
@@ -901,7 +901,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Ignorar Exterior</string>
+        <string>Igno. Exterior</string>
        </property>
       </widget>
       <widget class="QSpinBox" name="tab_b_canny_high">
@@ -985,8 +985,8 @@
       <widget class="QCheckBox" name="tab_b_shadow">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>340</y>
+         <x>20</x>
+         <y>520</y>
          <width>261</width>
          <height>23</height>
         </rect>
@@ -1103,7 +1103,7 @@
         <rect>
          <x>20</x>
          <y>290</y>
-         <width>731</width>
+         <width>361</width>
          <height>16</height>
         </rect>
        </property>
