@@ -40,7 +40,7 @@ public:
     /**
      * Obligatory camera configuration object.
      */
-    CameraConfig cameraConfig;
+    CameraConfig *cameraConfig;
 
     /**
      * Last captured frame status.
@@ -102,7 +102,7 @@ public:
     /**
      * Constructor from camera configuration object.
      */
-    CameraInput(CameraConfig _cameraConfig)
+    CameraInput(CameraConfig *_cameraConfig)
     {
         cameraConfig = _cameraConfig;
     }
@@ -120,12 +120,12 @@ public:
         running = true;
         status.counter = 0;
 
-        if(cameraConfig.input == CameraConfig::TCAM)
+        if(cameraConfig->input == CameraConfig::TCAM)
         {
-            status.frame.create(cameraConfig.originalHeight, cameraConfig.originalWidth, CV_8UC(4));
+            status.frame.create(cameraConfig->originalHeight, cameraConfig->originalWidth, CV_8UC(4));
 
-            cam = new gsttcam::TcamCamera(cameraConfig.tcamSerial);
-            cam->set_capture_format("BGRx", gsttcam::FrameSize{cameraConfig.originalWidth, cameraConfig.originalHeight}, gsttcam::FrameRate{50, 1});
+            cam = new gsttcam::TcamCamera(cameraConfig->tcamSerial);
+            cam->set_capture_format("BGRx", gsttcam::FrameSize{cameraConfig->originalWidth, cameraConfig->originalHeight}, gsttcam::FrameRate{50, 1});
 
             /*
              * Callback called for new images by the internal appsink.
@@ -177,16 +177,16 @@ public:
                         //Create a cv::Mat, copy image data into that and save the image.
                         pdata->frame.data = info.data;
 
-                        resize(pdata->frame, pdata->resized, cv::Size(cameraConfig.width, cameraConfig.height));
+                        resize(pdata->frame, pdata->resized, cv::Size(cameraConfig->width, cameraConfig->height));
 
                         /*
                         //Crop image to match aspect ratio
                         int targetWidth = 640;
                         cv::Rect crop;
-                        crop.x = (cameraConfig.width - targetWidth) / 2;
+                        crop.x = (cameraConfig->width - targetWidth) / 2;
                         crop.y = 0;
                         crop.width = targetWidth;
-                        crop.height = cameraConfig.height;
+                        crop.height = cameraConfig->height;
                         pdata->resized = pdata->resized(crop);
                         */
 
@@ -234,29 +234,29 @@ public:
             std::shared_ptr<gsttcam::Property> brightness = cam->get_property("Brightness");
             brightness->set(*cam, 50);
         }
-        else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+        else if(cameraConfig->input == CameraConfig::USB || cameraConfig->input == CameraConfig::IP)
         {
             cap = new cv::VideoCapture();
 
-            if(cameraConfig.input == CameraConfig::USB)
+            if(cameraConfig->input == CameraConfig::USB)
             {
-                if(!cap->open(cameraConfig.usbNumber, cameraConfig.videoBackend))
+                if(!cap->open(cameraConfig->usbNumber, cameraConfig->videoBackend))
                 {
                     std::cout << "Cork: Webcam not available." << std::endl;
                     return;
                 }
 
-                cap->set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig.height);
-                cap->set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig.width);
+                cap->set(cv::CAP_PROP_FRAME_HEIGHT, cameraConfig->height);
+                cap->set(cv::CAP_PROP_FRAME_WIDTH, cameraConfig->width);
 
-                if(cap->get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig.height || cap->get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig.width)
+                if(cap->get(cv::CAP_PROP_FRAME_HEIGHT) != cameraConfig->height || cap->get(cv::CAP_PROP_FRAME_WIDTH) != cameraConfig->width)
                 {
                     std::cout << "Cork: Unable to set webcam resolution." << std::endl;
                 }
             }
-            else if(cameraConfig.input == CameraConfig::IP)
+            else if(cameraConfig->input == CameraConfig::IP)
             {
-                if(!cap->open(cameraConfig.ipAddress))
+                if(!cap->open(cameraConfig->ipAddress))
                 {
                     std::cout << "Cork: IP Camera not available." << std::endl;
                 }
@@ -283,7 +283,7 @@ public:
                 thread->start();
             #endif
         }
-        else if(cameraConfig.input == CameraConfig::FILE)
+        else if(cameraConfig->input == CameraConfig::FILE)
         {
             status.frame = readImageFile(fileNumber);
             frameCallback(status.frame);
@@ -296,7 +296,7 @@ public:
     void update()
     {
         #if !USE_THREAD
-            if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+            if(cameraConfig->input == CameraConfig::USB || cameraConfig->input == CameraConfig::IP)
             {
                 if(cap->isOpened())
                 {
@@ -319,12 +319,12 @@ public:
 
         running = false;
 
-        if(cameraConfig.input == CameraConfig::TCAM)
+        if(cameraConfig->input == CameraConfig::TCAM)
         {
             cam->stop();
             delete cam;
         }
-        else if(cameraConfig.input == CameraConfig::USB || cameraConfig.input == CameraConfig::IP)
+        else if(cameraConfig->input == CameraConfig::USB || cameraConfig->input == CameraConfig::IP)
         {
             cap->release();
             delete cap;
@@ -336,7 +336,7 @@ public:
      */
     void nextFile()
     {
-        if(cameraConfig.input == CameraConfig::FILE)
+        if(cameraConfig->input == CameraConfig::FILE)
         {
             status.frame = readImageFile(++fileNumber);
             std::cout << "Cork: Next image, " << fileNumber << std::endl;
@@ -349,7 +349,7 @@ public:
      */
     void previousFile()
     {
-        if(cameraConfig.input == CameraConfig::FILE)
+        if(cameraConfig->input == CameraConfig::FILE)
         {
             status.frame = readImageFile(--fileNumber);
             std::cout << "Cork: Previous image, " << fileNumber << std::endl;

@@ -38,22 +38,22 @@ static double defectB = -1.0;
 /**
  * Camera A configuration object.
  */
-static CameraConfig cameraConfigA;
+static CameraConfig *cameraConfigA;
 
 /**
  * Camera B configuration object.
  */
-static CameraConfig cameraConfigB;
+static CameraConfig *cameraConfigB;
 
 /**
  * Camera A cork detection configuration.
  */
-static CorkConfig configA;
+static CorkConfig *configA;
 
 /**
  * Camera B cork detection configuration.
  */
-static CorkConfig configB;
+static CorkConfig *configB;
 
 static int corkCounter = 0;
 static int corkRotated = 0;
@@ -152,36 +152,36 @@ static void updateGUI()
 void fillSettingsUI()
 {
     //Camera A configuration
-    int tabAInputIndex = ui_static->tab_a_input->findData(cameraConfigA.input);
+    int tabAInputIndex = ui_static->tab_a_input->findData(cameraConfigA->input);
     if(tabAInputIndex != -1)
     {
        ui_static->tab_a_input->setCurrentIndex(tabAInputIndex);
     }
 
-    ui_static->tab_a_ip->setText(QString::fromStdString(cameraConfigA.ipAddress));
-    ui_static->tab_a_tcam_serial->setText(QString::fromStdString(cameraConfigA.tcamSerial));
-    ui_static->tab_a_usb->setValue(cameraConfigA.usbNumber);
-    ui_static->tab_a_width->setValue(cameraConfigA.width);
-    ui_static->tab_a_height->setValue(cameraConfigA.height);
-    ui_static->tab_a_width_original->setValue(cameraConfigA.originalWidth);
-    ui_static->tab_a_height_original->setValue(cameraConfigA.originalHeight);
+    ui_static->tab_a_ip->setText(QString::fromStdString(cameraConfigA->ipAddress));
+    ui_static->tab_a_tcam_serial->setText(QString::fromStdString(cameraConfigA->tcamSerial));
+    ui_static->tab_a_usb->setValue(cameraConfigA->usbNumber);
+    ui_static->tab_a_width->setValue(cameraConfigA->width);
+    ui_static->tab_a_height->setValue(cameraConfigA->height);
+    ui_static->tab_a_width_original->setValue(cameraConfigA->originalWidth);
+    ui_static->tab_a_height_original->setValue(cameraConfigA->originalHeight);
 
-    int tabAVideoIndex = ui_static->tab_a_input->findData(cameraConfigA.videoBackend);
+    int tabAVideoIndex = ui_static->tab_a_input->findData(cameraConfigA->videoBackend);
     if(tabAVideoIndex != -1)
     {
        ui_static->tab_a_input->setCurrentIndex(tabAVideoIndex);
     }
 
     //Detector A configuration
-    ui_static->tab_a_ppi->setValue(configA.ppi);
-    ui_static->tab_a_size_min->setValue(configA.minSize);
-    ui_static->tab_a_size_max->setValue(configA.maxSize);
-    ui_static->tab_a_threshold->setValue(configA.thresholdValue);
-    ui_static->tab_a_canny_high->setValue(configA.highCannyThresh);
-    ui_static->tab_a_canny_low->setValue(configA.lowCannyThresh);
-    ui_static->tab_a_threshold_tolerance->setValue(configA.semiAutoThreshTolerance);
-    ui_static->tab_a_outside_skirt->setValue(configA.outsizeSkirt);
-    ui_static->tab_a_shadow->setChecked(configA.rgb_shadow);
+    ui_static->tab_a_ppi->setValue(configA->ppi);
+    ui_static->tab_a_size_min->setValue(configA->minSize);
+    ui_static->tab_a_size_max->setValue(configA->maxSize);
+    ui_static->tab_a_threshold->setValue(configA->thresholdValue);
+    ui_static->tab_a_canny_high->setValue(configA->highCannyThresh);
+    ui_static->tab_a_canny_low->setValue(configA->lowCannyThresh);
+    ui_static->tab_a_threshold_tolerance->setValue(configA->semiAutoThreshTolerance);
+    ui_static->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
+    ui_static->tab_a_shadow->setChecked(configA->rgb_shadow);
 }
 
 void setScreen(int s)
@@ -225,26 +225,26 @@ void MainWindow::initializeGUI()
     //Tab A camera callbacks
     /*connect(ui->tab_a_input, SIGNAL(currentIndexChanged(const QString &)), this, SLOT([](const QString &)
     {
-        cameraConfigA.input = ui_static->tab_a_input.comboBoxSheetSize->itemData(index).toInt();
-        std::cout << cameraConfigA.input << std::endl;
+        cameraConfigA->input = ui_static->tab_a_input.comboBoxSheetSize->itemData(index).toInt();
+        std::cout << cameraConfigA->input << std::endl;
     }()));*/
 
 
     /*
     QObject::connect(&QSpinBox::valueChanged, this, [](int &)
     {
-        //cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
+        //cameraConfigA->tcamSerial = ui->tab_a_ip->text().toStdString();
     });
     */
 
     QObject::connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, this, [=](const QString &)
     {
-        cameraConfigA.tcamSerial = ui->tab_a_ip->text().toStdString();
+        cameraConfigA->tcamSerial = ui->tab_a_ip->text().toStdString();
     });
 
     QObject::connect(ui->tab_a_ip, &QLineEdit::textChanged, this, [=](const QString &)
     {
-        cameraConfigA.ipAddress = ui->tab_a_ip->text().toStdString();
+        cameraConfigA->ipAddress = ui->tab_a_ip->text().toStdString();
     });
 
     //Tab B camera input options
@@ -286,20 +286,28 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         }
     });
 
+    //Cork A configuration
+    configA = new CorkConfig();
+
     //Camera A configuration
-    cameraConfigA.originalWidth = 1920;
-    cameraConfigA.originalHeight = 1200;
-    cameraConfigA.width = 768;
-    cameraConfigA.height = 480;
-    cameraConfigA.input = CameraConfig::TCAM;
-    cameraConfigA.tcamSerial = "46810320";
+    cameraConfigA = new CameraConfig();
+    cameraConfigA->originalWidth = 1920;
+    cameraConfigA->originalHeight = 1200;
+    cameraConfigA->width = 768;
+    cameraConfigA->height = 480;
+    cameraConfigA->input = CameraConfig::TCAM;
+    cameraConfigA->tcamSerial = "46810320";
+
+    //Cork B configuration
+    configB = new CorkConfig();
 
     //Camera B configuration
-    cameraConfigB.width = 640;
-    cameraConfigB.height = 480;
-    cameraConfigB.input = CameraConfig::USB;
-    cameraConfigB.videoBackend = cv::CAP_ANY;
-    cameraConfigB.usbNumber = 0;
+    cameraConfigB = new CameraConfig();
+    cameraConfigB->width = 640;
+    cameraConfigB->height = 480;
+    cameraConfigB->input = CameraConfig::USB;
+    cameraConfigB->videoBackend = cv::CAP_ANY;
+    cameraConfigB->usbNumber = 0;
 
     //Set main screen
     setScreen(SCREEN_MAIN);
@@ -314,8 +322,9 @@ void MainWindow::startCapture()
 {
     cameraInputA->start();
     cameraInputB->start();
-    ui_static->button_stop_start->setText("Parar");
     running = true;
+
+    ui_static->button_stop_start->setText("Parar");
 }
 
 void MainWindow::stopCapture()
@@ -352,7 +361,7 @@ void MainWindow::createCaptureHandlers()
     cameraInputA = new CameraInput(cameraConfigA);
     cameraInputA->frameCallback = [] (cv::Mat &mat) -> void
     {
-        CorkAnalyser::processFrame(mat, &configA, &defectA);
+        CorkAnalyser::processFrame(mat, configA, &defectA);
 
         if(!mat.empty())
         {
@@ -368,7 +377,7 @@ void MainWindow::createCaptureHandlers()
     cameraInputB = new CameraInput(cameraConfigB);
     cameraInputB->frameCallback = [] (cv::Mat &mat) -> void
     {
-        CorkAnalyser::processFrame(mat, &configB, &defectB);
+        CorkAnalyser::processFrame(mat, configB, &defectB);
 
         if(!mat.empty())
         {
