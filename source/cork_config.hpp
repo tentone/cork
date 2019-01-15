@@ -25,7 +25,6 @@ public:
     int minSpacing = 500;
 
     //Semi auto threshold
-    bool semiAutoThresh = true;
     double tresholdTolerance = 0.4;
 
     //Threshold value

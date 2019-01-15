@@ -552,13 +552,14 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     setScreen(SCREEN_MAIN);
 
     //Start camera capture
-    createCaptureHandlers();
     startCapture();
 }
 
 
 void MainWindow::startCapture()
 {
+    createCaptureHandlers();
+
     try
     {
         cameraInputA->start();
@@ -610,6 +611,7 @@ void MainWindow::stopCapture()
     {
         ui->camera_a->clear();
         ui->camera_b->clear();
+        deleteCaptureHandlers();
     });
 }
 

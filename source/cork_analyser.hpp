@@ -85,30 +85,14 @@ public:
                 cv::medianBlur(roi, roi, config->blurMaskKSize);
             }
 
-            /*
-            if(config->automaticThresh)
-            {
-                if(config->automaticUseOtsuThresh)
-                {
-                    double thresh = Threshold::otsuMask(roi, mask);
-                    //std::cout << "Otsu Automatic threshold: " << thresh << std::endl;
-                    cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
-                }
-                else// if(config->automaticUseHistogramThresh)
-                {
-                    double thresh = Threshold::histogram(roi, mask, config->histThreshMinDiff, config->histThreshNeighborhood, config->histThreshColorFilter, config->histThreshBalance);
-                    //std::cout << "Histogram automatic threshold: " << thresh << std::endl;
-                    cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
-                }
-            }
-            */
 
-            if(config->semiAutoThresh)
+            if(config->tresholdTolerance > 0.0)
             {
                 double thresh = Threshold::otsuMask(roi, mask);
                 thresh = (thresh * config->tresholdTolerance) + (config->thresholdValue * (1 - config->tresholdTolerance));
-                //std::cout << "Semi Automatic threshold: " << thresh << std::endl;
                 cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
+
+                //std::cout << "Semi Automatic threshold: " << thresh << std::endl;
             }
             else
             {
@@ -135,7 +119,8 @@ public:
                 }
             }
 
-            double area = PI * radius * radius;
+            double radiusSkirt = (radius - config->outsizeSkirt);
+            double area = PI * radiusSkirt * radiusSkirt;
             double defect = (count / area) * 100.0;
 
             //std::cout << "cv::Points: " << points << std::endl;
