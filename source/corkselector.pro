@@ -72,7 +72,6 @@ HEADERS += \
     mainwindow.hpp \
     image_status.hpp \
     threshold.hpp \
-    cvgui.hpp \
     qt_image.hpp
 
 #QT form files in the project

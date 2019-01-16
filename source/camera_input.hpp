@@ -23,7 +23,7 @@
 #include "image_status.hpp"
 
 //If true print performance measurements into the terminal
-#define MEASURE_PERFORMANCE false
+#define MEASURE_PERFORMANCE_INPUT false
 
 //If set true uses self created processing threads for camera input
 #define USE_THREAD true
@@ -142,7 +142,7 @@ public:
                     processingFrame = true;
                 #endif
 
-                #if MEASURE_PERFORMANCE
+                #if MEASURE_PERFORMANCE_INPUT
                     int64 init = cv::getTickCount();
                 #endif
 
@@ -203,7 +203,7 @@ public:
                 gst_buffer_unmap(buffer, &info);
                 gst_sample_unref(sample);
 
-                #if MEASURE_PERFORMANCE
+                #if MEASURE_PERFORMANCE_INPUT
                     int64 end = cv::getTickCount();
                     double secs = (end - init) / cv::getTickFrequency();
                     std::cout << "Cork: Processing time was " << secs << " s." << std::endl;

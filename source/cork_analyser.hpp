@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -12,6 +14,8 @@
 #define PI 3.14159265359
 
 #define DEBUG_DEFECTS true
+
+#define MEASURE_PERFORMANCE_CORK true
 
 /**
  * Processes cork images and returns cork found and defect found.
@@ -27,6 +31,10 @@ public:
      */
     static void processFrame(cv::Mat &image, CorkConfig *config, double *defectOutput)
     {
+        #if MEASURE_PERFORMANCE_CORK
+            int64 init = cv::getTickCount();
+        #endif
+
         //Deblur the image
         if(config->blurGlobal)
         {
@@ -53,8 +61,6 @@ public:
         //Detect circles
         std::vector<cv::Vec3f> circles;
         cv::HoughCircles(gray, circles, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, config->minSize, config->maxSize);
-
-        bool found = circles.size() > 0;
 
         //Iterate all found circles
         for(size_t i = 0; i < circles.size(); i++)
@@ -85,13 +91,12 @@ public:
                 cv::medianBlur(roi, roi, config->blurMaskKSize);
             }
 
-
+            //Only calculate otsu if the tolerance is more than 0
             if(config->tresholdTolerance > 0.0)
             {
                 double thresh = Threshold::otsuMask(roi, mask);
                 thresh = (thresh * config->tresholdTolerance) + (config->thresholdValue * (1 - config->tresholdTolerance));
                 cv::threshold(roi, roi_bin, thresh, 255, cv::THRESH_BINARY);
-
                 //std::cout << "Semi Automatic threshold: " << thresh << std::endl;
             }
             else
@@ -155,9 +160,21 @@ public:
                 //cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
             #endif
 
+            #if MEASURE_PERFORMANCE_CORK
+                int64 end = cv::getTickCount();
+                double secs = (end - init) / cv::getTickFrequency();
+                std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+            #endif
+
             *defectOutput = defect;
             return;
         }
+
+        #if MEASURE_PERFORMANCE_CORK
+            int64 end = cv::getTickCount();
+            double secs = (end - init) / cv::getTickFrequency();
+            std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+        #endif
 
         *defectOutput = -1.0;
     }

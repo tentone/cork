@@ -69,8 +69,8 @@ static Ui::MainWindow *ui_static;
 
 static void updateGUI()
 {
-    //Check cork presence
-    if(defectA > 0 && defectB > 0)
+    //Cork counter
+    if(defectA > 0 || defectB > 0)
     {
         if(!hasCork)
         {
@@ -79,7 +79,15 @@ static void updateGUI()
         }
 
         hasCork = true;
+    }
+    else
+    {
+        hasCork = false;
+    }
 
+    //Check cork presence
+    if(defectA > 0 && defectB > 0)
+    {
         if(defectA > defectB)
         {
             ui_static->label_selected->setText("Rollha B");
@@ -114,7 +122,6 @@ static void updateGUI()
         }
 
         //Average defect
-        //TODO <PREVENT OVERFLOW>
         sumDefect += defectA + defectB;
         corkCounter += 2;
         averageDefect = sumDefect / corkCounter;
@@ -123,7 +130,6 @@ static void updateGUI()
     //No cork
     else
     {
-        hasCork = false;
         ui_static->label_selected->setText("Sem Rollha");
     }
 
@@ -222,14 +228,12 @@ void MainWindow::setScreen(int _screen)
 
     if(screen == SCREEN_MAIN)
     {
-        //ui->group_home->show();
         ui->group_settings->hide();
     }
     else if(screen == SCREEN_SETTINGS)
     {
         fillSettingsUI();
         ui->group_settings->show();
-        //ui->group_home->hide();
     }
 }
 
@@ -546,7 +550,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigB->height = 480;
     cameraConfigB->input = CameraConfig::USB;
     cameraConfigB->videoBackend = cv::CAP_ANY;
-    cameraConfigB->usbNumber = 0;
+    cameraConfigB->usbNumber = 1;
 
     //Set main screen
     setScreen(SCREEN_MAIN);
@@ -604,14 +608,14 @@ void MainWindow::stopCapture()
     }
 
     running = false;
+    deleteCaptureHandlers();
 
     ui->button_stop_start->setText("Iniciar");
 
-    QTimer::singleShot(100, this, [=]()
+    QTimer::singleShot(1000, this, [=]()
     {
         ui->camera_a->clear();
         ui->camera_b->clear();
-        deleteCaptureHandlers();
     });
 }
 
