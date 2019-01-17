@@ -177,6 +177,12 @@ public:
                         //Create a cv::Mat, copy image data into that and save the image.
                         pdata->frame.data = info.data;
 
+                        if(pdata->frame.empty())
+                        {
+                            std::cout << "Cork: TCam frame is empty." << std::endl;
+                            return GST_FLOW_OK;
+                        }
+
                         resize(pdata->frame, pdata->resized, cv::Size(cameraConfig->width, cameraConfig->height));
 
                         /*

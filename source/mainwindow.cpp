@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QThread>
 #include <QTimer>
+#include <QThread>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -32,8 +33,12 @@ static int screen;
 static bool running = false;
 
 static bool hasCork = false;
+
 static double defectA = -1.0;
 static double defectB = -1.0;
+
+static bool writingImageA = false;
+static bool writingImageB = false;
 
 /**
  * Camera A configuration object.
@@ -552,18 +557,25 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigB->videoBackend = cv::CAP_ANY;
     cameraConfigB->usbNumber = 1;
 
+    //Timer to update GUI values
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [=]()
+    {
+        updateGUI();
+    });
+    timer->start(200);
+
     //Set main screen
     setScreen(SCREEN_MAIN);
 
     //Start camera capture
+    createCaptureHandlers();
     startCapture();
 }
 
 
 void MainWindow::startCapture()
 {
-    createCaptureHandlers();
-
     try
     {
         cameraInputA->start();
@@ -608,11 +620,10 @@ void MainWindow::stopCapture()
     }
 
     running = false;
-    deleteCaptureHandlers();
 
     ui->button_stop_start->setText("Iniciar");
 
-    QTimer::singleShot(1000, this, [=]()
+    QTimer::singleShot(500, this, [=]()
     {
         ui->camera_a->clear();
         ui->camera_b->clear();
@@ -644,7 +655,6 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configA, &defectA);
 
-        //TODO <MAYBE MOVE TO ANOTHER THREAD>
         if(!mat.empty())
         {
             cv::Mat resized, color;
@@ -659,7 +669,6 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configB, &defectB);
 
-        //TODO <MAYBE MOVE TO ANOTHER THREAD>
         if(!mat.empty())
         {
             cv::Mat resized, color;
@@ -667,9 +676,6 @@ void MainWindow::createCaptureHandlers()
             cv::resize(color, resized, cv::Size(ui_static->camera_b->width(), ui_static->camera_b->height()), 0, 0, cv::INTER_CUBIC);
             ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
         }
-
-        //TODO <MAYBE MOVE TO ANOTHER THREAD>
-        updateGUI();
     };
 }
 

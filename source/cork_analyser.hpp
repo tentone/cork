@@ -31,6 +31,12 @@ public:
      */
     static void processFrame(cv::Mat &image, CorkConfig *config, double *defectOutput)
     {
+        if(image.empty())
+        {
+            *defectOutput = -1.0;
+            return;
+        }
+
         #if MEASURE_PERFORMANCE_CORK
             int64 init = cv::getTickCount();
         #endif
