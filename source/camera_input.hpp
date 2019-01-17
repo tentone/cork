@@ -25,6 +25,9 @@
 //If true print performance measurements into the terminal
 #define MEASURE_PERFORMANCE_INPUT false
 
+//If true print automatically crops TCam image to match aspect ratio
+#define CROP_TCAM_IMAGE false
+
 //If set true uses self created processing threads for camera input
 #define USE_THREAD true
 
@@ -145,12 +148,10 @@ public:
                 #if MEASURE_PERFORMANCE_INPUT
                     int64 init = cv::getTickCount();
                 #endif
-
-                int width, height;
                 const GstStructure *str;
 
                 //Cast gpointer to ImageStatus*
-                ImageStatus *pdata = (ImageStatus*)data;
+                ImageStatus *pdata = static_cast<ImageStatus*>(data);
                 pdata->counter++;
 
                 //The following lines demonstrate, how to acces the image data in the GstSample.
@@ -171,8 +172,9 @@ public:
                     if(strcmp(gst_structure_get_string(str, "format"), "BGRx") == 0)
                     {
                         //Now query the width and height of the image
-                        gst_structure_get_int(str, "width", &width);
-                        gst_structure_get_int(str, "height", &height);
+                        //int width, height;
+                        //gst_structure_get_int(str, "width", &width);
+                        //gst_structure_get_int(str, "height", &height);
 
                         //Create a cv::Mat, copy image data into that and save the image.
                         pdata->frame.data = info.data;
@@ -183,18 +185,29 @@ public:
                             return GST_FLOW_OK;
                         }
 
-                        resize(pdata->frame, pdata->resized, cv::Size(cameraConfig->width, cameraConfig->height));
+                        #if CROP_TCAM_IMAGE
+                            //Crop image if necessary
+                            double originalRatio = static_cast<double>(cameraConfig->originalWidth) / static_cast<double>(cameraConfig->originalHeight);
+                            double ratio = static_cast<double>(cameraConfig->width) / static_cast<double>(cameraConfig->height);
 
-                        /*
-                        //Crop image to match aspect ratio
-                        int targetWidth = 640;
-                        cv::Rect crop;
-                        crop.x = (cameraConfig->width - targetWidth) / 2;
-                        crop.y = 0;
-                        crop.width = targetWidth;
-                        crop.height = cameraConfig->height;
-                        pdata->resized = pdata->resized(crop);
-                        */
+                            if(originalRatio > ratio)
+                            {
+                                int targetWidth = static_cast<int>(cameraConfig->originalWidth * (1 - (originalRatio - ratio)));
+
+                                std::cout << "Cork: Crop image " << targetWidth << std::endl;
+
+                                //Crop image to match aspect ratio
+                                cv::Rect crop;
+                                crop.x = (cameraConfig->originalWidth - targetWidth) / 2;
+                                crop.y = 0;
+                                crop.width = targetWidth;
+                                crop.height = cameraConfig->originalHeight;
+                                pdata->frame = pdata->frame(crop);
+                            }
+                        #endif
+
+                        //Resize image
+                        resize(pdata->frame, pdata->resized, cv::Size(cameraConfig->width, cameraConfig->height));
 
                         //Frame processing callback
                         frameCallback(pdata->resized);
@@ -212,7 +225,7 @@ public:
                 #if MEASURE_PERFORMANCE_INPUT
                     int64 end = cv::getTickCount();
                     double secs = (end - init) / cv::getTickFrequency();
-                    std::cout << "Cork: Processing time was " << secs << " s." << std::endl;
+                    std::cout << "Cork: TCAM Capture + Processing time was " << secs << " s." << std::endl;
                 #endif
 
                 #if USE_FRAME_SKIP
@@ -265,6 +278,7 @@ public:
                 if(!cap->open(cameraConfig->ipAddress))
                 {
                     std::cout << "Cork: IP Camera not available." << std::endl;
+                    return;
                 }
             }
 
@@ -388,7 +402,7 @@ public:
      */
     static void wait()
     {
-        std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(200));
+        std::this_thread::sleep_for(std::chrono::duration<int, std::ratio<1,1000>>(20));
     }
 
     /**

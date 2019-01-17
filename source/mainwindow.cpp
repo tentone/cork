@@ -541,7 +541,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     cameraConfigA = new CameraConfig();
     cameraConfigA->originalWidth = 1920;
     cameraConfigA->originalHeight = 1200;
-    cameraConfigA->width = 768;
+    cameraConfigA->width = 640;
     cameraConfigA->height = 480;
     cameraConfigA->input = CameraConfig::TCAM;
     cameraConfigA->tcamSerial = "46810320";
