@@ -184,6 +184,7 @@ public:
 
         *defectOutput = -1.0;
     }
+
     /**
      * Check if a value is in the neighborhood of another one.
      *

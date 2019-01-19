@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <fstream>
+#include <iostream>
 
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
@@ -101,5 +103,39 @@ public:
         originalWidth = 1920;
         originalHeight = 1200;
         videoBackend = cv::CAP_ANY;
+    }
+
+    /**
+     * Write configuration to output stream.
+     */
+    void saveFile(std::string fname)
+    {
+        std::ofstream out(fname);
+        out << this->input << ' ';
+        out << this->usbNumber << ' ';
+        out << this->tcamSerial << ' ';
+        out << this->ipAddress << ' ';
+        out << this->width << ' ';
+        out << this->height << ' ';
+        out << this->originalWidth << ' ';
+        out << this->originalHeight << std::endl;
+        out.close();
+    }
+
+    /**
+     * Read configuration from file.
+     */
+    void loadFile(std::string fname)
+    {
+        std::ifstream in(fname);
+        in >> this->input;
+        in >> this->usbNumber;
+        in >> this->tcamSerial;
+        in >> this->ipAddress;
+        in >> this->width;
+        in >> this->height;
+        in >> this->originalWidth;
+        in >> this->originalHeight;
+        in.close();
     }
 };

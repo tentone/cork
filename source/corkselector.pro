@@ -62,7 +62,6 @@ SOURCES += \
 
 #Header files of the project
 HEADERS += \
-    lib/cvui.h \
     lib/tcamcamera.h \
     camera_config.hpp \
     camera_input.hpp \
