@@ -198,6 +198,7 @@ void MainWindow::fillSettingsUI()
     ui->tab_a_threshold_tolerance->setValue(configA->tresholdTolerance);
     ui->tab_a_outside_skirt->setValue(configA->outsizeSkirt);
     ui->tab_a_shadow->setChecked(configA->rgb_shadow);
+    ui->tab_a_automatic_circle->setChecked(configA->automaticCircle);
 
     //Camera B configuration
     int tabBInputIndex = ui->tab_b_input->findData(cameraConfigB->input);
@@ -230,6 +231,7 @@ void MainWindow::fillSettingsUI()
     ui->tab_b_threshold_tolerance->setValue(configB->tresholdTolerance);
     ui->tab_b_outside_skirt->setValue(configB->outsizeSkirt);
     ui->tab_b_shadow->setChecked(configB->rgb_shadow);
+    ui->tab_b_automatic_circle->setChecked(configB->automaticCircle);
 }
 
 void MainWindow::setScreen(int _screen)
@@ -387,6 +389,12 @@ void MainWindow::initializeGUI()
         std::cout << "Cork: A RGB shadow, " << configA->rgb_shadow << std::endl;
     });
 
+    connect(ui->tab_a_automatic_circle, static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled), [=](const bool &value)
+    {
+        configA->automaticCircle = value;
+        std::cout << "Cork: A Auto circle, " << configA->automaticCircle << std::endl;
+    });
+
     //Tab B camera input options
     ui->tab_b_input->clear();
     ui->tab_b_input->addItem("Ficheiro", CameraConfig::FILE);
@@ -523,6 +531,12 @@ void MainWindow::initializeGUI()
     {
         configB->rgb_shadow = value;
         std::cout << "Cork: B RGB shadow, " << configB->rgb_shadow << std::endl;
+    });
+
+    connect(ui->tab_b_automatic_circle, static_cast<void (QCheckBox::*)(bool)>(&QCheckBox::toggled), [=](const bool &value)
+    {
+        configB->automaticCircle = value;
+        std::cout << "Cork: A Auto circle, " << configB->automaticCircle << std::endl;
     });
 }
 

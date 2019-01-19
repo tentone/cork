@@ -1,15 +1,14 @@
 #pragma once
 
+#include <opencv2/core.hpp>
+
 /**
  * Stores the cork detection configuration.
  */
 class CorkConfig
 {
 public:
-
-
     //Pixels per milimeter
-    //TODO <USE PPI ON CALCULATIONS>
     int ppmm = 100;
 
     //Color analysis
@@ -38,4 +37,10 @@ public:
     int blurGlobalKSize = 3;
     bool blurMask = false;
     int blurMaskKSize = 3;
+
+    //Detection circle
+    bool automaticCircle = true;
+
+    //Cork circle stored as a vector3 [x,y,r]
+    cv::Vec3f circle;
 };
