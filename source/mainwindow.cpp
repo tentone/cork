@@ -23,6 +23,11 @@
 
 #include "mainwindow.hpp"
 
+#define CAMERA_CONFIG_A_FNAME "cameraConfigA.txt"
+#define CAMERA_CONFIG_B_FNAME "cameraConfigB.txt"
+#define CONFIG_A_FNAME "configA.txt"
+#define CONFIG_B_FNAME "configB.txt"
+
 static int SCREEN_MAIN = 100;
 static int SCREEN_SETTINGS = 101;
 
@@ -267,54 +272,63 @@ void MainWindow::initializeGUI()
     connect(ui->tab_a_input, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
     {
         cameraConfigA->input = ui->tab_a_input->itemData(value).toInt();
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A USB, " << cameraConfigA->input << std::endl;
     });
 
     connect(ui->tab_a_video_backend, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
     {
         cameraConfigA->videoBackend = ui->tab_a_video_backend->itemData(value).toInt();
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A backend, " << cameraConfigA->videoBackend << std::endl;
     });
 
     connect(ui->tab_a_usb, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigA->usbNumber = value;
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A USB, " << cameraConfigA->usbNumber << std::endl;
     });
 
     connect(ui->tab_a_width, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigA->width = value;
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A Width, " << cameraConfigA->width << std::endl;
     });
 
     connect(ui->tab_a_height, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigA->height = value;
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A Height, " << cameraConfigA->height << std::endl;
     });
 
     connect(ui->tab_a_width_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigA->originalWidth = value;
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A Original Width, " << cameraConfigA->originalWidth << std::endl;
     });
 
     connect(ui->tab_a_height_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigA->originalHeight = value;
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A Original Height, " << cameraConfigA->originalHeight << std::endl;
     });
 
     connect(ui->tab_a_tcam_serial, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigA->tcamSerial = text.toStdString();
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A Tcam Serial, " << cameraConfigA->tcamSerial << std::endl;
     });
 
     connect(ui->tab_a_ip, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigA->ipAddress = text.toStdString();
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
         std::cout << "Cork: A IP Address, " << cameraConfigA->ipAddress << std::endl;
     });
 
@@ -396,54 +410,63 @@ void MainWindow::initializeGUI()
     connect(ui->tab_b_input, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
     {
         cameraConfigB->input = ui->tab_b_input->itemData(value).toInt();
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B USB, " << cameraConfigB->input << std::endl;
     });
 
     connect(ui->tab_b_video_backend, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](const int &value)
     {
         cameraConfigB->videoBackend = ui->tab_b_video_backend->itemData(value).toInt();
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B backend, " << cameraConfigB->videoBackend << std::endl;
     });
 
     connect(ui->tab_b_usb, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigB->usbNumber = value;
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B USB, " << cameraConfigB->usbNumber << std::endl;
     });
 
     connect(ui->tab_b_width, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigB->width = value;
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B Width, " << cameraConfigB->width << std::endl;
     });
 
     connect(ui->tab_b_height, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigB->height = value;
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B Height, " << cameraConfigB->height << std::endl;
     });
 
     connect(ui->tab_b_width_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigB->originalWidth = value;
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B Original Width, " << cameraConfigB->originalWidth << std::endl;
     });
 
     connect(ui->tab_b_height_original, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [=](const int &value)
     {
         cameraConfigB->originalHeight = value;
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B Original Height, " << cameraConfigB->originalHeight << std::endl;
     });
 
     connect(ui->tab_b_tcam_serial, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigB->tcamSerial = text.toStdString();
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B Tcam Serial, " << cameraConfigB->tcamSerial << std::endl;
     });
 
     connect(ui->tab_b_ip, &QLineEdit::textChanged, [=](const QString &text)
     {
         cameraConfigB->ipAddress = text.toStdString();
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
         std::cout << "Cork: B IP Address, " << cameraConfigB->ipAddress << std::endl;
     });
 
@@ -536,19 +559,23 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Cork A configuration
     configA = new CorkConfig();
+    configA->thresholdValue = 50;
+    configA->tresholdTolerance = 0.25;
+    configA->rgb_shadow = true;
 
     //Camera A configuration
     cameraConfigA = new CameraConfig();
-    if(!cameraConfigA->loadFile("cameraConfigA.txt"))
+    //TODO <REMOVE true>
+    if(true || !cameraConfigA->loadFile(CAMERA_CONFIG_A_FNAME))
     {
         std::cout << "Cork: Unable to load camera config A" << std::endl;
         cameraConfigA->originalWidth = 1920;
         cameraConfigA->originalHeight = 1200;
-        cameraConfigA->width = 640;
+        cameraConfigA->width = 768;
         cameraConfigA->height = 480;
         cameraConfigA->input = CameraConfig::TCAM;
         cameraConfigA->tcamSerial = "46810320";
-        cameraConfigA->saveFile("cameraConfigA.txt");
+        cameraConfigA->saveFile(CAMERA_CONFIG_A_FNAME);
     }
     else
     {
@@ -561,7 +588,8 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Camera B configuration
     cameraConfigB = new CameraConfig();
-    if(!cameraConfigB->loadFile("cameraConfigB.txt"))
+    //TODO <REMOVE true>
+    if(true || !cameraConfigB->loadFile(CAMERA_CONFIG_B_FNAME))
     {
         std::cout << "Cork: Unable to load camera config B" << std::endl;
         cameraConfigB->width = 640;
@@ -569,7 +597,7 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
         cameraConfigB->input = CameraConfig::USB;
         cameraConfigB->videoBackend = cv::CAP_ANY;
         cameraConfigB->usbNumber = 1;
-        cameraConfigB->saveFile("cameraConfigB.txt");
+        cameraConfigB->saveFile(CAMERA_CONFIG_B_FNAME);
     }
     else
     {
@@ -581,9 +609,12 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [=]()
     {
-        updateGUI();
+        if(running)
+        {
+            updateGUI();
+        }
     });
-    timer->start(200);
+    timer->start(300);
 
     //Set main screen
     setScreen(SCREEN_MAIN);
@@ -675,12 +706,16 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configA, &defectA);
 
-        if(!mat.empty())
+        if(!writingImageA && !mat.empty())
         {
+            writingImageA = true;
+
             cv::Mat resized, color;
             cv::cvtColor(mat, color, cv::COLOR_BGRA2RGB);
             cv::resize(color, resized, cv::Size(ui_static->camera_a->width(), ui_static->camera_a->height()), 0, 0, cv::INTER_CUBIC);
-            ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
+            ui_static->camera_a->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, static_cast<int>(resized.step), QImage::Format_RGB888)));
+
+            writingImageA = false;
         }
     };
 
@@ -689,12 +724,17 @@ void MainWindow::createCaptureHandlers()
     {
         CorkAnalyser::processFrame(mat, configB, &defectB);
 
-        if(!mat.empty())
+
+        if(!writingImageB && !mat.empty())
         {
+            writingImageB = true;
+
             cv::Mat resized, color;
             cv::cvtColor(mat, color, cv::COLOR_BGR2RGB);
             cv::resize(color, resized, cv::Size(ui_static->camera_b->width(), ui_static->camera_b->height()), 0, 0, cv::INTER_CUBIC);
-            ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, resized.step, QImage::Format_RGB888)));
+            ui_static->camera_b->setPixmap(QPixmap::fromImage(QImage(resized.data, resized.cols, resized.rows, static_cast<int>(resized.step), QImage::Format_RGB888)));
+
+            writingImageB = false;
         }
     };
 }
