@@ -106,27 +106,55 @@ public:
     }
 
     /**
+     * Print the camera configuration to cout for debug.
+     */
+    void debugCout()
+    {
+        std::cout << this->input << std::endl;
+        std::cout << this->usbNumber << std::endl;
+        std::cout << this->tcamSerial << std::endl;
+        std::cout << this->ipAddress << std::endl;
+        std::cout << this->width << std::endl;
+        std::cout << this->height << std::endl;
+        std::cout << this->originalWidth << std::endl;
+        std::cout << this->originalHeight << std::endl;
+    }
+
+    /**
      * Write configuration to output stream.
      */
-    void saveFile(std::string fname)
+    void saveFile(const std::string &fname)
     {
         std::ofstream out(fname);
-        out << this->input << ' ';
-        out << this->usbNumber << ' ';
-        out << this->tcamSerial << ' ';
-        out << this->ipAddress << ' ';
-        out << this->width << ' ';
-        out << this->height << ' ';
-        out << this->originalWidth << ' ';
+        out << this->input << std::endl;
+        out << this->usbNumber << std::endl;
+        out << (this->tcamSerial.empty() ? "0" : this->tcamSerial) << std::endl;
+        out << (this->ipAddress.empty() ? "0" : this->ipAddress) << std::endl;
+        out << this->width << std::endl;
+        out << this->height << std::endl;
+        out << this->originalWidth << std::endl;
         out << this->originalHeight << std::endl;
         out.close();
     }
 
+    static bool fileExists(const std::string &name)
+    {
+        std::ifstream f(name.c_str());
+        return f.good();
+    }
+
     /**
      * Read configuration from file.
+     *
+     * Returns true if the file was loaded successfully, or false in case of error.
      */
-    void loadFile(std::string fname)
+    bool loadFile(const std::string &fname)
     {
+        if(!fileExists(fname))
+        {
+            return false;
+        }
+
         std::ifstream in(fname);
         in >> this->input;
         in >> this->usbNumber;
@@ -137,5 +165,10 @@ public:
         in >> this->originalWidth;
         in >> this->originalHeight;
         in.close();
+
+        return true;
     }
 };
+
+
+

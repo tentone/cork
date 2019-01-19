@@ -539,23 +539,43 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent), ui(new Ui::MainWin
 
     //Camera A configuration
     cameraConfigA = new CameraConfig();
-    cameraConfigA->originalWidth = 1920;
-    cameraConfigA->originalHeight = 1200;
-    cameraConfigA->width = 640;
-    cameraConfigA->height = 480;
-    cameraConfigA->input = CameraConfig::TCAM;
-    cameraConfigA->tcamSerial = "46810320";
+    if(!cameraConfigA->loadFile("cameraConfigA.txt"))
+    {
+        std::cout << "Cork: Unable to load camera config A" << std::endl;
+        cameraConfigA->originalWidth = 1920;
+        cameraConfigA->originalHeight = 1200;
+        cameraConfigA->width = 640;
+        cameraConfigA->height = 480;
+        cameraConfigA->input = CameraConfig::TCAM;
+        cameraConfigA->tcamSerial = "46810320";
+        cameraConfigA->saveFile("cameraConfigA.txt");
+    }
+    else
+    {
+        cameraConfigA->debugCout();
+        std::cout << "Cork: Loaded camera config A" << std::endl;
+    }
 
     //Cork B configuration
     configB = new CorkConfig();
 
     //Camera B configuration
     cameraConfigB = new CameraConfig();
-    cameraConfigB->width = 640;
-    cameraConfigB->height = 480;
-    cameraConfigB->input = CameraConfig::USB;
-    cameraConfigB->videoBackend = cv::CAP_ANY;
-    cameraConfigB->usbNumber = 1;
+    if(!cameraConfigB->loadFile("cameraConfigB.txt"))
+    {
+        std::cout << "Cork: Unable to load camera config B" << std::endl;
+        cameraConfigB->width = 640;
+        cameraConfigB->height = 480;
+        cameraConfigB->input = CameraConfig::USB;
+        cameraConfigB->videoBackend = cv::CAP_ANY;
+        cameraConfigB->usbNumber = 1;
+        cameraConfigB->saveFile("cameraConfigB.txt");
+    }
+    else
+    {
+        cameraConfigB->debugCout();
+        std::cout << "Cork: Loaded camera config B" << std::endl;
+    }
 
     //Timer to update GUI values
     QTimer *timer = new QTimer(this);

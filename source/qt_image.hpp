@@ -16,7 +16,7 @@ public:
     QImage MatToQImage(const cv::Mat& mat)
     {
         // 8-bits unsigned, NO. OF CHANNELS=1
-        if(mat.type()==CV_8UC1)
+        if(mat.type() == CV_8UC1)
         {
             // Set the color table (used to translate colour indexes to qRgb values)
             QVector<QRgb> colorTable;
@@ -34,7 +34,7 @@ public:
             return img;
         }
         // 8-bits unsigned, NO. OF CHANNELS=3
-        else if(mat.type()==CV_8UC3)
+        else if(mat.type() == CV_8UC3)
         {
             // Copy input Mat
             const uchar *qImageBuffer = (const uchar*)mat.data;
@@ -43,7 +43,7 @@ public:
             QImage img(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
             return img.rgbSwapped();
         }
-
+        // Cannot convert image
         else
         {
             return QImage();
