@@ -182,7 +182,7 @@ public:
         if(config->checkIdentation)
         {
             std::vector<cv::Vec3f> inside;
-            cv::HoughCircles(roi, inside, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, roi.rows / 10, roi.rows / 3);
+            cv::HoughCircles(roi, inside, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, 0, static_cast<int>(radius * 0.9));
 
             std::cout << roi.rows << std::endl;
 
