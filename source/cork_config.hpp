@@ -20,7 +20,7 @@ public:
     //Min spacing
     int minSize = 90;
     int maxSize = 190;
-    int minSpacing = 500;
+    int minSpacing = 1000;
 
     //Hough parameters
     int lowCannyThresh = 120;
@@ -40,6 +40,10 @@ public:
 
     //Detection circle
     bool automaticCircle = true;
+
+    //Check if the cork has an identation all aroud.
+    bool checkIdentation = true;
+    cv::Vec3f identation;
 
     //Cork circle stored as a vector3 [x,y,r]
     cv::Vec3f circle;

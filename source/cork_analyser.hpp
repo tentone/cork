@@ -175,9 +175,28 @@ public:
 
             //Cicle position
             //cv::circle(image, center, 1, cv::Scalar(255, 0, 0), 2, cv::LINE_AA);
-            cv::circle(image, center, radius, cv::Scalar(0, 255, 000), 1, cv::LINE_AA);
+            cv::circle(image, center, radius, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
             //cv::putText(image, std::to_string(defect) + "%", center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255));
         #endif
+
+        if(config->checkIdentation)
+        {
+            std::vector<cv::Vec3f> inside;
+            cv::HoughCircles(roi, inside, cv::HOUGH_GRADIENT, 1, config->minSpacing, config->lowCannyThresh, config->highCannyThresh, roi.rows / 10, roi.rows / 3);
+
+            std::cout << roi.rows << std::endl;
+
+            if(inside.size() > 0)
+            {
+                config->identation = inside[0];
+
+                #if DEBUG_DEFECTS
+                    //cv::Point(config->identation[0], config->identation[1])
+                    cv::circle(image, center, config->identation[2], cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
+                #endif
+            }
+        }
+
 
         #if MEASURE_PERFORMANCE_CORK
             int64 end = cv::getTickCount();
