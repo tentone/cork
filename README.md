@@ -6,10 +6,7 @@
  - Automatic cork detection (circle).
  - Automatic threshold ajust using otsu (per cork).
  - Per pixel defect measurement.
- 
-## To do
- - Background removal
- - Color filtering
+ - Color channel based defect filtering
 
 ## Code Style
  - camelCase for all names (except constants).
