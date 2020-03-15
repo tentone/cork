@@ -1,4 +1,5 @@
-# Cork Stopper CV
+# Cork Stopper Quality
+
  - Cork stopper analysis and comparison vision system, capable of detecting defects on the booth sides of a cork stopper.
 
  - Developed using a Imaging Source DFK23UX236 camera and Linux.
@@ -18,17 +19,19 @@
     - Typical system cannot distinguish a hole (defect) from a darker zone (not a defect).
  - In the images bellow we can observe some results where its possible to observe darker zones in the cork not being classified as a defect.
 
-<img src="https://raw.githubusercontent.com/tentone/cork/master/readme/b.png" width="250"><img src="https://raw.githubusercontent.com/tentone/cork/master/readme/c.png" width="250">
+<img src="https://raw.githubusercontent.com/tentone/cork/master/readme/b.png" width="350"><img src="https://raw.githubusercontent.com/tentone/cork/master/readme/c.png" width="360">
 
 
 
 ### Configuration
 
 - The project can use up to two individual cameras and has support for IP, USB, File image sources.
-- The QT interface only support Portuguese language.
-- The configuration tab allows to customize the camera parameters used.
+- The QT interface only support Portuguese language. The configuration tab allows to customize the camera parameters used.
+- If there is not present a RGB light setup the system is still able to detect defects. But it is not as efficient and you may get some false positives.
 
-<img src="https://raw.githubusercontent.com/tentone/cork/master/readme/gui/a.png" width="250"><img src="https://raw.githubusercontent.com/tentone/cork/master/readme/gui/c.png" width="250">
+
+
+<img src="https://raw.githubusercontent.com/tentone/cork/master/readme/gui/a.png" width="300"><img src="https://raw.githubusercontent.com/tentone/cork/master/readme/gui/c.png" width="300">
 
 
 
@@ -61,3 +64,9 @@ cmake .
  - CVUI (https://github.com/Dovyski/cvui)
  - Imaging Source Camera software (https://github.com/TheImagingSource/tiscamera)
  - QT (https://www.qt.io/)
+
+
+
+### License
+
+- This project is distributed under MIT license. (Available on the project Git repository on GitHub).
